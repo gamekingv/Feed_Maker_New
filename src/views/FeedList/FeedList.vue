@@ -7,17 +7,15 @@
             <v-list-tile-title>全部</v-list-tile-title>
         </v-list-tile>
 
-        <v-list-group active-class append-icon v-model="isActive" @click.stop="">
-            <v-list-tile slot="activator">
-                <v-list-tile-action @click="test">
-                    <v-btn flat icon>
-                        <v-icon v-text="isActive ? 'folder_open': 'folder'"></v-icon>
-                    </v-btn>
+        <v-list-group active-class v-model="isActive">
+            <v-list-tile slot="activator" ripple @click.stop="">
+                <v-list-tile-action>
+                    <v-icon v-text="isActive ? 'folder_open': 'folder'"></v-icon>
                 </v-list-tile-action>
                 <v-list-tile-title>User11111111111111111111111</v-list-tile-title>
             </v-list-tile>
 
-            <v-list-tile v-for="(admin, i) in admins" :key="i">
+            <v-list-tile v-for="(admin, i) in admins" :key="i" ripple @click="">
                 <v-list-tile-action>
                     <v-icon v-text="admin[1]"></v-icon>
                 </v-list-tile-action>
@@ -46,6 +44,8 @@ export default {
         test(e) {
             console.log(this.isActive);
             this.isActive = !this.isActive;
+            console.log(this);
+            console.log(e);
         },
         feedSelect() {
             console.log(123);
