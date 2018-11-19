@@ -1,6 +1,6 @@
 <template>
-    <v-list dense expand>
-        <v-list-tile>
+    <v-list class="pt-0" dense expand>
+        <v-list-tile ripple @click.stop="">
             <v-list-tile-action>
                 <v-icon>folder_special</v-icon>
             </v-list-tile-action>
@@ -15,7 +15,7 @@
                 <v-list-tile-title>User11111111111111111111111</v-list-tile-title>
             </v-list-tile>
 
-            <v-list-tile v-for="(admin, i) in admins" :key="i" ripple @click="">
+            <v-list-tile v-for="(admin, i) in admins" :key="i" ripple @click.stop="">
                 <v-list-tile-action>
                     <v-icon v-text="admin[1]"></v-icon>
                 </v-list-tile-action>
