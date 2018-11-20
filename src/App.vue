@@ -1,6 +1,10 @@
 <template>
     <v-app dark>
         <v-navigation-drawer width="250" stateless value="true" fixed :mini-variant="miniVariant" v-model="drawer" app>
+            <v-toolbar flat class="transparent">
+                <v-toolbar-side-icon></v-toolbar-side-icon>
+                <v-toolbar-title v-text="title"></v-toolbar-title>
+            </v-toolbar>
             <v-list two-line>
                 <v-list-tile>
                     <v-list-tile-avatar>
@@ -8,14 +12,13 @@
                     </v-list-tile-avatar>
 
                     <v-list-tile-content>
-                        <v-list-tile-title class="headline">Feed Maker</v-list-tile-title>
+                        <v-list-tile-title class="title">Feed Maker</v-list-tile-title>
                     </v-list-tile-content>
                 </v-list-tile>
                 <v-list-tile>
                     <v-text-field label="搜索" append-icon="search" clearable></v-text-field>
                 </v-list-tile>
             </v-list>
-            <v-divider></v-divider>
             <feed-list></feed-list>
         </v-navigation-drawer>
         <v-toolbar fixed app :clipped-left="clipped">
