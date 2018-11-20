@@ -2,26 +2,19 @@
     <v-app dark>
         <v-navigation-drawer width="250" stateless value="true" fixed :mini-variant="miniVariant" v-model="drawer" app>
             <v-toolbar flat class="transparent">
-                <v-toolbar-side-icon></v-toolbar-side-icon>
-                <v-toolbar-title v-text="title"></v-toolbar-title>
+                <v-toolbar-items>
+                    <v-icon x-large class="blue--text">wifi_tethering</v-icon>
+                </v-toolbar-items>
+                <v-toolbar-title>Feed Maker</v-toolbar-title>
             </v-toolbar>
-            <v-list two-line>
-                <v-list-tile>
-                    <v-list-tile-avatar>
-                        <v-icon class="blue darken-3">wifi_tethering</v-icon>
-                    </v-list-tile-avatar>
-
-                    <v-list-tile-content>
-                        <v-list-tile-title class="title">Feed Maker</v-list-tile-title>
-                    </v-list-tile-content>
-                </v-list-tile>
+            <v-list>
                 <v-list-tile>
                     <v-text-field label="搜索" append-icon="search" clearable></v-text-field>
                 </v-list-tile>
             </v-list>
             <feed-list></feed-list>
         </v-navigation-drawer>
-        <v-toolbar fixed app :clipped-left="clipped">
+        <v-toolbar fixed app>
             <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
             <v-btn icon @click.stop="miniVariant = !miniVariant">
                 <v-icon v-html="miniVariant ? 'chevron_right' : 'chevron_left'"></v-icon>
@@ -53,7 +46,7 @@
 </template>
 
 <script>
-import FeedList from './views/FeedList/FeedList.vue';
+import FeedList from './FeedList/FeedList.vue';
 
 export default {
     data: () => ({
