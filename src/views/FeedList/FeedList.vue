@@ -14,7 +14,7 @@
                 <v-list-tile-title v-text="group.name"></v-list-tile-title>
             </v-list-tile>
 
-            <v-list-tile v-for="(feed, i) in group.feeds" :key="i" ripple @click.stop="">
+            <v-list-tile v-for="(feed, i) in group.feeds" :key="i" ripple @click="test">
                 <v-list-tile-action>
                     <v-icon v-text="feed[1]"></v-icon>
                 </v-list-tile-action>
@@ -25,8 +25,6 @@
 </template>
 
 <script>
-import draggable from 'vuedraggable';
-
 export default {
     data: () => ({
         isActive: true,
@@ -57,9 +55,6 @@ export default {
         }],
         groupsTemp: []
     }),
-    components: {
-        draggable
-    },
     methods: {
         test() {
             console.log(this.groups[0].name);
