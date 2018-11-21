@@ -2,7 +2,13 @@
     <v-list dense expand>
         <v-list-tile ripple @click="test">
             <v-list-tile-action>
-                <v-icon>folder_special</v-icon>
+                <v-icon>star</v-icon>
+            </v-list-tile-action>
+            <v-list-tile-title>收藏</v-list-tile-title>
+        </v-list-tile>
+        <v-list-tile ripple @click="test">
+            <v-list-tile-action>
+                <v-icon>dashboard</v-icon>
             </v-list-tile-action>
             <v-list-tile-title>全部</v-list-tile-title>
         </v-list-tile>
