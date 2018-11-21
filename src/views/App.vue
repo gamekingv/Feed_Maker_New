@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <v-app dark>
         <v-navigation-drawer width="250" stateless value="true" fixed v-model="drawer" app>
             <v-toolbar flat class="transparent">
@@ -7,21 +7,13 @@
                 </v-toolbar-items>
                 <v-toolbar-title>Feed Maker</v-toolbar-title>
             </v-toolbar>
-            <v-list>
-                <v-list-tile>
-                    <v-text-field label="搜索" append-icon="search" clearable></v-text-field>
-                </v-list-tile>
-            </v-list>
             <feed-list></feed-list>
         </v-navigation-drawer>
         <v-toolbar fixed app>
             <v-toolbar-side-icon @click="drawer = !drawer"></v-toolbar-side-icon>
             <v-toolbar-title v-text="title"></v-toolbar-title>
-            <v-btn icon @click="search = false">
-                <v-icon>search</v-icon>
-            </v-btn>
             <v-toolbar-title>
-                <v-text-field class="pt-0" :disabled="search" hide-details single-line clearable></v-text-field>
+                <v-text-field ref="input" class="pt-0" hide-details single-line solo-inverted clearable></v-text-field>
             </v-toolbar-title>
             <v-spacer></v-spacer>
             <v-btn icon @click="dialog = !dialog">
@@ -84,7 +76,7 @@ export default {
         setting: false,
         fixed: false,
         dialog: false,
-        search: true,
+        searchShown: false,
         title: 'Vuetify.js'
     }),
     methods: {
