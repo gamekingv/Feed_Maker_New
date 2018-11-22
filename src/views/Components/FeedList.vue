@@ -1,26 +1,26 @@
 <template>
     <v-list dense expand>
-        <v-list-tile ripple @click="test">
+        <v-list-tile ripple to="/">
             <v-list-tile-action>
                 <v-icon>star</v-icon>
             </v-list-tile-action>
             <v-list-tile-title>收藏</v-list-tile-title>
         </v-list-tile>
-        <v-list-tile ripple @click="test">
+        <v-list-tile ripple to="/">
             <v-list-tile-action>
                 <v-icon>dashboard</v-icon>
             </v-list-tile-action>
             <v-list-tile-title>全部</v-list-tile-title>
         </v-list-tile>
         <v-list-group v-for="(group, i) in groups" :key="i" active-class v-model="group.isActive">
-            <v-list-tile slot="activator" ripple @click.stop="">
+            <v-list-tile slot="activator" ripple @click.stop="" to="/">
                 <v-list-tile-action>
                     <v-icon v-text="group.isActive ? 'folder_open': 'folder'"></v-icon>
                 </v-list-tile-action>
                 <v-list-tile-title v-text="group.name"></v-list-tile-title>
             </v-list-tile>
 
-            <v-list-tile v-for="(feed, i) in group.feeds" :key="i" ripple @click="test">
+            <v-list-tile v-for="(feed, i) in group.feeds" :key="i" ripple @click="test" to="/">
                 <v-list-tile-action>
                     <v-icon v-text="feed[1]"></v-icon>
                 </v-list-tile-action>
