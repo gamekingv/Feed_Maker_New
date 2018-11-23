@@ -1,64 +1,45 @@
 <template>
-    <v-card tile>
-        <v-card-text>
-            <v-btn color="primary" dark @click="dialog2 = !dialog2">Open Dialog 2</v-btn>
-            <v-tooltip right>
-                <v-btn slot="activator">Tool Tip Activator</v-btn>
-                Tool Tip
-            </v-tooltip>
-            <v-list three-line subheader>
-                <v-subheader>User Controls</v-subheader>
-                <v-list-tile avatar>
-                    <v-list-tile-content>
-                        <v-list-tile-title>Content filtering</v-list-tile-title>
-                        <v-list-tile-sub-title>Set the content filtering level to restrict apps that can be downloaded</v-list-tile-sub-title>
-                    </v-list-tile-content>
-                </v-list-tile>
-                <v-list-tile avatar>
-                    <v-list-tile-content>
-                        <v-list-tile-title>Password</v-list-tile-title>
-                        <v-list-tile-sub-title>Require password for purchase or use password to restrict purchase</v-list-tile-sub-title>
-                    </v-list-tile-content>
-                </v-list-tile>
-            </v-list>
-            <v-divider></v-divider>
-            <v-list three-line subheader>
-                <v-subheader>General</v-subheader>
-                <v-list-tile avatar>
-                    <v-list-tile-action>
-                        <v-checkbox v-model="notifications"></v-checkbox>
-                    </v-list-tile-action>
-                    <v-list-tile-content>
-                        <v-list-tile-title>Notifications</v-list-tile-title>
-                        <v-list-tile-sub-title>Notify me about updates to apps or games that I downloaded</v-list-tile-sub-title>
-                    </v-list-tile-content>
-                </v-list-tile>
-                <v-list-tile avatar>
-                    <v-list-tile-action>
-                        <v-checkbox v-model="sound"></v-checkbox>
-                    </v-list-tile-action>
-                    <v-list-tile-content>
-                        <v-list-tile-title>Sound</v-list-tile-title>
-                        <v-list-tile-sub-title>Auto-update apps at any time. Data charges may apply</v-list-tile-sub-title>
-                    </v-list-tile-content>
-                </v-list-tile>
-                <v-list-tile avatar>
-                    <v-list-tile-action>
-                        <v-checkbox v-model="widgets"></v-checkbox>
-                    </v-list-tile-action>
-                    <v-list-tile-content>
-                        <v-list-tile-title>Auto-add widgets</v-list-tile-title>
-                        <v-list-tile-sub-title>Automatically add home screen widgets</v-list-tile-sub-title>
-                    </v-list-tile-content>
-                </v-list-tile>
-            </v-list>
-        </v-card-text>
+    <v-card>
+        <v-container fluid grid-list-md>
+            <v-layout row wrap>
+                <v-flex v-for="card in cards" v-bind="{ [`xs${card.flex}`]: true }" :key="card.title">
+                    <v-card>
+                        <v-img :src="card.src" height="200px">
+                            <v-container fill-height fluid pa-2>
+                                <v-layout fill-height>
+                                    <v-flex xs12 align-end flexbox>
+                                        <span class="headline white--text" v-text="card.title"></span>
+                                    </v-flex>
+                                </v-layout>
+                            </v-container>
+                        </v-img>
+
+                        <v-card-actions>
+                            <v-spacer></v-spacer>
+                            <v-btn icon>
+                                <v-icon>favorite</v-icon>
+                            </v-btn>
+                            <v-btn icon>
+                                <v-icon>bookmark</v-icon>
+                            </v-btn>
+                            <v-btn icon>
+                                <v-icon>share</v-icon>
+                            </v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-flex>
+            </v-layout>
+        </v-container>
     </v-card>
 </template>
 <script>
 export default {
     data: () => ({
-
+        cards: [
+            { title: 'Pre-fab homes', src: 'https://cdn.vuetifyjs.com/images/cards/house.jpg', flex: 12 },
+            { title: 'Favorite road trips', src: 'https://cdn.vuetifyjs.com/images/cards/road.jpg', flex: 6 },
+            { title: 'Best airlines', src: 'https://cdn.vuetifyjs.com/images/cards/plane.jpg', flex: 6 }
+        ]
     })
 };
 </script>

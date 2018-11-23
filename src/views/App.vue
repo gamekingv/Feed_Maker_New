@@ -9,32 +9,35 @@
                     <v-toolbar-title>Feed Maker</v-toolbar-title>
                 </v-toolbar>
                 <v-flex class="feed-list">
-                    <feed-list></feed-list>
+                    <feed-list />
                 </v-flex>
                 <v-toolbar flat dense class="transparent">
                     <v-btn color="blue" flat round>
                         <v-icon>add</v-icon>添加
                     </v-btn>
-                    <v-btn color="blue" flat round to="/arrange">
+                    <v-btn color="blue" flat round to="/arrange" @click.native="arrange">
                         <v-icon>list</v-icon>整理
                     </v-btn>
                 </v-toolbar>
             </v-layout>
         </v-navigation-drawer>
         <v-toolbar fixed app>
-            <v-toolbar-side-icon @click="drawer = !drawer"></v-toolbar-side-icon>
-            <v-toolbar-title v-text="title"></v-toolbar-title>
+            <v-toolbar-side-icon @click="drawer = !drawer" />
+            <v-toolbar-title v-text="$store.getters.activeTitle" />
+            <v-spacer />
             <v-toolbar-title>
-                <v-text-field class="pt-0" v-model="searchString" prepend-inner-icon="search" solo hide-details single-line clearable @click:prepend-inner.stop="search"></v-text-field>
+                <v-text-field class="pt-0" v-model="searchString" prepend-inner-icon="search" solo hide-details single-line clearable @click:prepend-inner.stop="search" />
             </v-toolbar-title>
-            <v-spacer></v-spacer>
+            <v-btn icon @click="">
+                <v-icon>add</v-icon>
+            </v-btn>
             <v-btn icon @click="setting = !setting">
                 <v-icon>settings</v-icon>
             </v-btn>
         </v-toolbar>
         <v-content>
             <v-fade-transition mode="out-in" duration="80">
-                <router-view></router-view>
+                <router-view ref="content" />
             </v-fade-transition>
         </v-content>
         <v-navigation-drawer v-model="setting" right temporary fixed>
@@ -51,18 +54,22 @@
 </template>
 
 <script>
-import FeedList from './Components/FeedList';
+import FeedList from 'views/Components/FeedList';
+import { mapMutations } from 'vuex';
 
 export default {
     data: () => ({
         drawer: true,
         setting: false,
-        title: 'Vuetify.js',
         searchString: ''
     }),
     methods: {
+        ...mapMutations(['setActive']),
         search() {
             console.log(this.searchString);
+        },
+        arrange() {
+            this.setActive({ type: 'other', id: 'arrange' });
         }
     },
     components: {

@@ -1,82 +1,75 @@
 <template>
     <v-list dense expand>
-        <v-list-tile ripple to="/">
+        <v-list-tile ripple to="/feed/collection" @click="select('collection')">
             <v-list-tile-action>
                 <v-icon>star</v-icon>
             </v-list-tile-action>
             <v-list-tile-title>收藏</v-list-tile-title>
         </v-list-tile>
-        <v-list-tile ripple to="/">
+        <v-list-tile ripple to="/feed/all" @click="select('all')">
             <v-list-tile-action>
                 <v-icon>dashboard</v-icon>
             </v-list-tile-action>
             <v-list-tile-title>全部</v-list-tile-title>
         </v-list-tile>
-        <v-list-group v-for="(group, i) in groups" :key="i" active-class v-model="group.isActive">
-            <v-list-tile slot="activator" ripple @click.stop="" to="/">
+        <v-list-group v-for="(group, i) in groups" :key="i" active-class>
+            <v-list-tile slot="activator" ripple @click.stop="select('group', group.id)" :to="`/feed/group${group.id}`">
                 <v-list-tile-action>
-                    <v-icon v-text="group.isActive ? 'folder_open': 'folder'"></v-icon>
+                    <v-icon v-text="group.isActive ? 'folder_open': 'folder'" />
                 </v-list-tile-action>
-                <v-list-tile-title v-text="group.name"></v-list-tile-title>
+                <v-list-tile-title v-text="group.name" />
             </v-list-tile>
 
-            <v-list-tile v-for="(feed, i) in group.feeds" :key="i" ripple @click="test" to="/">
+            <v-list-tile v-for="(feed, i) in group.feeds" :key="i" ripple @click="select('feed', feed.id)" :to="`/feed/feed${feed.id}`">
                 <v-list-tile-action>
-                    <v-icon v-text="feed[1]"></v-icon>
+                    <v-icon v-text="feed.icon" />
                 </v-list-tile-action>
-                <v-list-tile-title v-text="feed[0]"></v-list-tile-title>
+                <v-list-tile-title v-text="feed.name" />
             </v-list-tile>
         </v-list-group>
     </v-list>
 </template>
 
 <script>
+import { mapMutations } from 'vuex';
+
 export default {
     data: () => ({
-        isActive: true,
         options: {
             animation: 100
-        },
-        groups: [{
-            name: 'group1', id: 1, isActive: false, feeds: [
-                ['Management', 'people_outline'],
-                ['Settings', 'settings'],
-                ['test', 'settings']
-            ]
-        }, {
-            name: 'group2', id: 2, isActive: false, feeds: [
-                ['Management', 'people_outline'],
-                ['Settings', 'settings']
-            ]
-        }, {
-            name: 'group3', id: 3, isActive: false, feeds: [
-                ['Management', 'people_outline']
-            ]
-        }, {
-            name: 'group4', id: 4, isActive: false, feeds: [
-                ['Management', 'people_outline'],
-                ['Settings', 'settings'],
-                ['test', 'settings']
-            ]
-        }],
-        groupsTemp: []
+        }
     }),
+    computed: {
+        groups() {
+            return this.$store.state.groups;
+        }
+    },
     methods: {
-        test() {
-            console.log(this.groups[0].name);
-        },
-        test2() {
-            this.groupsTemp = Array.from(this.groups);
-            console.log(this.groupsTemp);
-        },
-        feedSelect() {
-            console.log(123);
+        ...mapMutations(['setActive']),
+        select(name, id) {
+            switch (name) {
+                case 'collection':
+                    this.setActive({ type: 'other', id: 'collection' });
+                    break;
+                case 'all':
+                    this.setActive({ type: 'other', id: 'all' });
+                    break;
+                case 'group':
+                    this.setActive({ type: 'group', id });
+                    break;
+                case 'feed':
+                    this.setActive({ type: 'feed', id });
+                    break;
+            }
         }
     },
     props: {
         changeHandler: {
             type: Function
         }
+    },
+    beforeRouteUpdate(to, from, next) {
+        next();
     }
 };
 </script>

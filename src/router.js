@@ -1,7 +1,5 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import ItemList from './views/ItemList/index';
-import Arrange from './views/Arrange/index';
 
 Vue.use(Router);
 
@@ -10,12 +8,17 @@ const router = new Router({
     routes: [
         {
             path: '/',
-            component: ItemList,
+            redirect: '/feed/all'
+        },
+        {
+            path: '/feed/:id',
+            component: () => import('views/ItemList/index'),
+            props: true,
             name: 'itemList'
         },
         {
             path: '/arrange',
-            component: Arrange,
+            component: () => import('views/Arrange/index'),
             name: 'arrange'
         }
     ]
