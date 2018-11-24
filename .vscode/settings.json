@@ -5,6 +5,7 @@
         "prepend",
         "scrollbar",
         "tethering",
+        "vuedraggable",
         "vuetify",
         "vuex",
         "wifi"

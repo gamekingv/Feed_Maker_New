@@ -1,82 +1,53 @@
 <template>
-    <v-list dense expand>
-        <v-list-tile ripple to="/feed/collection" @click="select('collection')">
-            <v-list-tile-action>
-                <v-icon>star</v-icon>
+    <draggable v-model="feeds" :options="options">
+        <v-list-tile v-for="feed in group.feeds" :key="feed.id" ripple :to="`/list/feed/${feed.id}`" @mouseenter="hoverId = feed.id" @mouseleave="hoverId = ''">
+            <v-list-tile-action v-if="hoverId !== feed.id">
+                <v-icon v-text="feed.icon" />
             </v-list-tile-action>
-            <v-list-tile-title>收藏</v-list-tile-title>
-        </v-list-tile>
-        <v-list-tile ripple to="/feed/all" @click="select('all')">
-            <v-list-tile-action>
-                <v-icon>dashboard</v-icon>
+            <v-list-tile-action v-if="hoverId === feed.id">
+                <v-btn flat icon @click.stop.prevent="" :to="`/edit/feed/${feed.id}`">
+                    <v-icon>edit</v-icon>
+                </v-btn>
             </v-list-tile-action>
-            <v-list-tile-title>全部</v-list-tile-title>
-        </v-list-tile>
-        <v-list-group v-for="(group, i) in groups" :key="i" active-class>
-            <v-list-tile slot="activator" ripple @click.stop="select('group', group.id)" :to="`/feed/group${group.id}`">
-                <v-list-tile-action>
-                    <v-icon v-text="group.isActive ? 'folder_open': 'folder'" />
-                </v-list-tile-action>
-                <v-list-tile-title v-text="group.name" />
-            </v-list-tile>
-
-            <v-list-tile v-for="(feed, i) in group.feeds" :key="i" ripple @click="select('feed', feed.id)" :to="`/feed/feed${feed.id}`">
-                <v-list-tile-action>
-                    <v-icon v-text="feed.icon" />
-                </v-list-tile-action>
+            <v-list-tile-content>
                 <v-list-tile-title v-text="feed.name" />
-            </v-list-tile>
-        </v-list-group>
-    </v-list>
+            </v-list-tile-content>
+        </v-list-tile>
+    </draggable>
 </template>
 
 <script>
 import { mapMutations } from 'vuex';
+import Draggable from 'vuedraggable';
 
 export default {
+    props: ['group'],
     data: () => ({
         options: {
-            animation: 100
-        }
+            animation: 100,
+            group: 'feeds'
+        },
+        hoverId: ''
     }),
     computed: {
-        groups() {
-            return this.$store.state.groups;
+        feeds: {
+            get() {
+                return this.group.feeds;
+            },
+            set(feeds) {
+                this.$store.commit('updateFeeds', { id: this.group.id, feeds });
+            }
         }
     },
     methods: {
         ...mapMutations(['setActive']),
-        select(name, id) {
-            switch (name) {
-                case 'collection':
-                    this.setActive({ type: 'other', id: 'collection' });
-                    break;
-                case 'all':
-                    this.setActive({ type: 'other', id: 'all' });
-                    break;
-                case 'group':
-                    this.setActive({ type: 'group', id });
-                    break;
-                case 'feed':
-                    this.setActive({ type: 'feed', id });
-                    break;
-            }
+        select(id) {
+            this.setActive({ type: 'feed', id });
+
         }
     },
-    props: {
-        changeHandler: {
-            type: Function
-        }
-    },
-    beforeRouteUpdate(to, from, next) {
-        next();
+    components: {
+        Draggable
     }
 };
 </script>
-<style scope>
-.list-button-mask {
-    position: absolute;
-    z-index: 1;
-    height: 40px;
-}
-</style>

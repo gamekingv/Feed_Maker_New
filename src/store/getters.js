@@ -1,14 +1,22 @@
 const getters = {
     activeTitle: (state, getters) => {
-        if (state.active.type === 'feed') {
-            return getters.getFeed(state.active.id).name;
+        let title = '';
+        if (state.active.type === 'edit') {
+            title += '编辑';
         }
-        else if (state.active.type === 'group') {
-            return getters.getGroup(state.active.id).name;
+        if (state.active.subType === 'feed') {
+            title += getters.getFeed(state.active.id).name;
         }
-        else if (state.active.type === 'other') {
-            return state.otherTitle[state.active.id];
+        else if (state.active.subType === 'group') {
+            if (state.active.id === 'collection') {
+                title += '收藏';
+            } else if (state.active.id === 'all') {
+                title += '全部';
+            } else {
+                title += getters.getGroup(state.active.id).name;
+            }
         }
+        return title;
     },
     getFeed: (state) => (id) => {
         for (let group of state.groups) {

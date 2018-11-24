@@ -1,24 +1,16 @@
 ﻿<template>
     <v-app dark>
         <v-navigation-drawer width="250" stateless value="true" fixed v-model="drawer" app>
-            <v-layout column justify-space-between fill-height>
+            <v-layout column fill-height>
                 <v-toolbar flat class="transparent">
                     <v-toolbar-items>
                         <v-icon x-large class="blue--text">wifi_tethering</v-icon>
                     </v-toolbar-items>
                     <v-toolbar-title>Feed Maker</v-toolbar-title>
                 </v-toolbar>
-                <v-flex class="feed-list">
-                    <feed-list />
+                <v-flex class="group-list">
+                    <group-list />
                 </v-flex>
-                <v-toolbar flat dense class="transparent">
-                    <v-btn color="blue" flat round>
-                        <v-icon>add</v-icon>添加
-                    </v-btn>
-                    <v-btn color="blue" flat round to="/arrange" @click.native="arrange">
-                        <v-icon>list</v-icon>整理
-                    </v-btn>
-                </v-toolbar>
             </v-layout>
         </v-navigation-drawer>
         <v-toolbar fixed app>
@@ -28,7 +20,7 @@
             <v-toolbar-title>
                 <v-text-field class="pt-0" v-model="searchString" prepend-inner-icon="search" solo hide-details single-line clearable @click:prepend-inner.stop="search" />
             </v-toolbar-title>
-            <v-btn icon @click="">
+            <v-btn icon @click.stop="">
                 <v-icon>add</v-icon>
             </v-btn>
             <v-btn icon @click="setting = !setting">
@@ -54,7 +46,7 @@
 </template>
 
 <script>
-import FeedList from 'views/Components/FeedList';
+import GroupList from 'views/Components/GroupList';
 import { mapMutations } from 'vuex';
 
 export default {
@@ -67,20 +59,17 @@ export default {
         ...mapMutations(['setActive']),
         search() {
             console.log(this.searchString);
-        },
-        arrange() {
-            this.setActive({ type: 'other', id: 'arrange' });
         }
     },
     components: {
-        FeedList
+        GroupList
     }
 };
 </script>
 
 <style lang="scss" scoped>
 $scrollbar: -17px;
-.feed-list {
+.group-list {
     overflow-y: scroll;
     margin-right: $scrollbar;
     max-width: calc(100% - #{$scrollbar}) !important;

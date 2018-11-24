@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import Router from 'vue-router';
+import store from './store';
 
 Vue.use(Router);
 
@@ -8,20 +9,28 @@ const router = new Router({
     routes: [
         {
             path: '/',
-            redirect: '/feed/all'
+            redirect: '/list/group/all'
         },
         {
-            path: '/feed/:id',
+            path: '/list/:type/:id',
             component: () => import('views/ItemList/index'),
             props: true,
             name: 'itemList'
         },
         {
-            path: '/arrange',
-            component: () => import('views/Arrange/index'),
-            name: 'arrange'
+            path: '/edit/:type/:id',
+            component: () => import('views/Edit/index'),
+            props: true,
+            name: 'edit'
         }
     ]
+});
+
+router.beforeEach((to, from, next) => {
+    let [type, subType, id] = to.path.substr(1).split('/');
+    console.log(type, subType, id);
+    store.commit('setActive', { type, subType, id });
+    next();
 });
 
 export default router;

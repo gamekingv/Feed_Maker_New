@@ -35,19 +35,20 @@ const store = new Vuex.Store({
                 ]
             }
         ],
-        otherTitle: {
+        builtInTitle: {
             all: '全部',
-            collection: '收藏',
-            arrange: '整理'
+            collection: '收藏'
         },
         active: {
-            type: 'other',
+            type: 'list',
+            subType: 'group',
             id: 'all'
         },
     },
     getters,
     mutations,
-    actions
+    actions,
+    strict: process.env.NODE_ENV !== 'production'
 });
 
 export default store;
