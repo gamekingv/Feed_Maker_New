@@ -1,0 +1,28 @@
+{
+    "manifest_version": 2,
+    "name": "Feed Maker",
+    "version": "0.1",
+    "description": "自定义Feed订阅。",
+    "icons": {
+        "64": "build/favicon.png"
+    },
+    "browser_action": {
+        "browser_style": true,
+        "default_icon": {
+            "16": "build/favicon.png",
+            "32": "build/favicon.png",
+            "64": "build/favicon.png"
+        }
+    },
+    "background": {
+        "scripts": [
+            "build/background.js"
+        ]
+    },
+    "permissions": [
+        "<all_urls>",
+        "downloads",
+        "storage"
+    ],
+    "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';"
+}
