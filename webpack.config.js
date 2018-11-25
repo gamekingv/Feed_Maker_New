@@ -1,19 +1,23 @@
-var path = require('path')
+var resolve = require('path').resolve
 var webpack = require('webpack')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
-  entry: './src/main.js',
+  entry: {
+    main: './src/main.js',
+    background: './src/background.js'
+  },
   output: {
-    path: path.resolve(__dirname, './dist'),
-    publicPath: '/dist/',
-    filename: 'build.js'
+    path: resolve(__dirname, 'extension/build/'),
+    publicPath: './',
+    filename: '[name].js'
   },
   resolve: {
     extensions: ['.js', '.vue'],
     alias: {
-      'vue$': 'vue/dist/vue.esm.js',
-      'public': path.resolve(__dirname, './public'),
-      'views': path.resolve(__dirname, './src/views')
+      'public': resolve(__dirname, 'public'),
+      'views': resolve(__dirname, 'src/views'),
+      '@': resolve(__dirname, 'src')
     }
   },
   module: {
@@ -38,11 +42,13 @@ module.exports = {
         exclude: /node_modules/
       },
       {
-        test: /\.(png|jpg|gif|svg)$/,
-        loader: 'file-loader',
-        options: {
-          objectAssign: 'Object.assign'
-        }
+        test: /\.(png|jpg|jpeg|gif|eot|ttf|woff|woff2|svg|svgz)(\?.+)?$/,
+        use: [{
+          loader: 'url-loader',
+          options: {
+            limit: 10000
+          }
+        }]
       },
       {
         test: /\.css$/,
@@ -81,6 +87,12 @@ if (process.env.NODE_ENV === 'production') {
     }),
     new webpack.LoaderOptionsPlugin({
       minimize: true
+    }),
+    new HtmlWebpackPlugin({
+      template: 'index.html',
+      filename: 'index.html',
+      favicon: 'public/favicon.png',
+      chunks: ['main']
     })
   ])
 }
