@@ -44,7 +44,6 @@
 
 <script>
 import FeedList from './FeedList';
-import { mapMutations } from 'vuex';
 import Draggable from 'vuedraggable';
 
 export default {
@@ -60,25 +59,11 @@ export default {
                 return this.$store.state.groups;
             },
             set(groups) {
-                this.$store.commit('updateGroups', groups);
+                this.$store.dispatch('updateGroups', groups);
             }
         }
     },
     methods: {
-        ...mapMutations(['setActive']),
-        select(name, id) {
-            switch (name) {
-                case 'collection':
-                    this.setActive({ type: 'built-in', id: 'collection' });
-                    break;
-                case 'all':
-                    this.setActive({ type: 'built-in', id: 'all' });
-                    break;
-                case 'group':
-                    this.setActive({ type: 'group', id });
-                    break;
-            }
-        }
     },
     components: {
         Draggable,

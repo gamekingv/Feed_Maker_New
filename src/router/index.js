@@ -28,7 +28,6 @@ const router = new Router({
 
 router.beforeEach((to, from, next) => {
     let [type, subType, id] = to.path.substr(1).split('/');
-    console.log(type, subType, id);
     store.commit('setActive', { type, subType, id });
     next();
 });

@@ -1,68 +1,88 @@
 <template>
-    <v-container fluid grid-list-md>
-        <v-layout row wrap>
-            <draggable class="draggable-item" :list="groups" :options="options">
-                <v-flex v-for="card in cards" lg3 :key="card.title">
-                    <v-card>
-                        <v-img :src="card.src" height="200px">
-                            <v-container fill-height fluid pa-2>
-                                <v-layout fill-height>
-                                    <v-flex lg12 align-end>
-                                        <span class="headline white--text" v-text="card.title"></span>
-                                    </v-flex>
-                                </v-layout>
-                            </v-container>
-                        </v-img>
-
-                        <v-card-actions>
-                            <v-spacer></v-spacer>
-                            <v-btn icon>
-                                <v-icon>favorite</v-icon>
-                            </v-btn>
-                            <v-btn icon>
-                                <v-icon>bookmark</v-icon>
-                            </v-btn>
-                            <v-btn icon>
-                                <v-icon>share</v-icon>
-                            </v-btn>
-                        </v-card-actions>
-                    </v-card>
-                </v-flex>
-            </draggable>
-        </v-layout>
-    </v-container>
+    <v-card ref="form">
+        <v-card-text>
+            <v-text-field ref="name" v-model="name" :rules="[() => !!name || 'This field is required']" :error-messages="errorMessages" label="Full Name" placeholder="John Doe" required></v-text-field>
+            <v-text-field ref="address" :rules="[
+              () => !!address || 'This field is required',
+              () => !!address && address.length <= 25 || 'Address must be less than 25 characters',
+              addressCheck
+            ]" v-model="address" label="Address Line" placeholder="Snowy Rock Pl" counter="25" required></v-text-field>
+            <v-text-field ref="city" :rules="[() => !!city || 'This field is required', addressCheck]" v-model="city" label="City" placeholder="El Paso" required></v-text-field>
+            <v-text-field ref="state" v-model="state" :rules="[() => !!state || 'This field is required']" label="State/Province/Region" required placeholder="TX"></v-text-field>
+            <v-text-field ref="zip" :rules="[() => !!zip || 'This field is required']" v-model="zip" label="ZIP / Postal Code" required placeholder="79938"></v-text-field>
+            <v-autocomplete ref="country" :rules="[() => !!country || 'This field is required']" :items="countries" v-model="country" label="Country" placeholder="Select..." required></v-autocomplete>
+        </v-card-text>
+        <v-divider class="mt-5"></v-divider>
+        <v-card-actions>
+            <v-btn flat>Cancel</v-btn>
+            <v-spacer></v-spacer>
+            <v-slide-x-reverse-transition>
+                <v-tooltip v-if="formHasErrors" left>
+                    <v-btn slot="activator" icon class="my-0" @click="resetForm">
+                        <v-icon>refresh</v-icon>
+                    </v-btn>
+                    <span>Refresh form</span>
+                </v-tooltip>
+            </v-slide-x-reverse-transition>
+            <v-btn color="primary" flat @click="submit">Submit</v-btn>
+        </v-card-actions>
+    </v-card>
 </template>
 <script>
-import Draggable from 'vuedraggable';
-
 export default {
     data: () => ({
-        cards: [
-            { title: 'Pre-fab homes', src: 'https://cdn.vuetifyjs.com/images/cards/house.jpg', flex: 3 },
-            { title: 'Favorite road trips', src: 'https://cdn.vuetifyjs.com/images/cards/road.jpg', flex: 3 },
-            { title: 'Best airlines', src: 'https://cdn.vuetifyjs.com/images/cards/plane.jpg', flex: 3 }
-        ],
-        options: {
-            animation: 100
-        },
-        windowWidth: 0,
+        countries: ['China', 'Zimbabwe'],
+        errorMessages: '',
+        name: null,
+        address: null,
+        city: null,
+        state: null,
+        zip: null,
+        country: null,
+        formHasErrors: false
     }),
-    methods: {
-    },
     computed: {
-        groups() {
-            return this.$store.state.groups;
+        form() {
+            return {
+                name: this.name,
+                address: this.address,
+                city: this.city,
+                state: this.state,
+                zip: this.zip,
+                country: this.country
+            };
         }
     },
-    components: {
-        Draggable
+    watch: {
+        name() {
+            this.errorMessages = '';
+        }
+    },
+    methods: {
+        addressCheck() {
+            this.errorMessages = this.address && !this.name
+                ? 'Hey! I\'m required'
+                : '';
+
+            return true;
+        },
+        resetForm() {
+            this.errorMessages = [];
+            this.formHasErrors = false;
+
+            Object.keys(this.form).forEach(f => {
+                this.$refs[f].reset();
+            });
+        },
+        submit() {
+            this.formHasErrors = false;
+
+            Object.keys(this.form).forEach(f => {
+                if (!this.form[f]) this.formHasErrors = true;
+
+                this.$refs[f].validate(true);
+            });
+        }
     }
 };
 </script>
-<style lang="scss" scoped>
-.draggable-item {
-    display: flex;
-    flex: 1 1 auto;
-    flex-wrap: wrap;
-}
-</style>

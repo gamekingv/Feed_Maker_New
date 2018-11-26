@@ -17,7 +17,6 @@
 </template>
 
 <script>
-import { mapMutations } from 'vuex';
 import Draggable from 'vuedraggable';
 
 export default {
@@ -35,16 +34,11 @@ export default {
                 return this.group.feeds;
             },
             set(feeds) {
-                this.$store.commit('updateFeeds', { id: this.group.id, feeds });
+                this.$store.dispatch('updateFeeds', { id: this.group.id, feeds });
             }
         }
     },
     methods: {
-        ...mapMutations(['setActive']),
-        select(id) {
-            this.setActive({ type: 'feed', id });
-
-        }
     },
     components: {
         Draggable

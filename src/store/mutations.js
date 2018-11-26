@@ -1,8 +1,8 @@
 const mutations = {
-    setActive(state, data) {
-        state.active.type = data.type;
-        state.active.subType = data.subType;
-        state.active.id = data.id;
+    setActive(state, { type, subType, id }) {
+        state.active.type = type;
+        state.active.subType = subType;
+        state.active.id = id;
     },
     updateGroups(state, data) {
         state.groups = data;
