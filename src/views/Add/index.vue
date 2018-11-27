@@ -50,7 +50,6 @@
 <script>
 export default {
     data: () => ({
-
         step: 0,
         form1: true,
         form2: true,
