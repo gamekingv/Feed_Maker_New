@@ -16,7 +16,7 @@
                 <v-list-tile-title>全部</v-list-tile-title>
             </v-list-tile-content>
             <v-list-tile-action>
-                <v-btn flat icon @click.stop.prevent="">
+                <v-btn flat icon @click.stop.prevent="" to="/add">
                     <v-icon>add</v-icon>
                 </v-btn>
             </v-list-tile-action>

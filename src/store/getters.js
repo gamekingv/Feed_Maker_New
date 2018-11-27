@@ -16,6 +16,9 @@ const getters = {
                 title += getters.getGroup(state.active.id).name;
             }
         }
+        if (state.active.type === 'add') {
+            title = '添加';
+        }
         return title;
     },
     getFeed: (state) => (id) => {

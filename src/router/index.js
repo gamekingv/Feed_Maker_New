@@ -13,15 +13,21 @@ const router = new Router({
         },
         {
             path: '/list/:type/:id',
-            component: () => import('views/ItemList/index'),
+            component: () => import('views/ItemList'),
             props: true,
             name: 'itemList'
         },
         {
             path: '/edit/:type/:id',
-            component: () => import('views/Edit/index'),
+            component: () => import('views/Edit'),
             props: true,
             name: 'edit'
+        },
+        {
+            path: '/add',
+            component: () => import('views/Add'),
+            props: true,
+            name: 'add'
         }
     ]
 });

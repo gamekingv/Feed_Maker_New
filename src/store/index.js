@@ -9,10 +9,6 @@ Vue.use(Vuex);
 const store = new Vuex.Store({
     state: {
         groups: [],
-        builtInTitle: {
-            all: '全部',
-            collection: '收藏'
-        },
         active: {
             type: 'list',
             subType: 'group',

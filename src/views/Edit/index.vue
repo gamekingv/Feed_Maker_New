@@ -77,10 +77,11 @@ export default {
         submit() {
             this.formHasErrors = false;
 
+            // console.log(this.$refs['name'].validate());
             Object.keys(this.form).forEach(f => {
-                if (!this.form[f]) this.formHasErrors = true;
-
-                this.$refs[f].validate(true);
+                if (!this.$refs[f].validate(true)) this.formHasErrors = true;
+                // console.log(1);
+                // console.log(this.$refs[f].validate(true));
             });
         }
     }
