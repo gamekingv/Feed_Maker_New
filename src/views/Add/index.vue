@@ -10,7 +10,7 @@
         <v-stepper-items>
             <v-stepper-content step="1">
                 <v-form ref="form1" v-model="form1">
-                    <v-select v-model="select" :items="types" :rules="[requireRules]" label="类型" required></v-select>
+                    <v-select v-model="type" :items="types" :rules="[requireRules]" label="类型" required></v-select>
                     <v-layout>
                         <v-spacer></v-spacer>
                         <v-btn color="primary" :disabled="!form1" @click="step = 2">下一步</v-btn>
@@ -54,12 +54,12 @@ export default {
         step: 0,
         form1: true,
         form2: true,
-        requireRules: v => !!v || '必填',
+        type: null,
         name: '',
-        characterRules: v => (v && v.length <= 10) || 'Name must be less than 10 characters',
         email: '',
+        characterRules: v => (v && v.length <= 10) || 'Name must be less than 10 characters',
+        requireRules: v => !!v || '必填',
         emailRules: v => /.+@.+/.test(v) || 'E-mail must be valid',
-        select: null,
         types: [
             '分组',
             '订阅源',
