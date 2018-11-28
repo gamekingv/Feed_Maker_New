@@ -11,16 +11,25 @@
                             <v-toolbar-title>Feed Maker</v-toolbar-title>
                         </v-toolbar>
                         <v-flex class="group-list">
-                            <group-list />
+                            <group-list/>
                         </v-flex>
                     </v-layout>
                 </v-navigation-drawer>
                 <v-toolbar fixed app>
-                    <v-toolbar-side-icon @click="drawer = !drawer" />
-                    <v-toolbar-title v-text="$store.getters.activeTitle" />
-                    <v-spacer />
+                    <v-toolbar-side-icon @click="drawer = !drawer"/>
+                    <v-toolbar-title v-text="$store.getters.activeTitle"/>
+                    <v-spacer/>
                     <v-toolbar-title>
-                        <v-text-field class="pt-0" v-model="searchString" prepend-inner-icon="search" solo hide-details single-line clearable @click:prepend-inner.stop="search" />
+                        <v-text-field
+                            class="pt-0"
+                            v-model="searchString"
+                            prepend-inner-icon="search"
+                            solo
+                            hide-details
+                            single-line
+                            clearable
+                            @click:prepend-inner.stop="search"
+                        />
                     </v-toolbar-title>
                     <v-btn icon @click.stop="test">
                         <v-icon>add</v-icon>
@@ -31,7 +40,7 @@
                 </v-toolbar>
                 <v-content>
                     <v-fade-transition mode="out-in" duration="80">
-                        <router-view ref="content" />
+                        <router-view ref="content"/>
                     </v-fade-transition>
                 </v-content>
                 <v-navigation-drawer v-model="setting" right temporary fixed>
@@ -48,8 +57,7 @@
         </v-fade-transition>
         <v-dialog v-model="loading" persistent width="300">
             <v-card color="primary">
-                <v-card-text>
-                    正在加载数据
+                <v-card-text>正在加载数据
                     <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
                 </v-card-text>
             </v-card>
