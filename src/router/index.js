@@ -28,6 +28,10 @@ const router = new Router({
             component: () => import('views/Add'),
             props: true,
             name: 'add'
+        },
+        {
+            path: '*',
+            redirect: '/list/group/all'
         }
     ]
 });

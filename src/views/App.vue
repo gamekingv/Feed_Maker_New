@@ -76,7 +76,7 @@ export default {
         searchString: ''
     }),
     async mounted() {
-        await this.$store.dispatch('loadGroups');
+        await this.$store.dispatch('getGroups');
         this.loading = false;
     },
     methods: {
