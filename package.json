@@ -10,6 +10,7 @@
     "build:watch": "npm run build -- -w"
   },
   "dependencies": {
+    "axios": "^0.18.0",
     "vue": "^2.5.3",
     "vue-router": "^3.0.1",
     "vuedraggable": "^2.16.0",

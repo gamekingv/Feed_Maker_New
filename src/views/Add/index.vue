@@ -57,6 +57,7 @@
                             :rules="[requireRules]"
                             placeholder="请输入名称"
                             solo
+                            clearable
                             required
                         ></v-text-field>
                     </v-flex>
@@ -66,7 +67,7 @@
                         <v-subheader>主页</v-subheader>
                     </v-flex>
                     <v-flex lg4>
-                        <v-text-field v-model="home" placeholder="请输入主页链接" solo></v-text-field>
+                        <v-text-field v-model="home" placeholder="请输入主页链接" solo clearable></v-text-field>
                     </v-flex>
                 </v-layout>
                 <v-layout>
@@ -84,16 +85,17 @@
             v-if="type === 'feed' || type === 'custom'"
         >源信息</v-stepper-step>
         <v-stepper-content step="3" v-if="type === 'feed' || type === 'custom'">
-            <v-form ref="form3" v-model="validates.form2" lazy-validation>
+            <v-form ref="form3" v-model="validates.form3" lazy-validation>
                 <v-layout justify-center>
                     <v-flex lg1>
                         <v-subheader>链接</v-subheader>
                     </v-flex>
                     <v-flex lg11>
                         <v-text-field
-                            v-model="link"
-                            :rules="[requireRules]"
+                            v-model="url"
+                            :rules="[requireRules, urlRules]"
                             placeholder="请输入链接"
+                            clearable
                             solo
                             required
                         ></v-text-field>
@@ -105,7 +107,7 @@
                     </v-flex>
                     <v-flex lg4>
                         <v-select
-                            v-model="fetchType"
+                            v-model="method"
                             class="pa-0"
                             label="方法"
                             :items="['GET', 'POST']"
@@ -115,40 +117,82 @@
                         ></v-select>
                     </v-flex>
                     <v-spacer></v-spacer>
-                    <v-btn @click>测试</v-btn>
+                    <v-btn @click="test">测试</v-btn>
                 </v-layout>
 
                 <v-layout class="mb-4">
                     <v-flex lg1>
                         <v-subheader>消息头</v-subheader>
                     </v-flex>
-                    <v-flex align-self-center>
+                    <v-flex lg11 align-self-center>
                         <v-chip
                             color="primary"
                             text-color="white"
-                            v-for="(header, i) in headers"
-                            :key="i"
+                            v-for="(value, key) in headers"
+                            :key="key"
                             small
                             selected
                             close
-                            @input="headers.splice(i, 1)"
-                        >{{`${header.key}: ${header.value}`}}</v-chip>
-                        <v-btn icon>
-                            <v-icon>add</v-icon>
-                        </v-btn>
+                            @input="Vue.delete(headers, key)"
+                        >{{`${key}: ${value}`}}</v-chip>
+                        <v-dialog v-model="addHeaderDialog" width="500">
+                            <v-btn icon slot="activator">
+                                <v-icon>add</v-icon>
+                            </v-btn>
+                            <v-card class="grey darken-4">
+                                <v-card-title class="headline">添加一个消息头</v-card-title>
+                                <v-card-text class="pb-0">
+                                    <v-form ref="header" lazy-validation>
+                                        <v-layout class="ma-3">
+                                            <v-text-field
+                                                v-model="headerKey"
+                                                placeholder="键"
+                                                solo
+                                                :rules="[requireRules, v => !headers.hasOwnProperty(v) || '已添加该属性']"
+                                                clearable
+                                            ></v-text-field>
+                                            <v-subheader>:</v-subheader>
+                                            <v-text-field
+                                                v-model="headerValue"
+                                                placeholder="值"
+                                                solo
+                                                :rules="[requireRules]"
+                                                clearable
+                                            ></v-text-field>
+                                        </v-layout>
+                                    </v-form>
+                                </v-card-text>
+                                <v-card-actions>
+                                    <v-spacer></v-spacer>
+                                    <v-btn color="primary" @click="addHeader">确定</v-btn>
+                                    <v-btn color="secondary" @click="close">取消</v-btn>
+                                </v-card-actions>
+                            </v-card>
+                        </v-dialog>
                     </v-flex>
                 </v-layout>
-                <v-layout>
+                <v-slide-y-transition>
+                    <v-layout class="mb-3" v-if="method === 'POST'">
+                        <v-flex lg1>
+                            <v-subheader>主体</v-subheader>
+                        </v-flex>
+                        <v-flex lg11>
+                            <v-textarea v-model="body" solo hide-details></v-textarea>
+                        </v-flex>
+                    </v-layout>
+                </v-slide-y-transition>
+                <v-layout class="mb-3">
                     <v-flex lg1>
                         <v-subheader>测试结果</v-subheader>
                     </v-flex>
                     <v-flex lg11>
                         <v-textarea
                             solo
-                            value="The Woodman set to work at once, and so sharp was his axe that the tree was soon chopped nearly through."
+                            v-model="result"
+                            rows="10"
                             readonly
                             hide-details
-                            loading
+                            :loading="fetching"
                         ></v-textarea>
                     </v-flex>
                 </v-layout>
@@ -164,6 +208,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
     data: () => ({
         step: 0,
@@ -175,25 +221,67 @@ export default {
         ],
         validates: {
             form1: true,
-            form2: true
+            form2: true,
+            form3: true
         },
         type: '',
         name: '',
         group: '',
         icon: '',
         home: '',
-        fetchType: 'GET',
-        link: '',
-        headers: [{ key: 'Referer', value: 'http' }, { key: 'Referer', value: 'http' }],
+        method: 'GET',
+        url: '',
+        addHeaderDialog: false,
+        headerKey: '',
+        headerValue: '',
+        headers: {},
+        body: '',
+        fetching: false,
+        result: '',
         requireRules: v => !!v || '必填',
+        urlRules: v => /http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)?/.test(v) || '请输入合法的链接'
     }),
     methods: {
+        repeatRules(v) { return !this.headers.hasOwnProperty(v) || '已添加该属性'; },
+        addHeader() {
+            if (this.$refs.header.validate()) {
+                this.$set(this.headers, this.headerKey, this.headerValue);
+                this.close();
+            }
+        },
+        close() {
+            this.addHeaderDialog = false;
+            this.$refs.header.reset();
+        },
         validate(name, next) {
             if (this.$refs[name].validate())
                 this.step = next;
         },
+        async test() {
+            browser.webRequest.onBeforeSendHeaders.addListener(this.modifyHeader, { urls: [this.url] }, ['blocking', 'requestHeaders']);
+            if (this.method === 'GET') {
+                let response = await axios.get(this.url);
+                this.result = response.data;
+            }
+        },
+        modifyHeader(details) {
+            browser.webRequest.onBeforeSendHeaders.removeListener(this.modifyHeader);
+            for (let name in this.headers) {
+                let gotName = false;
+                for (let requestHeader of details.requestHeaders) {
+                    gotName = requestHeader.name.toLowerCase() === name;
+                    if (gotName) {
+                        requestHeader.value = this.headers[name];
+                    }
+                }
+                if (!gotName) {
+                    details.requestHeaders.push({ name: name, value: this.headers[name] });
+                }
+            }
+            return { requestHeaders: details.requestHeaders };
+        },
         submit() {
-            Object.values(this.$refs).forEach(form => form.validate());
+            Object.keys(this.validates).forEach(name => this.$refs[name].validate());
             this.$nextTick(() => {
                 if (this.complete) {
                     let id = Date.now().toString();
