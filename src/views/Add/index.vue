@@ -126,14 +126,14 @@
                         <v-chip
                             color="primary"
                             text-color="white"
-                            v-model="headers"
-                            v-for="header in headers"
-                            :key="header.key"
+                            v-for="(header, i) in headers"
+                            :key="i"
                             small
                             selected
                             close
+                            @input="headers.splice(i, 1)"
                         >{{`${header.key}: ${header.value}`}}</v-chip>
-                        <v-btn icon @click>
+                        <v-btn icon>
                             <v-icon>add</v-icon>
                         </v-btn>
                     </v-flex>
@@ -184,7 +184,7 @@ export default {
         home: '',
         fetchType: 'GET',
         link: '',
-        headers: [{ key: 'Referer', value: 'http' }],
+        headers: [{ key: 'Referer', value: 'http' }, { key: 'Referer', value: 'http' }],
         requireRules: v => !!v || '必填',
     }),
     methods: {
