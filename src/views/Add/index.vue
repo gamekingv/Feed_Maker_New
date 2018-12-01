@@ -1,6 +1,6 @@
 <template>
     <v-stepper v-model="step" vertical non-linear>
-        <v-stepper-step editable step="1" :rules="[() => validates.form1]">选择类型</v-stepper-step>
+        <v-stepper-step editable step="1" :rules="[() => validates.form1]">类型</v-stepper-step>
         <v-stepper-content step="1">
             <v-form ref="form1" v-model="validates.form1" lazy-validation>
                 <v-layout justify-center>
