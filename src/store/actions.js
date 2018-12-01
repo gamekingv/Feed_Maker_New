@@ -24,8 +24,9 @@ const actions = {
         commit('updateGroups', groups);
         return dispatch('saveGroups');
     },
-    addFeed(state, data) {
-        state; data;
+    addFeed({ dispatch, commit }, feed) {
+        commit('addFeed', feed);
+        return dispatch('saveGroups');
     },
     deleteFeed({ dispatch, commit }, feed) {
         commit('deleteFeed', feed);

@@ -42,6 +42,7 @@
                             :items="groups"
                             :rules="[requireRules]"
                             placeholder="请选择所属分组"
+                            no-data-text="无任何分组"
                             solo
                             required
                         ></v-select>
@@ -70,10 +71,27 @@
                         <v-text-field v-model="home" placeholder="请输入主页链接" solo clearable></v-text-field>
                     </v-flex>
                 </v-layout>
+                <v-layout justify-center v-if="type === 'feed' || type === 'custom'">
+                    <v-flex lg1>
+                        <v-subheader>图标</v-subheader>
+                    </v-flex>
+                    <v-flex lg4>
+                        <v-text-field
+                            v-model="icon"
+                            placeholder="可输入图片链接或Material Icons的名称"
+                            solo
+                            clearable
+                        ></v-text-field>
+                    </v-flex>
+                </v-layout>
                 <v-layout>
                     <v-btn color="secondary" @click="step = 1">上一步</v-btn>
                     <v-spacer></v-spacer>
-                    <v-btn color="primary" :disabled="!complete" @click="submit">完成</v-btn>
+                    <v-btn
+                        color="primary"
+                        :disabled="!complete"
+                        @click="type === 'group' ? submit() : validate('form2', 3)"
+                    >{{type === 'group' ? '完成' : '下一步'}}</v-btn>
                     <v-btn @click="clear('form2')">重置</v-btn>
                 </v-layout>
             </v-form>
@@ -105,7 +123,7 @@
                     <v-flex lg1>
                         <v-subheader>方法</v-subheader>
                     </v-flex>
-                    <v-flex lg4>
+                    <v-flex lg3>
                         <v-select
                             v-model="method"
                             class="pa-0"
@@ -117,7 +135,20 @@
                         ></v-select>
                     </v-flex>
                     <v-spacer></v-spacer>
-                    <v-btn @click="test">测试</v-btn>
+                    <v-flex lg1>
+                        <v-subheader>超时（秒）</v-subheader>
+                    </v-flex>
+                    <v-flex lg2>
+                        <v-slider
+                            v-model="timeout"
+                            thumb-label="always"
+                            min="1"
+                            max="60"
+                            always-dirty
+                        ></v-slider>
+                    </v-flex>
+                    <v-spacer></v-spacer>
+                    <v-btn @click="test" :disabled="fetching">测试</v-btn>
                 </v-layout>
 
                 <v-layout class="mb-4">
@@ -133,7 +164,7 @@
                             small
                             selected
                             close
-                            @input="Vue.delete(headers, key)"
+                            @input="$delete(headers, key)"
                         >{{`${key}: ${value}`}}</v-chip>
                         <v-dialog v-model="addHeaderDialog" width="500">
                             <v-btn icon slot="activator">
@@ -224,13 +255,14 @@ export default {
             form2: true,
             form3: true
         },
-        type: '',
+        type: 'group',
         name: '',
         group: '',
         icon: '',
         home: '',
-        method: 'GET',
         url: '',
+        method: 'GET',
+        timeout: 30,
         addHeaderDialog: false,
         headerKey: '',
         headerValue: '',
@@ -242,7 +274,6 @@ export default {
         urlRules: v => /http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)?/.test(v) || '请输入合法的链接'
     }),
     methods: {
-        repeatRules(v) { return !this.headers.hasOwnProperty(v) || '已添加该属性'; },
         addHeader() {
             if (this.$refs.header.validate()) {
                 this.$set(this.headers, this.headerKey, this.headerValue);
@@ -258,42 +289,91 @@ export default {
                 this.step = next;
         },
         async test() {
-            browser.webRequest.onBeforeSendHeaders.addListener(this.modifyHeader, { urls: [this.url] }, ['blocking', 'requestHeaders']);
-            if (this.method === 'GET') {
-                let response = await axios.get(this.url);
-                this.result = response.data;
-            }
-        },
-        modifyHeader(details) {
-            browser.webRequest.onBeforeSendHeaders.removeListener(this.modifyHeader);
-            for (let name in this.headers) {
-                let gotName = false;
-                for (let requestHeader of details.requestHeaders) {
-                    gotName = requestHeader.name.toLowerCase() === name;
-                    if (gotName) {
-                        requestHeader.value = this.headers[name];
+            this.fetching = true;
+
+            let self = this;
+            function modifyHeader(details) {
+                browser.webRequest.onBeforeSendHeaders.removeListener(modifyHeader);
+                for (let name in self.headers) {
+                    let gotName = false;
+                    for (let requestHeader of details.requestHeaders) {
+                        gotName = requestHeader.name.toLowerCase() === name;
+                        if (gotName) {
+                            requestHeader.value = self.headers[name];
+                        }
+                    }
+                    if (!gotName) {
+                        details.requestHeaders.push({ name: name, value: self.headers[name] });
                     }
                 }
-                if (!gotName) {
-                    details.requestHeaders.push({ name: name, value: this.headers[name] });
-                }
+                return { requestHeaders: details.requestHeaders };
             }
-            return { requestHeaders: details.requestHeaders };
+            browser.webRequest.onBeforeSendHeaders.addListener(modifyHeader, { urls: [this.url] }, ['blocking', 'requestHeaders']);
+
+            let config = {
+                method: this.method.toLowerCase(),
+                url: this.url,
+                timeout: this.timeout * 1000
+            };
+            if (this.method === 'POST' && this.body) {
+                config.data = this.body;
+            }
+            try {
+                let response = await axios(config);
+                this.result = response.data;
+            }
+            catch (e) {
+                this.result = e;
+            }
+            this.fetching = false;
         },
         submit() {
-            Object.keys(this.validates).forEach(name => this.$refs[name].validate());
+            Object.keys(this.validates).forEach(name => this.$refs[name] && this.$refs[name].validate());
             this.$nextTick(() => {
                 if (this.complete) {
                     let id = Date.now().toString();
-                    this.$store.dispatch('addGroup', {
-                        name: this.name,
-                        id: id
-                    }).then(() => this.$router.push({ path: `/list/group/${id}` }));
+                    switch (this.type) {
+                        case 'group': {
+                            this.$store.dispatch('addGroup', {
+                                name: this.name,
+                                id: id
+                            }).then(() => this.$router.push({ path: `/list/group/${id}` }));
+                            break;
+                        }
+                        case 'feed': {
+                            this.$store.dispatch('addFeed', {
+                                name: this.name,
+                                id: id,
+                                groupId: this.group,
+                                home: this.home,
+                                icon: this.icon,
+                                url: this.url,
+                                method: this.method,
+                                timeout: this.timeout,
+                                headers: this.headers,
+                                body: this.body
+                            }).then(() => this.$router.push({ path: `/list/feed/${id}` }));
+                            break;
+                        }
+                        case 'custom':
+                            break;
+                        case 'button':
+                            break;
+                    }
                 }
             });
         },
         clear(name) {
             this.$refs[name].reset();
+            this.$nextTick(() => {
+                if (name === 'form1') {
+                    this.type = 'group';
+                }
+                if (name === 'form3') {
+                    this.method = 'GET';
+                    this.timeout = 30;
+                }
+            });
         }
     },
     computed: {
