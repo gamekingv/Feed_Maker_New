@@ -342,6 +342,7 @@ export default {
                         }
                         case 'feed': {
                             this.$store.dispatch('addFeed', {
+                                custom: false,
                                 name: this.name,
                                 id: id,
                                 groupId: this.group,
