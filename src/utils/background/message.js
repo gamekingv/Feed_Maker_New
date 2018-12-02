@@ -1,4 +1,4 @@
-import axios from 'axios';
+import crawler from './crawler';
 
 const message = {
     isInitialized: false,
@@ -11,20 +11,7 @@ const message = {
                             console.log(request.message.id);
                         }
                         else if (request.message.type === 'feed') {
-                            let feed;
-                            for (let group of groups) {
-                                feed = group.feeds.find(feed => feed.id === request.message.id);
-                                if (feed) break;
-                            }
-                            let config = {
-                                method: feed.method,
-                                url: feed.url,
-                                timeout: feed.timeout * 1000
-                            };
-                            if (feed.method === 'post' && feed.body) {
-                                config.data = feed.body;
-                            }
-                            axios(config).then(result => console.log(result.data));
+                            crawler.updateFeed(request.message.id);
                         }
                     });
                     break;
