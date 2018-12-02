@@ -128,7 +128,7 @@
                             v-model="method"
                             class="pa-0"
                             label="方法"
-                            :items="['GET', 'POST']"
+                            :items="[{text: 'GET', value: 'get'}, {text: 'POST', value: 'post'}]"
                             :rules="[requireRules]"
                             solo
                             required
@@ -240,6 +240,7 @@
 
 <script>
 import axios from 'axios';
+import message from '@/utils/extension/message';
 
 export default {
     data: () => ({
@@ -261,7 +262,7 @@ export default {
         icon: '',
         home: '',
         url: '',
-        method: 'GET',
+        method: 'get',
         timeout: 30,
         addHeaderDialog: false,
         headerKey: '',
@@ -291,31 +292,30 @@ export default {
         async test() {
             this.fetching = true;
 
-            let self = this;
             function modifyHeader(details) {
                 browser.webRequest.onBeforeSendHeaders.removeListener(modifyHeader);
-                for (let name in self.headers) {
+                for (let name in this.headers) {
                     let gotName = false;
                     for (let requestHeader of details.requestHeaders) {
                         gotName = requestHeader.name.toLowerCase() === name;
                         if (gotName) {
-                            requestHeader.value = self.headers[name];
+                            requestHeader.value = this.headers[name];
                         }
                     }
                     if (!gotName) {
-                        details.requestHeaders.push({ name: name, value: self.headers[name] });
+                        details.requestHeaders.push({ name: name, value: this.headers[name] });
                     }
                 }
                 return { requestHeaders: details.requestHeaders };
             }
-            browser.webRequest.onBeforeSendHeaders.addListener(modifyHeader, { urls: [this.url] }, ['blocking', 'requestHeaders']);
+            browser.webRequest.onBeforeSendHeaders.addListener(modifyHeader.bind(this), { urls: [this.url] }, ['blocking', 'requestHeaders']);
 
             let config = {
-                method: this.method.toLowerCase(),
+                method: this.method,
                 url: this.url,
                 timeout: this.timeout * 1000
             };
-            if (this.method === 'POST' && this.body) {
+            if (this.method === 'post' && this.body) {
                 config.data = this.body;
             }
             try {
@@ -352,7 +352,9 @@ export default {
                                 timeout: this.timeout,
                                 headers: this.headers,
                                 body: this.body
-                            }).then(() => this.$router.push({ path: `/list/feed/${id}` }));
+                            }).then(() => this.$router.push({ path: `/list/feed/${id}` })).then(() =>
+                                message.send({ action: 'update', message: { type: 'feed', id: id } })
+                            );
                             break;
                         }
                         case 'custom':

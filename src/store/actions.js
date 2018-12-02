@@ -7,7 +7,6 @@ const actions = {
         return browser.storage.local.set({ groups: state.groups });
     },
     addGroup({ dispatch, commit }, group) {
-        group.isActive = false;
         group.feeds = [];
         commit('addGroup', group);
         return dispatch('saveGroups');

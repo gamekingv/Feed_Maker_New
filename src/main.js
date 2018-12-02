@@ -5,6 +5,9 @@ import router from './router';
 import 'material-design-icons-iconfont/dist/material-design-icons.css';
 import Vuetify from 'vuetify';
 import 'vuetify/dist/vuetify.css';
+import message from './utils/extension/message';
+
+message.init();
 
 Vue.use(Vuetify);
 

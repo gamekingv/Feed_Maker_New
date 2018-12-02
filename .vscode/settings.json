@@ -4,6 +4,7 @@
         "icon",
         "inner",
         "prepend",
+        "readwrite",
         "scrollbar",
         "subheader",
         "tethering",

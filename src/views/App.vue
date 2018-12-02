@@ -31,8 +31,8 @@
                             @click:prepend-inner.stop="search"
                         />
                     </v-toolbar-title>
-                    <v-btn icon @click.stop="test">
-                        <v-icon>add</v-icon>
+                    <v-btn icon @click.stop="refresh">
+                        <v-icon>refresh</v-icon>
                     </v-btn>
                     <v-btn icon @click="setting = !setting">
                         <v-icon>settings</v-icon>
@@ -67,6 +67,7 @@
 
 <script>
 import GroupList from 'views/Components/GroupList';
+import message from '@/utils/extension/message';
 
 export default {
     data: () => ({
@@ -83,34 +84,8 @@ export default {
         search() {
             console.log(this.searchString);
         },
-        test() {
-            this.$store.dispatch('updateGroups', [
-                {
-                    name: 'group1', id: '2', isActive: false, feeds: [
-                        { name: 'Management', icon: 'people_outline', id: '6', groupId: '2' },
-                        { name: 'Settings', icon: 'settings', id: '7', groupId: '2' },
-                        { name: 'test', icon: 'settings', id: '8', groupId: '2' }
-                    ]
-                },
-                {
-                    name: 'group2', id: '3', isActive: false, feeds: [
-                        { name: 'Management', icon: 'people_outline', id: '9', groupId: '3' },
-                        { name: 'Settings', icon: 'settings', id: '10', groupId: '3' },
-                    ]
-                },
-                {
-                    name: 'group3', id: '4', isActive: false, feeds: [
-                        { name: 'Management', icon: 'people_outline', id: '11', groupId: '4' },
-                    ]
-                },
-                {
-                    name: 'group4', id: '5', isActive: false, feeds: [
-                        { name: 'Management', icon: 'people_outline', id: '12', groupId: '5' },
-                        { name: 'Settings', icon: 'settings', id: '13', groupId: '5' },
-                        { name: 'test', icon: 'settings', id: '14', groupId: '5' },
-                    ]
-                }
-            ]);
+        refresh() {
+            message.send({ action: 'update', message: { type: this.$store.state.active.subType, id: this.$store.state.active.id } });
         }
     },
     components: {
