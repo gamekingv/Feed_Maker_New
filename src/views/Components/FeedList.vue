@@ -3,7 +3,6 @@
         <v-list-tile
             v-for="feed in group.feeds"
             :key="feed.id"
-            ripple
             :to="`/list/feed/${feed.id}`"
             @mouseenter="hoverId = feed.id"
             @mouseleave="hoverId = ''"

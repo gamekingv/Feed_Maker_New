@@ -29,7 +29,6 @@
             >
                 <v-list-tile
                     slot="activator"
-                    ripple
                     @click.stop
                     :to="`/list/group/${group.id}`"
                     @mouseenter="hoverId = group.id"
