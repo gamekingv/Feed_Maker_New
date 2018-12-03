@@ -240,7 +240,7 @@
 
 <script>
 import axios from 'axios';
-import message from '@/utils/extension/message';
+import message from '~/utils/extension/message';
 
 export default {
     data: () => ({
@@ -354,7 +354,7 @@ export default {
                                 headers: this.headers,
                                 body: this.body
                             }).then(() => this.$router.push({ path: `/list/feed/${id}` })).then(() =>
-                                message.send({ action: 'update', message: { type: 'feed', id: id } })
+                                message.send({ action: 'update', data: { type: 'feed', id: id } })
                             );
                             break;
                         }

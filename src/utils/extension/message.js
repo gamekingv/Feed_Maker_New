@@ -7,7 +7,7 @@ const message = {
         });
     },
     send(payload) {
-        browser.runtime.sendMessage(payload);
+        return browser.runtime.sendMessage(payload);
     }
 };
 

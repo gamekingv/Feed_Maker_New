@@ -17,3 +17,5 @@ new Vue({
     router,
     render: h => h(App)
 });
+
+Vue.config.errorHandler = (error, vm) => console.error('抛出全局异常', vm, error);

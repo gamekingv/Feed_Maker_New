@@ -67,7 +67,7 @@
 
 <script>
 import GroupList from 'views/Components/GroupList';
-import message from '@/utils/extension/message';
+import message from '~/utils/extension/message';
 
 export default {
     data: () => ({
@@ -85,7 +85,24 @@ export default {
             console.log(this.searchString);
         },
         refresh() {
-            message.send({ action: 'update', message: { type: this.$store.state.active.subType, id: this.$store.state.active.id } });
+            let { subType: type, id } = this.$store.state.active;
+            message.send({ action: 'update', data: { type, id } })
+                .then(({ result, data }) => {
+                    if (result === 'ok') {
+                        return message.send({ action: 'get', data: { type, id } })
+                            .then(({ result, data }) => {
+                                if (result === 'ok') {
+                                    console.log(data);
+                                }
+                                else if (result === 'fail') {
+                                    throw data;
+                                }
+                            });
+                    }
+                    else if (result === 'fail') {
+                        throw data;
+                    }
+                }, e => { throw e; });
         }
     },
     components: {

@@ -17,7 +17,8 @@ module.exports = {
     alias: {
       'public': resolve(__dirname, 'public'),
       'views': resolve(__dirname, 'src/views'),
-      '@': resolve(__dirname, 'src')
+      '~': resolve(__dirname, 'src'),
+      '@': resolve(__dirname),
     }
   },
   module: {

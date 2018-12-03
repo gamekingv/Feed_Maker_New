@@ -95,11 +95,12 @@ const database = {
                 }));
             }
             else {
-                return Promise.resolve();
+                return Promise.resolve(0);
             }
         });
     },
     deleteItems(keys) {
+        if (keys.length === 0) return Promise.resolve();
         return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => new Promise((resolve, reject) => {
             let count = 0;
             for (let key of keys) {
