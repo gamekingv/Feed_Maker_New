@@ -1,6 +1,6 @@
 <template>
     <v-list dense expand>
-        <v-list-tile ripple to="/list/group/collection">
+        <v-list-tile to="/list/group/collection">
             <v-list-tile-action>
                 <v-icon>star</v-icon>
             </v-list-tile-action>
@@ -8,7 +8,7 @@
                 <v-list-tile-title>收藏</v-list-tile-title>
             </v-list-tile-content>
         </v-list-tile>
-        <v-list-tile ripple to="/list/group/all">
+        <v-list-tile to="/list/group/all">
             <v-list-tile-action>
                 <v-icon>dashboard</v-icon>
             </v-list-tile-action>
