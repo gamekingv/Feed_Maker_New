@@ -36,7 +36,7 @@ const crawler = {
                     title: item.title,
                     url: item.link,
                     content: item.content,
-                    pubDate: item.pubDate,
+                    pubDate: Date.parse(item.pubDate),
                     feedId: id,
                     groupId: feed.groupId
                 };
@@ -60,7 +60,7 @@ const crawler = {
                 }
                 newItems.push(newItem);
             }
-            return await db.addItems(newItems, id);
+            return await db.addItems(newItems);
         }
     },
     async normalParser(data) {

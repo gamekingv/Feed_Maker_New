@@ -4,6 +4,9 @@ const mutations = {
         state.active.subType = subType;
         state.active.id = id;
     },
+    refreshList(state, data) {
+        state.list = data;
+    },
     addGroup(state, data) {
         state.groups.push(data);
     },

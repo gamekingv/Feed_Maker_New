@@ -43,7 +43,7 @@ const database = {
     getAllItems() {
         return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => {
             return new Promise((resolve, reject) => {
-                let request = objectStore.openCursor(), result = [];
+                let request = objectStore.index('pubDate').openCursor(null, 'prev'), result = [];
                 request.onerror = reject;
                 request.onsuccess = e => {
                     let cursor = e.target.result;
@@ -52,6 +52,7 @@ const database = {
                         cursor.continue();
                     }
                     else {
+                        console.log(result);
                         resolve(result);
                     }
                 };
@@ -60,7 +61,8 @@ const database = {
     },
     getItemsByFeedId(feedId) {
         return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => new Promise((resolve, reject) => {
-            let request = objectStore.index('feedId', feedId).openCursor(), result = [];
+            let keyRange = IDBKeyRange.bound([feedId, 0], [feedId, Number.POSITIVE_INFINITY]),
+                request = objectStore.index('feedId').openCursor(keyRange, 'prev'), result = [];
             request.onerror = reject;
             request.onsuccess = e => {
                 let cursor = e.target.result;
@@ -74,8 +76,25 @@ const database = {
             };
         }));
     },
-    addItems(items, feedId) {
-        return this.getItemsByFeedId(feedId).then(oldItems => {
+    getItemsByGroupId(groupId) {
+        return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => new Promise((resolve, reject) => {
+            let keyRange = IDBKeyRange.bound([groupId, 0], [groupId, Number.POSITIVE_INFINITY]),
+                request = objectStore.index('groupId').openCursor(keyRange, 'prev'), result = [];
+            request.onerror = reject;
+            request.onsuccess = e => {
+                let cursor = e.target.result;
+                if (cursor) {
+                    result.push(cursor.value);
+                    cursor.continue();
+                }
+                else {
+                    resolve(result);
+                }
+            };
+        }));
+    },
+    addItems(items) {
+        return this.getItemsByFeedId(items[0].feedId).then(oldItems => {
             items.forEach(item => {
                 if (oldItems.findIndex(oldItem => oldItem.url === item.url && oldItem.title === item.title) > -1) {
                     item.state = 'read';

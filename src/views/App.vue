@@ -85,24 +85,8 @@ export default {
             console.log(this.searchString);
         },
         refresh() {
-            let { subType: type, id } = this.$store.state.active;
-            message.send({ action: 'update', data: { type, id } })
-                .then(({ result, data }) => {
-                    if (result === 'ok') {
-                        return message.send({ action: 'get', data: { type, id } })
-                            .then(({ result, data }) => {
-                                if (result === 'ok') {
-                                    console.log(data);
-                                }
-                                else if (result === 'fail') {
-                                    throw data;
-                                }
-                            });
-                    }
-                    else if (result === 'fail') {
-                        throw data;
-                    }
-                }, e => { throw e; });
+            let { subType, id } = this.$store.state.active;
+            message.sendUpdate(subType, id).then(result => this.$store.state.list = result);
         }
     },
     components: {

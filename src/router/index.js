@@ -14,7 +14,6 @@ const router = new Router({
         {
             path: '/list/:type/:id',
             component: () => import('views/ItemList'),
-            props: true,
             name: 'itemList'
         },
         {

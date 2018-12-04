@@ -19,7 +19,9 @@ const message = {
                 }
                 case 'get': {
                     if (data.type === 'group') {
-                        console.log(data.id);
+                        let request = data.id === 'all' ? db.getAllItems() : db.getItemsByGroupId(data.id);
+                        request.then(items => sendResponse({ result: 'ok', data: items }))
+                            .catch(e => sendResponse({ result: 'fail', data: e }));
                     }
                     else if (data.type === 'feed') {
                         db.getItemsByFeedId(data.id)

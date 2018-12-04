@@ -9,6 +9,7 @@ Vue.use(Vuex);
 const store = new Vuex.Store({
     state: {
         groups: [],
+        list: [],
         active: {
             type: 'list',
             subType: 'group',

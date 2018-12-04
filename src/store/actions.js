@@ -1,4 +1,10 @@
+import message from '~/utils/extension/message';
+
 const actions = {
+    async refreshList({ commit }, { type, id }) {
+        let list = await message.sendGet(type, id);
+        if (list) commit('refreshList', list);
+    },
     async getGroups({ commit }) {
         let { groups } = await browser.storage.local.get('groups');
         if (groups) commit('updateGroups', groups);

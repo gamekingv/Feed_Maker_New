@@ -353,9 +353,7 @@ export default {
                                 timeout: this.timeout,
                                 headers: this.headers,
                                 body: this.body
-                            }).then(() => this.$router.push({ path: `/list/feed/${id}` })).then(() =>
-                                message.send({ action: 'update', data: { type: 'feed', id: id } })
-                            );
+                            }).then(() => this.$router.push({ path: `/list/feed/${id}` }));
                             break;
                         }
                         case 'custom':
