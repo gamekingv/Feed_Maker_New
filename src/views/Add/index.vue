@@ -240,7 +240,6 @@
 
 <script>
 import axios from 'axios';
-import message from '~/utils/extension/message';
 
 export default {
     data: () => ({
