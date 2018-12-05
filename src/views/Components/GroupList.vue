@@ -1,6 +1,6 @@
 <template>
     <v-list dense expand>
-        <v-list-tile to="/list/group/collection">
+        <v-list-tile active-class="blue--text" to="/list/group/collection">
             <v-list-tile-action>
                 <v-icon>star</v-icon>
             </v-list-tile-action>
@@ -8,7 +8,7 @@
                 <v-list-tile-title>收藏</v-list-tile-title>
             </v-list-tile-content>
         </v-list-tile>
-        <v-list-tile to="/list/group/all">
+        <v-list-tile active-class="blue--text" to="/list/group/all">
             <v-list-tile-action>
                 <v-icon>dashboard</v-icon>
             </v-list-tile-action>
@@ -28,6 +28,7 @@
                 :append-icon="group.feeds.length > 0 ? $vuetify.icons.expand : false"
             >
                 <v-list-tile
+                    active-class="blue--text"
                     slot="activator"
                     @click.stop
                     :to="`/list/group/${group.id}`"

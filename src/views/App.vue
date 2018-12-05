@@ -19,18 +19,17 @@
                     <v-toolbar-side-icon @click="drawer = !drawer"/>
                     <v-toolbar-title v-text="$store.getters.activeTitle"/>
                     <v-spacer/>
-                    <v-toolbar-title>
-                        <v-text-field
-                            class="pt-0"
-                            v-model="searchString"
-                            prepend-inner-icon="search"
-                            solo
-                            hide-details
-                            single-line
-                            clearable
-                            @click:prepend-inner.stop="search"
-                        />
-                    </v-toolbar-title>
+                    <v-btn-toggle class="filter-group" mandatory>
+                        <v-btn flat>
+                            <v-icon>check_box_outline_blank</v-icon>
+                        </v-btn>
+                        <v-btn flat>
+                            <v-icon>check_box</v-icon>
+                        </v-btn>
+                        <v-btn flat>
+                            <v-icon>indeterminate_check_box</v-icon>
+                        </v-btn>
+                    </v-btn-toggle>
                     <v-btn icon @click.stop="refresh">
                         <v-icon>refresh</v-icon>
                     </v-btn>
@@ -38,7 +37,7 @@
                         <v-icon>settings</v-icon>
                     </v-btn>
                 </v-toolbar>
-                <v-content>
+                <v-content class="fill-height">
                     <v-fade-transition mode="out-in" duration="80">
                         <router-view ref="content"/>
                     </v-fade-transition>
@@ -101,5 +100,9 @@ $scrollbar: -17px;
     overflow-y: scroll;
     margin-right: $scrollbar;
     max-width: calc(100% - #{$scrollbar}) !important;
+}
+.filter-group {
+    margin-left: 20px;
+    margin-right: 20px;
 }
 </style>

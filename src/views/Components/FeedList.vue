@@ -1,6 +1,7 @@
 <template>
     <draggable v-model="feeds" :options="options">
         <v-list-tile
+            active-class="blue--text"
             v-for="feed in group.feeds"
             :key="feed.id"
             :to="`/list/feed/${feed.id}`"
