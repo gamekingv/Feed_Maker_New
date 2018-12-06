@@ -1,7 +1,7 @@
 ﻿<template>
     <v-app dark>
         <v-fade-transition>
-            <v-container v-if="!loading">
+            <v-container v-if="!loading" fluid>
                 <v-navigation-drawer width="250" stateless value="true" fixed v-model="drawer" app>
                     <v-layout column fill-height>
                         <v-toolbar flat class="transparent">
