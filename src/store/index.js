@@ -9,7 +9,7 @@ Vue.use(Vuex);
 const store = new Vuex.Store({
     state: {
         groups: [],
-        list: [],
+        items: [],
         active: {
             type: 'list',
             subType: 'group',
@@ -22,5 +22,4 @@ const store = new Vuex.Store({
     strict: true
 });
 process;
-
 export default store;

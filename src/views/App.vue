@@ -85,7 +85,7 @@ export default {
         },
         refresh() {
             let { subType, id } = this.$store.state.active;
-            message.sendUpdate(subType, id).then(result => this.$store.state.list = result);
+            message.sendUpdate(subType, id).then(result => this.$store.state.items = result);
         }
     },
     components: {
@@ -102,7 +102,9 @@ $scrollbar: -17px;
     max-width: calc(100% - #{$scrollbar}) !important;
 }
 .filter-group {
-    margin-left: 20px;
-    margin-right: 20px;
+    margin: {
+        left: 20px;
+        right: 20px;
+    }
 }
 </style>

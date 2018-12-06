@@ -5,7 +5,7 @@ const mutations = {
         state.active.id = id;
     },
     refreshList(state, data) {
-        state.list = data;
+        state.items = data;
     },
     addGroup(state, data) {
         state.groups.push(data);
