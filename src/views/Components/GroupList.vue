@@ -25,7 +25,7 @@
             <v-list-group
                 v-for="group in groups"
                 :key="group.id"
-                :append-icon="group.feeds.length > 0 ? $vuetify.icons.expand : false"
+                :append-icon="group.feeds.length > 0 ? $vuetify.icons.expand : ''"
             >
                 <v-list-tile
                     active-class="blue--text"

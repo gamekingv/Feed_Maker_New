@@ -21,13 +21,13 @@
                     <v-spacer/>
                     <v-btn-toggle class="filter-group" mandatory>
                         <v-btn flat>
-                            <v-icon>check_box_outline_blank</v-icon>
+                            <v-icon>bookmark_border</v-icon>
                         </v-btn>
                         <v-btn flat>
-                            <v-icon>check_box</v-icon>
+                            <v-icon>bookmark</v-icon>
                         </v-btn>
                         <v-btn flat>
-                            <v-icon>indeterminate_check_box</v-icon>
+                            <v-icon>bookmarks</v-icon>
                         </v-btn>
                     </v-btn-toggle>
                     <v-btn icon @click.stop="refresh">
@@ -83,9 +83,15 @@ export default {
         search() {
             console.log(this.searchString);
         },
-        refresh() {
-            let { subType, id } = this.$store.state.active;
-            message.sendUpdate(subType, id).then(result => this.$store.state.items = result);
+        async refresh() {
+            let { subType: type, id } = this.$store.state.active,
+                { result, data } = await message.sendUpdate(type, id);
+            if (result === 'ok') {
+                return this.$store.dispatch('refreshList', { type, id });
+            }
+            else if (result === 'fail') {
+                throw data;
+            }
         }
     },
     components: {

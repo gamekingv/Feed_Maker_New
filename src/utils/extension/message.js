@@ -21,17 +21,21 @@ const message = {
     async sendUpdate(type, id) {
         try {
             let { result, data } = await this.send({ action: 'update', data: { type, id } });
-            if (result === 'ok') {
-                return this.sendGet(type, id);
-            }
-            else if (result === 'fail') {
-                throw data;
-            }
+            return { result, data };
         }
         catch (e) { throw e; }
     },
     sendUpdateFeed(id) {
         return this.sendUpdate('feed', id);
+    },
+    sendModifyItems(ids, keyValues) {
+        return this.send({ action: 'modify', data: { ids, keyValues } });
+    },
+    sendMarkItemsAsRead(ids) {
+        return this.sendModifyItems(ids, { state: 'read' });
+    },
+    sendMarkItemsAsUnread(ids) {
+        return this.sendModifyItems(ids, { state: 'unread' });
     }
 };
 

@@ -38,7 +38,7 @@
                             </v-list-tile-avatar>
                             <v-list-tile-content>
                                 <v-list-tile-title
-                                    :class="item.state === 'unread' ? 'font-weight-bold' : ''"
+                                    :class="item.state === 'unread' ? 'font-weight-bold' : 'grey--text text--lighten-1'"
                                     v-text="item.title"
                                 ></v-list-tile-title>
                             </v-list-tile-content>
@@ -68,11 +68,14 @@
                     <v-btn fab small color="pink" @click.stop="selectAll">
                         <v-icon>select_all</v-icon>
                     </v-btn>
-                    <v-btn fab small color="indigo" @click="markAsRead">
-                        <v-icon>done</v-icon>
-                    </v-btn>
                     <v-btn fab small color="green" @click="clearSelects">
                         <v-icon>crop_free</v-icon>
+                    </v-btn>
+                    <v-btn fab small color="indigo" @click="markAsRead">
+                        <v-icon>bookmark</v-icon>
+                    </v-btn>
+                    <v-btn fab small color="indigo" @click="markAsUnread">
+                        <v-icon>bookmark_border</v-icon>
                     </v-btn>
                     <v-btn fab small color="red">
                         <v-icon>star</v-icon>
@@ -90,6 +93,8 @@
     </v-container>
 </template>
 <script>
+import message from '~/utils/extension/message';
+
 export default {
     data() {
         return {
@@ -119,8 +124,7 @@ export default {
             else
                 return `${time.getFullYear()}/${time.getMonth() + 1}/${time.getDate()}`;
         },
-        refreshList(path) {
-            let [, type, id] = path.substr(1).split('/');
+        refreshList({ type, id }) {
             this.$store.dispatch('refreshList', { type, id }).then(() => this.loading--);
         },
         selectAll() {
@@ -130,15 +134,44 @@ export default {
             this.selectedItems = [];
         },
         markAsRead() {
-            console.log(this.selectedItems);
+            this.loading++;
+            let { subType: type, id } = this.$store.state.active;
+            message.sendMarkItemsAsRead(this.selectedItems)
+                .then(({ result, data }) => {
+                    if (result === 'ok') {
+                        this.clearSelects();
+                        return this.refreshList({ type, id });
+                    }
+                    else if (result === 'fail') {
+                        return Promise.reject(data);
+                    }
+                }).catch(e => { throw e; });
+        },
+        markAsUnread() {
+            this.loading++;
+            let { subType: type, id } = this.$store.state.active;
+            message.sendMarkItemsAsUnread(this.selectedItems)
+                .then(({ result, data }) => {
+                    if (result === 'ok') {
+                        this.clearSelects();
+                        return this.refreshList({ type, id });
+                    }
+                    else if (result === 'fail') {
+                        return Promise.reject(data);
+                    }
+                }).catch(e => { throw e; });
         }
     },
     beforeRouteEnter(to, from, next) {
-        next(vm => vm.refreshList(to.path));
+        next(vm => {
+            let [, type, id] = to.path.substr(1).split('/');
+            vm.refreshList({ type, id });
+        });
     },
     beforeRouteUpdate(to, from, next) {
         this.loading++;
-        this.refreshList(to.path);
+        let [, type, id] = to.path.substr(1).split('/');
+        this.refreshList({ type, id });
         next();
     }
 };

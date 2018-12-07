@@ -36,8 +36,7 @@ export default {
     props: ['group'],
     data: () => ({
         options: {
-            animation: 100,
-            group: 'feeds'
+            animation: 100
         },
         hoverId: ''
     }),
@@ -47,7 +46,7 @@ export default {
                 return this.group.feeds;
             },
             set(feeds) {
-                this.$store.dispatch('updateFeeds', { id: this.group.id, feeds });
+                this.$store.dispatch('updateFeeds', { groupId: this.group.id, feeds });
             }
         }
     },

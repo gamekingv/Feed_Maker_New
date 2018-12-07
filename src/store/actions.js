@@ -41,10 +41,10 @@ const actions = {
         commit('updateFeed', feed);
         return dispatch('saveGroups');
     },
-    updateFeeds({ dispatch, commit }, feeds) {
-        commit('updateFeeds', feeds);
+    updateFeeds({ dispatch, commit }, data) {
+        commit('updateFeeds', data);
         return dispatch('saveGroups');
-    },
+    }
 };
 
 export default actions;

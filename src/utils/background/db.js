@@ -52,12 +52,20 @@ const database = {
                         cursor.continue();
                     }
                     else {
-                        console.log(result);
                         resolve(result);
                     }
                 };
             });
         });
+    },
+    getItemsById(id) {
+        return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => new Promise((resolve, reject) => {
+            let request = objectStore.get(id);
+            request.onerror = reject;
+            request.onsuccess = function (e) {
+                resolve(e.target.result);
+            };
+        }));
     },
     getItemsByFeedId(feedId) {
         return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => new Promise((resolve, reject) => {
@@ -114,9 +122,22 @@ const database = {
                 }));
             }
             else {
-                return Promise.resolve(0);
+                return Promise.resolve();
             }
         });
+    },
+    updateItems(ids, keyValues) {
+        return Promise.all(ids.map(id => new Promise(async (resolve, reject) => {
+            try {
+                let item = await this.getItemsById(id),
+                    objectStore = await this.startStore(DB_ITEM_STORE_NAME);
+                Object.entries(keyValues).map(([key, value]) => item[key] = value);
+                let request = objectStore.put(item);
+                request.onerror = reject;
+                request.onsuccess = () => resolve();
+            }
+            catch (e) { reject(e); }
+        })));
     },
     deleteItems(keys) {
         if (keys.length === 0) return Promise.resolve();

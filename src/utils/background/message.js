@@ -30,6 +30,12 @@ const message = {
                     }
                     break;
                 }
+                case 'modify': {
+                    db.updateItems(data.ids, data.keyValues)
+                        .then(() => sendResponse({ result: 'ok' }))
+                        .catch(e => sendResponse({ result: 'fail', data: e }));
+                    break;
+                }
             }
             return true;
         });
