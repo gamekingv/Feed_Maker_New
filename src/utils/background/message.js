@@ -17,15 +17,28 @@ const message = {
                     }
                     break;
                 }
-                case 'get': {
+                case 'getItems': {
                     if (data.type === 'group') {
-                        let request = data.id === 'all' ? db.getAllItems() : db.getItemsByGroupId(data.id);
+                        let request = data.id === 'all' ? db.getAllItems(data.page, data.amount) : db.getItemsByGroupId(data.id, data.page, data.amount);
                         request.then(items => sendResponse({ result: 'ok', data: items }))
                             .catch(e => sendResponse({ result: 'fail', data: e }));
                     }
                     else if (data.type === 'feed') {
-                        db.getItemsByFeedId(data.id)
+                        db.getItemsByFeedId(data.id, data.page, data.amount)
                             .then(items => sendResponse({ result: 'ok', data: items }))
+                            .catch(e => sendResponse({ result: 'fail', data: e }));
+                    }
+                    break;
+                }
+                case 'getCount': {
+                    if (data.type === 'group') {
+                        let request = data.id === 'all' ? db.getAllItemsCount() : db.getItemsCountByGroupId(data.id);
+                        request.then(count => sendResponse({ result: 'ok', data: count }))
+                            .catch(e => sendResponse({ result: 'fail', data: e }));
+                    }
+                    else if (data.type === 'feed') {
+                        db.getItemsCountByFeedId(data.id)
+                            .then(count => sendResponse({ result: 'ok', data: count }))
                             .catch(e => sendResponse({ result: 'fail', data: e }));
                     }
                     break;

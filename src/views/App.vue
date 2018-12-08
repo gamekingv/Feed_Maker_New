@@ -87,7 +87,8 @@ export default {
             let { subType: type, id } = this.$store.state.active,
                 { result, data } = await message.sendUpdate(type, id);
             if (result === 'ok') {
-                return this.$store.dispatch('refreshList', { type, id });
+                this.$refs.content.loading++;
+                return this.$refs.content.refreshList({ type, id });
             }
             else if (result === 'fail') {
                 throw data;

@@ -9,7 +9,9 @@ Vue.use(Vuex);
 const store = new Vuex.Store({
     state: {
         groups: [],
-        items: [],
+        settings: {
+            itemsPerPage: 15
+        },
         active: {
             type: 'list',
             subType: 'group',

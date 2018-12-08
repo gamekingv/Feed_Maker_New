@@ -40,14 +40,19 @@ const database = {
             resolve(transaction.objectStore(name));
         });
     },
-    getAllItems() {
+    getAllItems(page, amount) {
         return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => {
             return new Promise((resolve, reject) => {
-                let request = objectStore.index('pubDate').openCursor(null, 'prev'), result = [];
+                let request = objectStore.index('pubDate').openCursor(null, 'prev'), result = [], skipped = false;
                 request.onerror = reject;
                 request.onsuccess = e => {
                     let cursor = e.target.result;
-                    if (cursor) {
+                    if (cursor && result.length < amount) {
+                        if (!skipped && page > 1) {
+                            skipped = true;
+                            cursor.advance((page - 1) * amount);
+                            return;
+                        }
                         result.push(cursor.value);
                         cursor.continue();
                     }
@@ -55,6 +60,15 @@ const database = {
                         resolve(result);
                     }
                 };
+            });
+        });
+    },
+    getAllItemsCount() {
+        return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => {
+            return new Promise((resolve, reject) => {
+                let request = objectStore.index('pubDate').count();
+                request.onerror = reject;
+                request.onsuccess = e => resolve(e.target.result);
             });
         });
     },
@@ -67,14 +81,19 @@ const database = {
             };
         }));
     },
-    getItemsByFeedId(feedId) {
+    getItemsByFeedId(feedId, page, amount) {
         return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => new Promise((resolve, reject) => {
             let keyRange = IDBKeyRange.bound([feedId, 0], [feedId, Number.POSITIVE_INFINITY]),
-                request = objectStore.index('feedId').openCursor(keyRange, 'prev'), result = [];
+                request = objectStore.index('feedId').openCursor(keyRange, 'prev'), result = [], skipped = false;
             request.onerror = reject;
             request.onsuccess = e => {
                 let cursor = e.target.result;
-                if (cursor) {
+                if (cursor && result.length < amount) {
+                    if (!skipped && page > 1) {
+                        skipped = true;
+                        cursor.advance((page - 1) * amount);
+                        return;
+                    }
                     result.push(cursor.value);
                     cursor.continue();
                 }
@@ -84,14 +103,27 @@ const database = {
             };
         }));
     },
-    getItemsByGroupId(groupId) {
+    getItemsCountByFeedId(feedId) {
+        return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => new Promise((resolve, reject) => {
+            let keyRange = IDBKeyRange.bound([feedId, 0], [feedId, Number.POSITIVE_INFINITY]),
+                request = objectStore.index('feedId').count(keyRange);
+            request.onerror = reject;
+            request.onsuccess = e => resolve(e.target.result);
+        }));
+    },
+    getItemsByGroupId(groupId, page, amount) {
         return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => new Promise((resolve, reject) => {
             let keyRange = IDBKeyRange.bound([groupId, 0], [groupId, Number.POSITIVE_INFINITY]),
-                request = objectStore.index('groupId').openCursor(keyRange, 'prev'), result = [];
+                request = objectStore.index('groupId').openCursor(keyRange, 'prev'), result = [], skipped = false;
             request.onerror = reject;
             request.onsuccess = e => {
                 let cursor = e.target.result;
-                if (cursor) {
+                if (cursor && result.length < amount) {
+                    if (!skipped && page > 1) {
+                        skipped = true;
+                        cursor.advance((page - 1) * amount);
+                        return;
+                    }
                     result.push(cursor.value);
                     cursor.continue();
                 }
@@ -99,6 +131,14 @@ const database = {
                     resolve(result);
                 }
             };
+        }));
+    },
+    getItemsCountByGroupId(groupId) {
+        return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => new Promise((resolve, reject) => {
+            let keyRange = IDBKeyRange.bound([groupId, 0], [groupId, Number.POSITIVE_INFINITY]),
+                request = objectStore.index('groupId').count(keyRange);
+            request.onerror = reject;
+            request.onsuccess = e => resolve(e.target.result);
         }));
     },
     addItems(items) {

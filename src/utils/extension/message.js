@@ -1,3 +1,4 @@
+import store from '~/store';
 
 const message = {
     init() {
@@ -9,8 +10,17 @@ const message = {
     send(payload) {
         return browser.runtime.sendMessage(payload);
     },
-    async sendGet(type, id) {
-        let { result, data } = await this.send({ action: 'get', data: { type, id } });
+    async sendGetCount(type, id) {
+        let { result, data } = await this.send({ action: 'getCount', data: { type, id } });
+        if (result === 'ok') {
+            return data;
+        }
+        else if (result === 'fail') {
+            throw data;
+        }
+    },
+    async sendGet(type, id, page) {
+        let { result, data } = await this.send({ action: 'getItems', data: { type, id, page, amount: store.state.settings.itemsPerPage } });
         if (result === 'ok') {
             return data;
         }

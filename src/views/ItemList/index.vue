@@ -53,6 +53,15 @@
                         <v-divider v-if="i < items.length - 1" :key="item.id * -1"></v-divider>
                     </template>
                 </v-list>
+                <v-layout justify-center align-center>
+                    <v-pagination
+                        v-model="currentPage"
+                        :length="totalPage"
+                        circle
+                        v-if="totalPage > 1"
+                        @input="changePage"
+                    ></v-pagination>
+                </v-layout>
                 <v-speed-dial
                     direction="bottom"
                     open-on-hover
@@ -99,15 +108,18 @@ export default {
     data() {
         return {
             loading: 1,
-            selectedItems: []
+            items: [],
+            selectedItems: [],
+            currentPage: 1,
+            totalItems: 0
         };
     },
     computed: {
-        items() {
-            return this.$store.state.items;
-        },
         icons() {
             return this.items.map(item => this.$store.getters.getFeed(item.feedId).icon);
+        },
+        totalPage() {
+            return Math.ceil(this.totalItems / this.$store.state.settings.itemsPerPage);
         }
     },
     methods: {
@@ -124,8 +136,9 @@ export default {
             else
                 return `${time.getFullYear()}/${time.getMonth() + 1}/${time.getDate()}`;
         },
-        refreshList({ type, id }) {
-            this.$store.dispatch('refreshList', { type, id }).then(() => this.loading--);
+        async refreshList({ type, subType, id } = this.$store.state.active) {
+            this.items = await message.sendGet(subType ? subType : type, id, this.currentPage);
+            this.loading--;
         },
         selectAll() {
             this.selectedItems = this.items.map(item => item.id);
@@ -160,17 +173,24 @@ export default {
                         return Promise.reject(data);
                     }
                 }).catch(e => { throw e; });
+        },
+        changePage() {
+            this.loading++;
+            this.refreshList();
         }
     },
     beforeRouteEnter(to, from, next) {
-        next(vm => {
+        next(async vm => {
             let [, type, id] = to.path.substr(1).split('/');
+            vm.totalItems = await message.sendGetCount(type, id);
             vm.refreshList({ type, id });
         });
     },
-    beforeRouteUpdate(to, from, next) {
+    async beforeRouteUpdate(to, from, next) {
         this.loading++;
         let [, type, id] = to.path.substr(1).split('/');
+        this.currentPage = 1;
+        this.totalItems = await message.sendGetCount(type, id);
         this.refreshList({ type, id });
         next();
     }
