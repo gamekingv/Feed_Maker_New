@@ -71,7 +71,7 @@
                     style="top: 88px;"
                     v-if="items.length !== 0"
                 >
-                    <v-btn slot="activator" color="blue darken-2" fab>
+                    <v-btn slot="activator" color="blue darken-2" fab @click="markAllAsRead">
                         <v-icon>done_all</v-icon>
                     </v-btn>
                     <v-btn fab small color="pink" @click.stop="selectAll">
@@ -107,7 +107,7 @@ import message from '~/utils/extension/message';
 export default {
     data() {
         return {
-            loading: 1,
+            loading: true,
             items: [],
             selectedItems: [],
             currentPage: 1,
@@ -136,9 +136,18 @@ export default {
             else
                 return `${time.getFullYear()}/${time.getMonth() + 1}/${time.getDate()}`;
         },
-        async refreshList({ type, subType, id } = this.$store.state.active) {
-            this.items = await message.sendGet(subType ? subType : type, id, this.currentPage);
-            this.loading--;
+        async refreshList(type = this.$store.state.active.subType, id = this.$store.state.active.id) {
+            this.loading = true;
+            if (type === 'changePage') {
+                type = this.$store.state.active.subType;
+            }
+            else {
+                this.currentPage = 1;
+                this.totalItems = await message.sendGetCount(type, id, this.$store.state.settings.view);
+            }
+            this.items = await message.sendGet(type, id, this.currentPage);
+            this.clearSelects();
+            this.loading = false;
         },
         selectAll() {
             this.selectedItems = this.items.map(item => item.id);
@@ -147,13 +156,25 @@ export default {
             this.selectedItems = [];
         },
         markAsRead() {
-            this.loading++;
-            let { subType: type, id } = this.$store.state.active;
+            this.loading = true;
             message.sendMarkItemsAsRead(this.selectedItems)
                 .then(({ result, data }) => {
                     if (result === 'ok') {
-                        this.clearSelects();
-                        return this.refreshList({ type, id });
+                        return this.refreshList();
+                    }
+                    else if (result === 'fail') {
+                        return Promise.reject(data);
+                    }
+                }).catch(e => { throw e; });
+        },
+        async markAllAsRead() {
+            this.loading = true;
+            let { subType: type, id } = this.$store.state.active;
+            let items = await message.sendGet(type, id, null, 'unread');
+            message.sendMarkItemsAsRead(items.map(item => item.id))
+                .then(({ result, data }) => {
+                    if (result === 'ok') {
+                        return this.refreshList();
                     }
                     else if (result === 'fail') {
                         return Promise.reject(data);
@@ -161,13 +182,11 @@ export default {
                 }).catch(e => { throw e; });
         },
         markAsUnread() {
-            this.loading++;
-            let { subType: type, id } = this.$store.state.active;
+            this.loading = true;
             message.sendMarkItemsAsUnread(this.selectedItems)
                 .then(({ result, data }) => {
                     if (result === 'ok') {
-                        this.clearSelects();
-                        return this.refreshList({ type, id });
+                        return this.refreshList();
                     }
                     else if (result === 'fail') {
                         return Promise.reject(data);
@@ -175,23 +194,18 @@ export default {
                 }).catch(e => { throw e; });
         },
         changePage() {
-            this.loading++;
-            this.refreshList();
+            this.refreshList('changePage');
         }
     },
     beforeRouteEnter(to, from, next) {
         next(async vm => {
             let [, type, id] = to.path.substr(1).split('/');
-            vm.totalItems = await message.sendGetCount(type, id);
-            vm.refreshList({ type, id });
+            vm.refreshList(type, id);
         });
     },
     async beforeRouteUpdate(to, from, next) {
-        this.loading++;
         let [, type, id] = to.path.substr(1).split('/');
-        this.currentPage = 1;
-        this.totalItems = await message.sendGetCount(type, id);
-        this.refreshList({ type, id });
+        this.refreshList(type, id);
         next();
     }
 };

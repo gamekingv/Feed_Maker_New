@@ -29,6 +29,9 @@ const mutations = {
     },
     updateFeeds(state, { groupId, feeds }) {
         state.groups.find(group => group.id === groupId).feeds = feeds;
+    },
+    setView(state, data) {
+        state.settings.view = data;
     }
 };
 

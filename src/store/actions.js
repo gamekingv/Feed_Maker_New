@@ -38,6 +38,9 @@ const actions = {
     updateFeeds({ dispatch, commit }, data) {
         commit('updateFeeds', data);
         return dispatch('saveGroups');
+    },
+    setView({ commit }, data) {
+        commit('setView', data);
     }
 };
 

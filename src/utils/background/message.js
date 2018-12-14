@@ -7,44 +7,48 @@ const message = {
         browser.runtime.onMessage.addListener(({ action, data }, sender, sendResponse) => {
             switch (action) {
                 case 'update': {
-                    if (data.type === 'group') {
-                        console.log(data.id);
+                    let { type, id } = data;
+                    if (type === 'group') {
+                        console.log(id);
                     }
-                    else if (data.type === 'feed') {
-                        crawler.updateFeed(data.id)
+                    else if (type === 'feed') {
+                        crawler.updateFeed(id)
                             .then(() => sendResponse({ result: 'ok' }))
                             .catch(e => sendResponse({ result: 'fail', data: e }));
                     }
                     break;
                 }
                 case 'getItems': {
-                    if (data.type === 'group') {
-                        let request = data.id === 'all' ? db.getAllItems(data.page, data.amount) : db.getItemsByGroupId(data.id, data.page, data.amount);
+                    let { type, id, page, amount, state } = data;
+                    if (type === 'group') {
+                        let request = id === 'all' ? db.getAllItems(page, amount, state) : db.getItemsByGroupId(id, page, amount, state);
                         request.then(items => sendResponse({ result: 'ok', data: items }))
                             .catch(e => sendResponse({ result: 'fail', data: e }));
                     }
-                    else if (data.type === 'feed') {
-                        db.getItemsByFeedId(data.id, data.page, data.amount)
+                    else if (type === 'feed') {
+                        db.getItemsByFeedId(id, page, amount, state)
                             .then(items => sendResponse({ result: 'ok', data: items }))
                             .catch(e => sendResponse({ result: 'fail', data: e }));
                     }
                     break;
                 }
                 case 'getCount': {
-                    if (data.type === 'group') {
-                        let request = data.id === 'all' ? db.getAllItemsCount() : db.getItemsCountByGroupId(data.id);
+                    let { type, id, state } = data;
+                    if (type === 'group') {
+                        let request = data.id === 'all' ? db.getAllItemsCount(state) : db.getItemsCountByGroupId(id, state);
                         request.then(count => sendResponse({ result: 'ok', data: count }))
                             .catch(e => sendResponse({ result: 'fail', data: e }));
                     }
-                    else if (data.type === 'feed') {
-                        db.getItemsCountByFeedId(data.id)
+                    else if (type === 'feed') {
+                        db.getItemsCountByFeedId(id, state)
                             .then(count => sendResponse({ result: 'ok', data: count }))
                             .catch(e => sendResponse({ result: 'fail', data: e }));
                     }
                     break;
                 }
                 case 'modify': {
-                    db.updateItems(data.ids, data.keyValues)
+                    let { ids, keyValues } = data;
+                    db.updateItems(ids, keyValues)
                         .then(() => sendResponse({ result: 'ok' }))
                         .catch(e => sendResponse({ result: 'fail', data: e }));
                     break;

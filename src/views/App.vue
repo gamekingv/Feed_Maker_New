@@ -19,14 +19,14 @@
                     <v-toolbar-side-icon @click="drawer = !drawer"/>
                     <v-toolbar-title v-text="$store.getters.activeTitle"/>
                     <v-spacer/>
-                    <v-btn-toggle class="filter-group" mandatory>
-                        <v-btn flat>
+                    <v-btn-toggle class="filter-group" v-model="view" mandatory>
+                        <v-btn value="unread" flat>
                             <v-icon>bookmark_border</v-icon>
                         </v-btn>
-                        <v-btn flat>
+                        <v-btn value="read" flat>
                             <v-icon>bookmark</v-icon>
                         </v-btn>
-                        <v-btn flat>
+                        <v-btn value="all" flat>
                             <v-icon>bookmarks</v-icon>
                         </v-btn>
                     </v-btn-toggle>
@@ -75,6 +75,17 @@ export default {
         setting: false,
         searchString: ''
     }),
+    computed: {
+        view: {
+            get() {
+                return this.$store.state.settings.view;
+            },
+            async set(value) {
+                await this.$store.dispatch('setView', value);
+                await this.refreshList();
+            }
+        }
+    },
     async mounted() {
         await this.$store.dispatch('getGroups');
         this.loading = false;
@@ -83,12 +94,14 @@ export default {
         search() {
             console.log(this.searchString);
         },
+        async refreshList() {
+            return await this.$refs.content.refreshList();
+        },
         async refresh() {
             let { subType: type, id } = this.$store.state.active,
                 { result, data } = await message.sendUpdate(type, id);
             if (result === 'ok') {
-                this.$refs.content.loading++;
-                return this.$refs.content.refreshList({ type, id });
+                await this.refreshList();
             }
             else if (result === 'fail') {
                 throw data;
@@ -102,11 +115,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-$scrollbar: -17px;
 .group-list {
+    scrollbar-width: none;
     overflow-y: scroll;
-    margin-right: $scrollbar;
-    max-width: calc(100% - #{$scrollbar}) !important;
 }
 .filter-group {
     margin: {

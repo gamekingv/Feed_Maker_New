@@ -11,7 +11,12 @@ const message = {
         return browser.runtime.sendMessage(payload);
     },
     async sendGetCount(type, id) {
-        let { result, data } = await this.send({ action: 'getCount', data: { type, id } });
+        let { result, data } = await this.send({
+            action: 'getCount', data: {
+                type, id,
+                state: store.state.settings.view.replace('all', '')
+            }
+        });
         if (result === 'ok') {
             return data;
         }
@@ -19,8 +24,14 @@ const message = {
             throw data;
         }
     },
-    async sendGet(type, id, page) {
-        let { result, data } = await this.send({ action: 'getItems', data: { type, id, page, amount: store.state.settings.itemsPerPage } });
+    async sendGet(type, id, page, state = store.state.settings.view.replace('all', '')) {
+        let { result, data } = await this.send({
+            action: 'getItems', data: {
+                type, id, page,
+                amount: page ? store.state.settings.itemsPerPage : null,
+                state: state
+            }
+        });
         if (result === 'ok') {
             return data;
         }
@@ -43,6 +54,10 @@ const message = {
     },
     sendMarkItemsAsRead(ids) {
         return this.sendModifyItems(ids, { state: 'read' });
+    },
+    async sendMarkAllItemsAsRead(type, id) {
+        let items = await this.sendGet(type, id, null, 'unread');
+        return await this.sendModifyItems(items.map(item => item.id), { state: 'read' });
     },
     sendMarkItemsAsUnread(ids) {
         return this.sendModifyItems(ids, { state: 'unread' });

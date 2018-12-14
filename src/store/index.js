@@ -10,7 +10,8 @@ const store = new Vuex.Store({
     state: {
         groups: [],
         settings: {
-            itemsPerPage: 15
+            itemsPerPage: 15,
+            view: 'all'
         },
         active: {
             type: 'list',

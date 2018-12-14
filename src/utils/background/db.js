@@ -40,37 +40,50 @@ const database = {
             resolve(transaction.objectStore(name));
         });
     },
-    getAllItems(page, amount) {
-        return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => {
-            return new Promise((resolve, reject) => {
-                let request = objectStore.index('pubDate').openCursor(null, 'prev'), result = [], skipped = false;
-                request.onerror = reject;
-                request.onsuccess = e => {
-                    let cursor = e.target.result;
-                    if (cursor && result.length < amount) {
-                        if (!skipped && page > 1) {
-                            skipped = true;
-                            cursor.advance((page - 1) * amount);
-                            return;
-                        }
-                        result.push(cursor.value);
-                        cursor.continue();
-                    }
-                    else {
-                        resolve(result);
-                    }
-                };
-            });
-        });
+    makeParm(type, id, state) {
+        let index = type, keyRange, upperBound = [], lowerBound = [];
+        if (!id && !state) return { index, keyRange };
+        if (id) {
+            upperBound.push(id);
+            lowerBound.push(id);
+        }
+        if (state) {
+            index += 'WithState';
+            upperBound.push(state);
+            lowerBound.push(state);
+        }
+        upperBound.push(0);
+        lowerBound.push(Number.POSITIVE_INFINITY);
+        keyRange = IDBKeyRange.bound(upperBound, lowerBound);
+        return { index, keyRange };
     },
-    getAllItemsCount() {
-        return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => {
-            return new Promise((resolve, reject) => {
-                let request = objectStore.index('pubDate').count();
-                request.onerror = reject;
-                request.onsuccess = e => resolve(e.target.result);
-            });
-        });
+    getItems(index, keyRange, page, amount) {
+        return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => new Promise((resolve, reject) => {
+            let request = objectStore.index(index).openCursor(keyRange, 'prev'), result = [], skipped = false;
+            request.onerror = reject;
+            request.onsuccess = e => {
+                let cursor = e.target.result;
+                if (cursor && (!amount || result.length < amount)) {
+                    if (!skipped && page && page > 1) {
+                        skipped = true;
+                        cursor.advance((page - 1) * amount);
+                        return;
+                    }
+                    result.push(cursor.value);
+                    cursor.continue();
+                }
+                else {
+                    resolve(result);
+                }
+            };
+        }));
+    },
+    getItemsCount(index, keyRange) {
+        return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => new Promise((resolve, reject) => {
+            let request = objectStore.index(index).count(keyRange);
+            request.onerror = reject;
+            request.onsuccess = e => resolve(e.target.result);
+        }));
     },
     getItemsById(id) {
         return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => new Promise((resolve, reject) => {
@@ -81,65 +94,29 @@ const database = {
             };
         }));
     },
-    getItemsByFeedId(feedId, page, amount) {
-        return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => new Promise((resolve, reject) => {
-            let keyRange = IDBKeyRange.bound([feedId, 0], [feedId, Number.POSITIVE_INFINITY]),
-                request = objectStore.index('feedId').openCursor(keyRange, 'prev'), result = [], skipped = false;
-            request.onerror = reject;
-            request.onsuccess = e => {
-                let cursor = e.target.result;
-                if (cursor && result.length < amount) {
-                    if (!skipped && page > 1) {
-                        skipped = true;
-                        cursor.advance((page - 1) * amount);
-                        return;
-                    }
-                    result.push(cursor.value);
-                    cursor.continue();
-                }
-                else {
-                    resolve(result);
-                }
-            };
-        }));
+    getAllItems(page, amount, state) {
+        let { index, keyRange } = this.makeParm('pubDate', null, state);
+        return this.getItems(index, keyRange, page, amount);
     },
-    getItemsCountByFeedId(feedId) {
-        return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => new Promise((resolve, reject) => {
-            let keyRange = IDBKeyRange.bound([feedId, 0], [feedId, Number.POSITIVE_INFINITY]),
-                request = objectStore.index('feedId').count(keyRange);
-            request.onerror = reject;
-            request.onsuccess = e => resolve(e.target.result);
-        }));
+    getAllItemsCount(state) {
+        let { index, keyRange } = this.makeParm('pubDate', null, state);
+        return this.getItemsCount(index, keyRange);
     },
-    getItemsByGroupId(groupId, page, amount) {
-        return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => new Promise((resolve, reject) => {
-            let keyRange = IDBKeyRange.bound([groupId, 0], [groupId, Number.POSITIVE_INFINITY]),
-                request = objectStore.index('groupId').openCursor(keyRange, 'prev'), result = [], skipped = false;
-            request.onerror = reject;
-            request.onsuccess = e => {
-                let cursor = e.target.result;
-                if (cursor && result.length < amount) {
-                    if (!skipped && page > 1) {
-                        skipped = true;
-                        cursor.advance((page - 1) * amount);
-                        return;
-                    }
-                    result.push(cursor.value);
-                    cursor.continue();
-                }
-                else {
-                    resolve(result);
-                }
-            };
-        }));
+    getItemsByFeedId(feedId, page, amount, state) {
+        let { index, keyRange } = this.makeParm('feedId', feedId, state);
+        return this.getItems(index, keyRange, page, amount);
     },
-    getItemsCountByGroupId(groupId) {
-        return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => new Promise((resolve, reject) => {
-            let keyRange = IDBKeyRange.bound([groupId, 0], [groupId, Number.POSITIVE_INFINITY]),
-                request = objectStore.index('groupId').count(keyRange);
-            request.onerror = reject;
-            request.onsuccess = e => resolve(e.target.result);
-        }));
+    getItemsCountByFeedId(feedId, state) {
+        let { index, keyRange } = this.makeParm('feedId', feedId, state);
+        return this.getItemsCount(index, keyRange);
+    },
+    getItemsByGroupId(groupId, page, amount, state) {
+        let { index, keyRange } = this.makeParm('groupId', groupId, state);
+        return this.getItems(index, keyRange, page, amount);
+    },
+    getItemsCountByGroupId(groupId, state) {
+        let { index, keyRange } = this.makeParm('groupId', groupId, state);
+        return this.getItemsCount(index, keyRange);
     },
     addItems(items) {
         return this.getItemsByFeedId(items[0].feedId).then(oldItems => {
