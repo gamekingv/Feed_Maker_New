@@ -6,6 +6,7 @@ import 'material-design-icons-iconfont/dist/material-design-icons.css';
 import Vuetify from 'vuetify';
 import 'vuetify/dist/vuetify.css';
 import message from './utils/extension/message';
+import './main.css';
 
 message.init();
 
@@ -18,4 +19,4 @@ new Vue({
     render: h => h(App)
 });
 
-// Vue.config.errorHandler = (error, vm) => console.error('抛出全局异常', vm, error);
+Vue.config.errorHandler = (error, vm) => console.error('抛出全局异常', vm, error);

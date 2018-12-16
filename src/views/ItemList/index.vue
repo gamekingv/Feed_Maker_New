@@ -1,7 +1,7 @@
 <template>
     <v-container class="pl-5 pr-5" fill-height fluid>
         <v-fade-transition mode="out-in" :duration="40">
-            <v-flex fill-height v-if="!loading" key="items">
+            <v-flex fill-height v-if="loading === 0" key="items">
                 <v-list class="transparent" dense>
                     <template v-for="(item, i) in items">
                         <v-list-tile :key="item.id" @click.stop>
@@ -71,7 +71,7 @@
                     style="top: 88px;"
                     v-if="items.length !== 0"
                 >
-                    <v-btn slot="activator" color="blue darken-2" fab @click="markAllAsRead">
+                    <v-btn slot="activator" color="blue darken-2" fab @click="markItems('all')">
                         <v-icon>done_all</v-icon>
                     </v-btn>
                     <v-btn fab small color="pink" @click.stop="selectAll">
@@ -80,10 +80,10 @@
                     <v-btn fab small color="green" @click="clearSelects">
                         <v-icon>crop_free</v-icon>
                     </v-btn>
-                    <v-btn fab small color="indigo" @click="markAsRead">
+                    <v-btn fab small color="indigo" @click="markItems('read')">
                         <v-icon>bookmark</v-icon>
                     </v-btn>
-                    <v-btn fab small color="indigo" @click="markAsUnread">
+                    <v-btn fab small color="indigo" @click="markItems('unread')">
                         <v-icon>bookmark_border</v-icon>
                     </v-btn>
                     <v-btn fab small color="red">
@@ -107,7 +107,7 @@ import message from '~/utils/extension/message';
 export default {
     data() {
         return {
-            loading: true,
+            loading: 1,
             items: [],
             selectedItems: [],
             currentPage: 1,
@@ -136,18 +136,22 @@ export default {
             else
                 return `${time.getFullYear()}/${time.getMonth() + 1}/${time.getDate()}`;
         },
-        async refreshList(type = this.$store.state.active.subType, id = this.$store.state.active.id) {
-            this.loading = true;
-            if (type === 'changePage') {
-                type = this.$store.state.active.subType;
-            }
-            else {
-                this.currentPage = 1;
+        async refreshList({ type = this.$store.state.active.subType, id = this.$store.state.active.id, isLoading = false, isChangePage = false }) {
+            if (!isLoading) this.loading++;
+            if (!isChangePage) {
                 this.totalItems = await message.sendGetCount(type, id, this.$store.state.settings.view);
+                if (this.currentPage > this.totalPage) {
+                    if (this.totalPage === 0) {
+                        this.currentPage = 1;
+                    }
+                    else {
+                        this.currentPage = this.totalPage;
+                    }
+                }
             }
             this.items = await message.sendGet(type, id, this.currentPage);
             this.clearSelects();
-            this.loading = false;
+            this.loading--;
         },
         selectAll() {
             this.selectedItems = this.items.map(item => item.id);
@@ -155,57 +159,41 @@ export default {
         clearSelects() {
             this.selectedItems = [];
         },
-        markAsRead() {
-            this.loading = true;
-            message.sendMarkItemsAsRead(this.selectedItems)
-                .then(({ result, data }) => {
-                    if (result === 'ok') {
-                        return this.refreshList();
-                    }
-                    else if (result === 'fail') {
-                        return Promise.reject(data);
-                    }
-                }).catch(e => { throw e; });
-        },
-        async markAllAsRead() {
-            this.loading = true;
-            let { subType: type, id } = this.$store.state.active;
-            let items = await message.sendGet(type, id, null, 'unread');
-            message.sendMarkItemsAsRead(items.map(item => item.id))
-                .then(({ result, data }) => {
-                    if (result === 'ok') {
-                        return this.refreshList();
-                    }
-                    else if (result === 'fail') {
-                        return Promise.reject(data);
-                    }
-                }).catch(e => { throw e; });
-        },
-        markAsUnread() {
-            this.loading = true;
-            message.sendMarkItemsAsUnread(this.selectedItems)
-                .then(({ result, data }) => {
-                    if (result === 'ok') {
-                        return this.refreshList();
-                    }
-                    else if (result === 'fail') {
-                        return Promise.reject(data);
-                    }
-                }).catch(e => { throw e; });
+        markItems(type) {
+            this.loading++;
+            let request;
+            switch (type) {
+                case 'read':
+                    request = message.sendMarkItemsAsRead(this.selectedItems);
+                    break;
+                case 'unread':
+                    request = message.sendMarkItemsAsUnread(this.selectedItems);
+                    break;
+                case 'all':
+                    request = message.sendMarkAllItemsAsRead();
+            }
+            return request.then(({ result, data }) => {
+                if (result === 'ok') {
+                    return this.refreshList({ isLoading: true });
+                }
+                else if (result === 'fail') {
+                    return Promise.reject(data);
+                }
+            }).catch(e => { throw e; });
         },
         changePage() {
-            this.refreshList('changePage');
+            this.refreshList({ isChangePage: true });
         }
     },
     beforeRouteEnter(to, from, next) {
         next(async vm => {
-            let [, type, id] = to.path.substr(1).split('/');
-            vm.refreshList(type, id);
+            let [, subType, id] = to.path.substr(1).split('/');
+            vm.refreshList({ subType, id, isLoading: true });
         });
     },
     async beforeRouteUpdate(to, from, next) {
-        let [, type, id] = to.path.substr(1).split('/');
-        this.refreshList(type, id);
+        let [, subType, id] = to.path.substr(1).split('/');
+        this.refreshList({ subType, id });
         next();
     }
 };

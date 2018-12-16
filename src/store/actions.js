@@ -1,7 +1,12 @@
 const actions = {
-    async getGroups({ commit }) {
+    async initStore({ commit }) {
         let { groups } = await browser.storage.local.get('groups');
         if (groups) commit('updateGroups', groups);
+        for (let group of groups) {
+            for (let feed of group.feeds) {
+                commit('updateFeedState', { id: feed.id });
+            }
+        }
     },
     saveGroups({ state }) {
         return browser.storage.local.set({ groups: state.groups });
@@ -41,6 +46,9 @@ const actions = {
     },
     setView({ commit }, data) {
         commit('setView', data);
+    },
+    updateFeedState({ commit }, data) {
+        commit('updateFeedState', data);
     }
 };
 

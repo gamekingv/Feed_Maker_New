@@ -35,13 +35,24 @@
                     @mouseenter="hoverId = group.id"
                     @mouseleave="hoverId = ''"
                 >
-                    <v-list-tile-action v-if="hoverId !== group.id">
-                        <v-icon v-text="group.isActive ? 'folder_open': 'folder'"/>
-                    </v-list-tile-action>
-                    <v-list-tile-action v-if="hoverId === group.id">
-                        <v-btn flat icon @click.stop.prevent :to="`/edit/group/${group.id}`">
+                    <v-list-tile-action>
+                        <v-btn
+                            flat
+                            icon
+                            @click.stop.prevent
+                            :to="`/edit/group/${group.id}`"
+                            v-if="hoverId === group.id"
+                        >
                             <v-icon>edit</v-icon>
                         </v-btn>
+                        <v-progress-circular
+                            indeterminate
+                            :size="22"
+                            :width="2"
+                            color="blue"
+                            v-else-if="false"
+                        ></v-progress-circular>
+                        <v-icon v-text="'folder'" v-else/>
                     </v-list-tile-action>
                     <v-list-tile-content>
                         <v-list-tile-title v-text="group.name"/>

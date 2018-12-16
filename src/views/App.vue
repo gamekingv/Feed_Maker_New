@@ -81,25 +81,26 @@ export default {
                 return this.$store.state.settings.view;
             },
             async set(value) {
+                this.$refs.content.loading++;
                 await this.$store.dispatch('setView', value);
-                await this.refreshList();
+                await this.refreshList(true);
             }
         }
     },
     async mounted() {
-        await this.$store.dispatch('getGroups');
+        await this.$store.dispatch('initStore');
         this.loading = false;
     },
     methods: {
         search() {
             console.log(this.searchString);
         },
-        async refreshList() {
-            return await this.$refs.content.refreshList();
+        async refreshList(isLoading = false) {
+            return await this.$refs.content.refreshList({ isLoading });
         },
         async refresh() {
-            let { subType: type, id } = this.$store.state.active,
-                { result, data } = await message.sendUpdate(type, id);
+            let { subType: type, id } = this.$store.state.active;
+            let { result, data } = await message.sendUpdate(type, id);
             if (result === 'ok') {
                 await this.refreshList();
             }

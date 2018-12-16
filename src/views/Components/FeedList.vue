@@ -8,19 +8,30 @@
             @mouseenter="hoverId = feed.id"
             @mouseleave="hoverId = ''"
         >
-            <v-list-tile-action v-if="hoverId !== feed.id">
+            <v-list-tile-action>
+                <v-btn
+                    flat
+                    icon
+                    @click.stop.prevent
+                    :to="`/edit/feed/${feed.id}`"
+                    v-if="hoverId === feed.id"
+                >
+                    <v-icon>edit</v-icon>
+                </v-btn>
+                <v-progress-circular
+                    indeterminate
+                    :size="22"
+                    :width="2"
+                    color="blue"
+                    v-else-if="$store.state.feedState[feed.id].isLoading === true"
+                ></v-progress-circular>
                 <v-avatar
-                    size="22px"
-                    v-if="/http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)?/.test(feed.icon)"
+                    size="22"
+                    v-else-if="/http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)?/.test(feed.icon)"
                 >
                     <img :src="feed.icon">
                 </v-avatar>
                 <v-icon v-text="feed.icon ? feed.icon : 'insert_drive_file'" v-else/>
-            </v-list-tile-action>
-            <v-list-tile-action v-if="hoverId === feed.id">
-                <v-btn flat icon @click.stop.prevent :to="`/edit/feed/${feed.id}`">
-                    <v-icon>edit</v-icon>
-                </v-btn>
             </v-list-tile-action>
             <v-list-tile-content>
                 <v-list-tile-title v-text="feed.name"/>

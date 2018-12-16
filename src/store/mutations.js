@@ -1,3 +1,5 @@
+import Vue from 'vue';
+
 const mutations = {
     setActive(state, { type, subType, id }) {
         state.active.type = type;
@@ -32,6 +34,15 @@ const mutations = {
     },
     setView(state, data) {
         state.settings.view = data;
+    },
+    updateFeedState(state, { id, key, value }) {
+        if (!state.feedState[id]) {
+            Vue.set(state.feedState, id, {
+                unread: 0,
+                isLoading: false
+            });
+        }
+        if (key !== undefined && value !== undefined) state.feedState[id][key] = value;
     }
 };
 
