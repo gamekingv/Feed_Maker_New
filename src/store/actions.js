@@ -1,10 +1,15 @@
+import message from '../utils/extension/message';
+
 const actions = {
     async initStore({ commit }) {
         let { groups } = await browser.storage.local.get('groups');
-        if (groups) commit('updateGroups', groups);
-        for (let group of groups) {
-            for (let feed of group.feeds) {
-                commit('updateFeedState', { id: feed.id });
+        if (groups) {
+            commit('updateGroups', groups);
+            for (let group of groups) {
+                for (let feed of group.feeds) {
+                    let unread = await message.sendGetCount('feed', feed.id, 'unread');
+                    commit('updateFeedState', { id: feed.id, unread });
+                }
             }
         }
     },

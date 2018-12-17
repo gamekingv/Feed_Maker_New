@@ -13,7 +13,7 @@ const message = {
                     }
                     else if (type === 'feed') {
                         crawler.updateFeed(id)
-                            .then(() => sendResponse({ result: 'ok' }))
+                            .then(count => sendResponse({ result: 'ok', data: count }))
                             .catch(e => sendResponse({ result: 'fail', data: e }));
                     }
                     break;

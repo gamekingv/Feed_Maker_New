@@ -34,7 +34,7 @@
                 <v-icon v-text="feed.icon ? feed.icon : 'insert_drive_file'" v-else/>
             </v-list-tile-action>
             <v-list-tile-content>
-                <v-list-tile-title v-text="feed.name"/>
+                <v-list-tile-title v-text="feed.name + `[${$store.state.feedState[feed.id].unread}]`"/>
             </v-list-tile-content>
         </v-list-tile>
     </draggable>

@@ -120,26 +120,28 @@ const database = {
     },
     addItems(items) {
         return this.getItemsByFeedId(items[0].feedId).then(oldItems => {
+            let unreadCount = 0;
             items.forEach(item => {
-                if (oldItems.findIndex(oldItem => oldItem.url === item.url && oldItem.title === item.title) > -1) {
+                if (oldItems.findIndex(oldItem => oldItem.url === item.url && oldItem.title === item.title && oldItem.state === 'read') > -1) {
                     item.state = 'read';
                 }
                 else {
                     item.state = 'unread';
+                    unreadCount++;
                 }
             });
-            if (items.some(item => item.state === 'unread')) {
+            if (unreadCount > 0) {
                 return this.deleteItems(oldItems.map(oldItem => oldItem.id)).then(() => this.startStore(DB_ITEM_STORE_NAME)).then(objectStore => new Promise((resolve, reject) => {
                     let count = 0;
                     for (let item of items) {
                         let request = objectStore.add(item);
                         request.onerror = reject;
-                        request.onsuccess = () => ++count === items.length && resolve();
+                        request.onsuccess = () => ++count === items.length && resolve(unreadCount);
                     }
                 }));
             }
             else {
-                return Promise.resolve();
+                return Promise.resolve(0);
             }
         });
     },

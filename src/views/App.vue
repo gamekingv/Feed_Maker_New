@@ -100,7 +100,7 @@ export default {
         },
         async refresh() {
             let { subType: type, id } = this.$store.state.active;
-            let { result, data } = await message.sendUpdate(type, id);
+            let { result, data } = await message.sendUpdateFeed(id);
             if (result === 'ok') {
                 await this.refreshList();
             }

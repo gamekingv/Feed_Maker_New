@@ -11,6 +11,9 @@ const mutations = {
     },
     deleteGroup(state, data) {
         state.groups.splice(state.groups.findIndex(group => group.id === data.id), 1);
+        for (let feed of data.feeds) {
+            Vue.delete(state.feedState, feed.id);
+        }
     },
     updateGroup(state, data) {
         state.groups.splice(state.groups.findIndex(group => group.id === data.id), 1, data);
@@ -20,10 +23,15 @@ const mutations = {
     },
     addFeed(state, data) {
         state.groups.find(group => group.id === data.groupId).feeds.push(data);
+        Vue.set(state.feedState, data.id, {
+            unread: 0,
+            isLoading: false
+        });
     },
     deleteFeed(state, data) {
         let feeds = state.groups.find(group => group.id === data.groupId).feeds;
         feeds.splice(feeds.findIndex(feed => feed.id === data.id), 1);
+        Vue.delete(state.feedState, data.id);
     },
     updateFeed(state, data) {
         let feeds = state.groups.find(group => group.id === data.groupId).feeds;
@@ -35,14 +43,17 @@ const mutations = {
     setView(state, data) {
         state.settings.view = data;
     },
-    updateFeedState(state, { id, key, value }) {
+    updateFeedState(state, { id, isLoading, unread, errorMessage }) {
         if (!state.feedState[id]) {
             Vue.set(state.feedState, id, {
                 unread: 0,
-                isLoading: false
+                isLoading: false,
+                errorMessage: ''
             });
         }
-        if (key !== undefined && value !== undefined) state.feedState[id][key] = value;
+        if (isLoading !== undefined) state.feedState[id].isLoading = isLoading;
+        if (unread !== undefined) state.feedState[id].unread = unread;
+        if (errorMessage !== undefined) state.feedState[id].errorMessage = errorMessage;
     }
 };
 
