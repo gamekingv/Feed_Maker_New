@@ -100,12 +100,23 @@ export default {
         },
         async refresh() {
             let { subType: type, id } = this.$store.state.active;
-            let { result, data } = await message.sendUpdateFeed(id);
-            if (result === 'ok') {
-                await this.refreshList();
-            }
-            else if (result === 'fail') {
-                throw data;
+            switch (type) {
+                case 'group': {
+                    break;
+                }
+                case 'feed': {
+                    await this.$store.dispatch('updateFeedState', { id, isLoading: true });
+                    let { result, data } = await message.sendUpdateFeed(id);
+                    if (result === 'ok') {
+                        await this.refreshList();
+                        await this.$store.dispatch('updateFeedState', { id, isLoading: false, unread: data });
+                    }
+                    else if (result === 'fail') {
+                        await this.$store.dispatch('updateFeedState', { id, isLoading: false, errorMessage: data });
+                        throw data;
+                    }
+                    break;
+                }
             }
         }
     },

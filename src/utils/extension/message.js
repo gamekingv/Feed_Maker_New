@@ -10,7 +10,8 @@ const message = {
     send(payload) {
         return browser.runtime.sendMessage(payload);
     },
-    async sendGetCount(type, id, state = store.state.settings.view.replace('all', '')) {
+    async sendGetCount(type, id, state = store.state.settings.view) {
+        state = state.replace('all', '');
         let { result, data } = await this.send({
             action: 'getCount', data: {
                 type, id,
@@ -46,15 +47,7 @@ const message = {
         catch (e) { throw e; }
     },
     async sendUpdateFeed(id) {
-        await store.dispatch('updateFeedState', { id, isLoading: true });
-        let { result, data } = await this.sendUpdate('feed', id);
-        if (result === 'ok') {
-            await store.dispatch('updateFeedState', { id, isLoading: false, unread: data });
-        }
-        else if (result === 'fail') {
-            await store.dispatch('updateFeedState', { id, isLoading: false, errorMessage: data });
-        }
-        return { result, data };
+        return await this.sendUpdate('feed', id);
     },
     sendModifyItems(ids, keyValues) {
         return this.send({ action: 'modify', data: { ids, keyValues } });

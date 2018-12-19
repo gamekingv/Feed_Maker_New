@@ -8,7 +8,7 @@
                             <v-list-tile-action style="min-width: unset;">
                                 <v-checkbox
                                     v-model="selectedItems"
-                                    :value="item.id"
+                                    :value="{id: item.id, feedId: item.feedId}"
                                     :ripple="false"
                                     hide-details
                                 ></v-checkbox>
@@ -154,32 +154,40 @@ export default {
             this.loading--;
         },
         selectAll() {
-            this.selectedItems = this.items.map(item => item.id);
+            this.selectedItems = this.items.map(item => ({ id: item.id, feedId: item.feedId }));
         },
         clearSelects() {
             this.selectedItems = [];
         },
-        markItems(type) {
+        modifyUnreadCount() {
+            this.selectedItems.map(item => item.feedId).forEach(async id => {
+                let count = await message.sendGetCount('feed', id, 'unread');
+                await this.$store.dispatch('updateFeedState', { id, unread: count });
+            });
+        },
+        async markItems(type) {
             this.loading++;
             let request;
             switch (type) {
                 case 'read':
-                    request = message.sendMarkItemsAsRead(this.selectedItems);
+                    request = await message.sendMarkItemsAsRead(this.selectedItems.map(item => item.id));
+                    this.modifyUnreadCount();
                     break;
                 case 'unread':
-                    request = message.sendMarkItemsAsUnread(this.selectedItems);
+                    request = await message.sendMarkItemsAsUnread(this.selectedItems.map(item => item.id));
+                    this.modifyUnreadCount();
                     break;
                 case 'all':
-                    request = message.sendMarkAllItemsAsRead();
+                    request = await message.sendMarkAllItemsAsRead();
+                    Object.keys(this.$store.state.feedState).forEach(id => this.$store.dispatch('updateFeedState', { id, unread: 0 }));
             }
-            return request.then(({ result, data }) => {
-                if (result === 'ok') {
-                    return this.refreshList({ isLoading: true });
-                }
-                else if (result === 'fail') {
-                    return Promise.reject(data);
-                }
-            }).catch(e => { throw e; });
+            let { result, data } = request;
+            if (result === 'ok') {
+                await this.refreshList({ isLoading: true });
+            }
+            else if (result === 'fail') {
+                throw data;
+            }
         },
         changePage() {
             this.refreshList({ isChangePage: true });

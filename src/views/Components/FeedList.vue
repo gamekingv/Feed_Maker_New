@@ -18,23 +18,26 @@
                 >
                     <v-icon>edit</v-icon>
                 </v-btn>
-                <v-progress-circular
-                    indeterminate
-                    :size="22"
-                    :width="2"
-                    color="blue"
-                    v-else-if="$store.state.feedState[feed.id].isLoading === true"
-                ></v-progress-circular>
-                <v-avatar
-                    size="22"
-                    v-else-if="/http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)?/.test(feed.icon)"
-                >
-                    <img :src="feed.icon">
-                </v-avatar>
-                <v-icon v-text="feed.icon ? feed.icon : 'insert_drive_file'" v-else/>
+                <v-badge color="red" overlap v-else>
+                    <span slot="badge" v-text="$store.state.feedState[feed.id].unread"></span>
+                    <v-progress-circular
+                        indeterminate
+                        :size="22"
+                        :width="2"
+                        color="blue"
+                        v-if="$store.state.feedState[feed.id].isLoading === true"
+                    ></v-progress-circular>
+                    <v-avatar
+                        size="22"
+                        v-else-if="/http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)?/.test(feed.icon)"
+                    >
+                        <img :src="feed.icon">
+                    </v-avatar>
+                    <v-icon size="22" v-text="feed.icon ? feed.icon : 'insert_drive_file'" v-else/>
+                </v-badge>
             </v-list-tile-action>
             <v-list-tile-content>
-                <v-list-tile-title v-text="feed.name + `[${$store.state.feedState[feed.id].unread}]`"/>
+                <v-list-tile-title v-text="feed.name"/>
             </v-list-tile-content>
         </v-list-tile>
     </draggable>
