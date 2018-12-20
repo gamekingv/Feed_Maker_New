@@ -215,7 +215,7 @@ export default {
                             Object.keys(this.$store.state.feedState).forEach(id => this.$store.dispatch('updateFeedState', { id, unread: 0 }));
                         }
                         else {
-                            this.$store.getters.getGroup(id).feeds.forEach(feed => this.$store.dispatch('updateFeedState', { id: feed.id, unread: 0 }))
+                            this.$store.getters.getGroup(id).feeds.forEach(feed => this.$store.dispatch('updateFeedState', { id: feed.id, unread: 0 }));
                         }
                     }
                     else {
