@@ -21,9 +21,12 @@
                                 v-if="item.author"
                             >
                                 <v-avatar class="small" color="blue">
-                                    <img :src="icons[i]" v-if="isUrl(icons[i])">
+                                    <img
+                                        :class="`custom-feed-icon-${item.feedId}`"
+                                        v-if="isUrl(icons[i])"
+                                    >
                                     <v-icon
-                                        size="20px"
+                                        :size="20"
                                         v-text="icons[i] ? icons[i] : 'insert_drive_file'"
                                         v-else
                                     ></v-icon>
@@ -57,6 +60,7 @@
                     <v-pagination
                         v-model="currentPage"
                         :length="totalPage"
+                        :total-visible="9"
                         circle
                         v-if="totalPage > 1"
                         @input="changePage"
@@ -136,7 +140,17 @@ export default {
             else
                 return `${time.getFullYear()}/${time.getMonth() + 1}/${time.getDate()}`;
         },
-        async refreshList({ type = this.$store.state.active.subType, id = this.$store.state.active.id, isLoading = false, isChangePage = false }) {
+        async refreshList({
+            type = this.$store.state.active.subType,
+            id = this.$store.state.active.id,
+            isLoading = false,
+            isChangePage = false,
+            isUpdateComplete = false
+        }) {
+            if (isUpdateComplete && !this.isShowing(type, id)) {
+                if (isLoading) this.loading--;
+                return;
+            }
             if (!isLoading) this.loading++;
             if (!isChangePage) {
                 this.totalItems = await message.sendGetCount(type, id, this.$store.state.settings.view);
@@ -152,6 +166,20 @@ export default {
             this.items = await message.sendGet(type, id, this.currentPage);
             this.clearSelects();
             this.loading--;
+        },
+        isShowing(type, id) {
+            let { subType: activeType, id: activeId } = this.$store.state.active;
+            if (activeType === 'group') {
+                if (activeId === 'all') {
+                    return true;
+                }
+                else if (type === 'feed') {
+                    return this.$store.state.groups.find(group => group.id === activeId).feeds.some(feed => feed.id === id);
+                }
+            }
+            else if (activeType === 'feed') {
+                return id === activeId;
+            }
         },
         selectAll() {
             this.selectedItems = this.items.map(item => ({ id: item.id, feedId: item.feedId }));
@@ -169,17 +197,31 @@ export default {
             this.loading++;
             let request;
             switch (type) {
-                case 'read':
+                case 'read': {
                     request = await message.sendMarkItemsAsRead(this.selectedItems.map(item => item.id));
                     this.modifyUnreadCount();
                     break;
-                case 'unread':
+                }
+                case 'unread': {
                     request = await message.sendMarkItemsAsUnread(this.selectedItems.map(item => item.id));
                     this.modifyUnreadCount();
                     break;
-                case 'all':
-                    request = await message.sendMarkAllItemsAsRead();
-                    Object.keys(this.$store.state.feedState).forEach(id => this.$store.dispatch('updateFeedState', { id, unread: 0 }));
+                }
+                case 'all': {
+                    let { subType: type, id } = this.$store.state.active;
+                    request = await message.sendMarkAllItemsAsRead(type, id);
+                    if (type === 'group') {
+                        if (id === 'all') {
+                            Object.keys(this.$store.state.feedState).forEach(id => this.$store.dispatch('updateFeedState', { id, unread: 0 }));
+                        }
+                        else {
+                            this.$store.getters.getGroup(id).feeds.forEach(feed => this.$store.dispatch('updateFeedState', { id: feed.id, unread: 0 }))
+                        }
+                    }
+                    else {
+                        this.$store.dispatch('updateFeedState', { id, unread: 0 });
+                    }
+                }
             }
             let { result, data } = request;
             if (result === 'ok') {

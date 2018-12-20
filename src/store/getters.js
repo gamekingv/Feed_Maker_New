@@ -22,13 +22,16 @@ const getters = {
         return title;
     },
     getFeed: (state) => (id) => {
-        for (let group of state.groups) {
-            let feed = group.feeds.find(feed => feed.id === id);
-            if (feed) return feed;
-        }
+        return state.groups.reduce((feeds, group) => feeds.concat(group.feeds), []).find(feed => feed.id === id);
     },
     getGroup: (state) => (id) => {
         return state.groups.find(group => group.id === id);
+    },
+    getGroupUnread: (state) => (id) => {
+        return state.groups.find(group => group.id === id).feeds.reduce((total, feed) => state.feedState[feed.id].unread + total, 0);
+    },
+    getAllUnread: (state, getters) => {
+        return state.groups.reduce((total, group) => getters.getGroupUnread(group.id) + total, 0);
     },
 };
 

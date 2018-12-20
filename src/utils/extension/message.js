@@ -55,9 +55,8 @@ const message = {
     sendMarkItemsAsRead(ids) {
         return this.sendModifyItems(ids, { state: 'read' });
     },
-    async sendMarkAllItemsAsRead() {
-        let { subType: type, id } = store.state.active,
-            items = await this.sendGet(type, id, null, 'unread');
+    async sendMarkAllItemsAsRead(type, id) {
+        let items = await this.sendGet(type, id, null, 'unread');
         return await this.sendModifyItems(items.map(item => item.id), { state: 'read' });
     },
     sendMarkItemsAsUnread(ids) {

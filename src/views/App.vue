@@ -61,12 +61,14 @@
                 </v-card-text>
             </v-card>
         </v-dialog>
+        <custom-icon-style/>
     </v-app>
 </template>
 
 <script>
 import GroupList from 'views/Components/GroupList';
 import message from '~/utils/extension/message';
+import CustomIconStyle from 'views/Components/CustomIconStyle';
 
 export default {
     data: () => ({
@@ -83,7 +85,7 @@ export default {
             async set(value) {
                 this.$refs.content.loading++;
                 await this.$store.dispatch('setView', value);
-                await this.refreshList(true);
+                await this.refreshList({ isLoading: true });
             }
         }
     },
@@ -95,8 +97,8 @@ export default {
         search() {
             console.log(this.searchString);
         },
-        async refreshList(isLoading = false) {
-            return await this.$refs.content.refreshList({ isLoading });
+        async refreshList(config) {
+            return await this.$refs.content.refreshList(config);
         },
         async refresh() {
             let { subType: type, id } = this.$store.state.active;
@@ -108,7 +110,7 @@ export default {
                     await this.$store.dispatch('updateFeedState', { id, isLoading: true });
                     let { result, data } = await message.sendUpdateFeed(id);
                     if (result === 'ok') {
-                        await this.refreshList();
+                        await this.refreshList({ type, id, isUpdateComplete: true });
                         await this.$store.dispatch('updateFeedState', { id, isLoading: false, unread: data });
                     }
                     else if (result === 'fail') {
@@ -121,7 +123,8 @@ export default {
         }
     },
     components: {
-        GroupList
+        GroupList,
+        CustomIconStyle
     }
 };
 </script>

@@ -10,7 +10,15 @@
         </v-list-tile>
         <v-list-tile active-class="blue--text" to="/list/group/all">
             <v-list-tile-action>
-                <v-icon>dashboard</v-icon>
+                <v-badge
+                    :value="$store.getters.getAllUnread > 0"
+                    class="small-badge"
+                    overlap
+                    transition="fade-transition"
+                >
+                    <span slot="badge" v-text="unreadFormatter($store.getters.getAllUnread)"></span>
+                    <v-icon>dashboard</v-icon>
+                </v-badge>
             </v-list-tile-action>
             <v-list-tile-content>
                 <v-list-tile-title>全部</v-list-tile-title>
@@ -45,14 +53,26 @@
                         >
                             <v-icon>edit</v-icon>
                         </v-btn>
-                        <v-progress-circular
-                            indeterminate
-                            :size="22"
-                            :width="2"
-                            color="blue"
-                            v-else-if="false"
-                        ></v-progress-circular>
-                        <v-icon v-text="'folder'" v-else/>
+                        <v-badge
+                            :value="$store.getters.getGroupUnread(group.id) > 0"
+                            class="small-badge"
+                            overlap
+                            transition="fade-transition"
+                            v-else
+                        >
+                            <span
+                                slot="badge"
+                                v-text="unreadFormatter($store.getters.getGroupUnread(group.id))"
+                            ></span>
+                            <v-progress-circular
+                                indeterminate
+                                :size="22"
+                                :width="2"
+                                color="blue"
+                                v-if="false"
+                            ></v-progress-circular>
+                            <v-icon v-text="'folder'" v-else/>
+                        </v-badge>
                     </v-list-tile-action>
                     <v-list-tile-content>
                         <v-list-tile-title v-text="group.name"/>
@@ -86,6 +106,9 @@ export default {
         }
     },
     methods: {
+        unreadFormatter(count) {
+            return count > 99 ? '99+' : count;
+        }
     },
     components: {
         Draggable,
@@ -93,3 +116,12 @@ export default {
     }
 };
 </script>
+
+<style lang="scss">
+.small-badge > .v-badge__badge {
+    height: 18px;
+    width: 18px;
+    font-size: 10px;
+    top: -6px;
+}
+</style>
