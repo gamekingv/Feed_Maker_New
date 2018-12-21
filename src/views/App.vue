@@ -10,16 +10,21 @@
                             </v-toolbar-items>
                             <v-toolbar-title>Feed Maker</v-toolbar-title>
                         </v-toolbar>
-                        <v-flex class="group-list">
+                        <v-flex style="scrollbar-width: none; overflow-y: scroll;">
                             <group-list/>
                         </v-flex>
                     </v-layout>
                 </v-navigation-drawer>
                 <v-toolbar fixed app>
                     <v-toolbar-side-icon @click="drawer = !drawer"/>
-                    <v-toolbar-title v-text="$store.getters.activeTitle"/>
+                    <v-fade-transition mode="out-in" :duration="40">
+                        <v-toolbar-title
+                            :key="$store.getters.activeTitle"
+                            v-text="$store.getters.activeTitle"
+                        />
+                    </v-fade-transition>
                     <v-spacer/>
-                    <v-btn-toggle class="filter-group" v-model="view" mandatory>
+                    <v-btn-toggle class="ml-3 mr-3" v-model="view" mandatory>
                         <v-btn value="unread" flat>
                             <v-icon>bookmark_border</v-icon>
                         </v-btn>
@@ -39,7 +44,7 @@
                 </v-toolbar>
                 <v-content class="fill-height">
                     <v-fade-transition mode="out-in" duration="80">
-                        <router-view ref="content"/>
+                        <router-view ref="content" @showDetails="showDetails"/>
                     </v-fade-transition>
                 </v-content>
                 <v-navigation-drawer v-model="setting" right temporary fixed>
@@ -52,12 +57,55 @@
                         </v-list-tile>
                     </v-list>
                 </v-navigation-drawer>
+                <v-navigation-drawer
+                    v-model="details"
+                    style="scrollbar-width: none;"
+                    :width="1300"
+                    right
+                    :temporary="!showDetailsImage"
+                    fixed
+                    @input="e => e || (detailsContent = '')"
+                >
+                    <v-card flat>
+                        <v-card-title class="headline font-weight-bold pb-1" v-html="detailsTitle"></v-card-title>
+                        <v-card-title class="pt-1 pb-1">
+                            <v-chip
+                                class="ml-0"
+                                color="primary"
+                                text-color="white"
+                                small
+                                selected
+                                v-if="detailsAuthor"
+                            >
+                                <v-avatar class="small">
+                                    <v-icon>account_circle</v-icon>
+                                </v-avatar>
+                                {{detailsAuthor}}
+                            </v-chip>
+                        </v-card-title>
+                        <v-card-text ref="detailsContent" v-html="parsedDetailsContent"></v-card-text>
+                    </v-card>
+                </v-navigation-drawer>
             </v-container>
         </v-fade-transition>
         <v-dialog v-model="loading" persistent width="300">
             <v-card color="primary">
                 <v-card-text>正在加载数据
-                    <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
+                    <v-progress-linear class="mb-0" color="white" indeterminate></v-progress-linear>
+                </v-card-text>
+            </v-card>
+        </v-dialog>
+        <v-dialog
+            width="unset"
+            v-model="showDetailsImage"
+            scrollable
+            @input="e => e || (detailsImage = '')"
+        >
+            <v-card>
+                <v-card-title class="font-weight-bold">查看图片</v-card-title>
+                <v-divider></v-divider>
+                <v-card-text class="text-md-center" style="scrollbar-width: none;">
+                    <img :src="detailsImage">
                 </v-card-text>
             </v-card>
         </v-dialog>
@@ -75,6 +123,12 @@ export default {
         loading: true,
         drawer: true,
         setting: false,
+        details: false,
+        showDetailsImage: false,
+        detailsTitle: '',
+        detailsAuthor: '',
+        detailsContent: '',
+        detailsImage: '',
         searchString: ''
     }),
     computed: {
@@ -87,6 +141,10 @@ export default {
                 await this.$store.dispatch('setView', value);
                 await this.refreshList({ isLoading: true });
             }
+        },
+        parsedDetailsContent() {
+            return this.detailsContent.replace(/<(a[^>]*)>/g, '<$1 target="_blank">')
+                .replace(/<img[^>]*src=["']([^"']*)["'][^>]*?>/g, '<span><img class="image-box" src="$1"/></span>');
         }
     },
     async mounted() {
@@ -120,6 +178,19 @@ export default {
                     break;
                 }
             }
+        },
+        showDetails({ title, content, author }) {
+            this.details = true;
+            this.detailsTitle = title;
+            this.detailsAuthor = author;
+            this.detailsContent = content;
+            this.$nextTick(() => {
+                let images = this.$refs.detailsContent.querySelectorAll('.image-box');
+                images.forEach(image => image.addEventListener('click', () => {
+                    this.showDetailsImage = true;
+                    this.detailsImage = image.src;
+                }));
+            });
         }
     },
     components: {
@@ -130,14 +201,15 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.group-list {
-    scrollbar-width: none;
-    overflow-y: scroll;
+.small {
+    width: 24px !important;
+    height: 24px !important;
 }
-.filter-group {
-    margin: {
-        left: 20px;
-        right: 20px;
-    }
+</style>
+
+<style lang="scss">
+.image-box {
+    max-width: calc(100% - 16px);
+    cursor: pointer;
 }
 </style>

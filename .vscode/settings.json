@@ -6,6 +6,7 @@
         "inner",
         "prepend",
         "readwrite",
+        "scrollable",
         "scrollbar",
         "subheader",
         "tethering",

@@ -29,13 +29,13 @@ const crawler = {
             console.log(feed);
         }
         else {
-            let { items: items } = await this.normalParser(result.data);
+            let { items } = await this.normalParser(result.data);
             let newItems = [];
             for (let item of items) {
                 let newItem = {
                     title: item.title,
                     url: item.link,
-                    content: item.content,
+                    content: item['content:encoded'] ? item['content:encoded'] : item.content,
                     pubDate: Date.parse(item.pubDate),
                     feedId: id,
                     groupId: feed.groupId

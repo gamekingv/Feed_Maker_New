@@ -4,7 +4,10 @@
             <v-flex fill-height v-if="loading === 0" key="items">
                 <v-list class="transparent" dense>
                     <template v-for="(item, i) in items">
-                        <v-list-tile :key="item.id" @click.stop>
+                        <v-list-tile
+                            :key="item.id"
+                            @click="showDetails(item.title, item.author, item.content)"
+                        >
                             <v-list-tile-action style="min-width: unset;">
                                 <v-checkbox
                                     v-model="selectedItems"
@@ -35,7 +38,7 @@
                             </v-chip>
                             <v-list-tile-avatar v-else>
                                 <v-avatar class="small" v-if="isUrl(icons[i])">
-                                    <img :src="icons[i]">
+                                    <img :class="`custom-feed-icon-${item.feedId}`">
                                 </v-avatar>
                                 <v-icon v-text="icons[i] ? icons[i] : 'insert_drive_file'" v-else></v-icon>
                             </v-list-tile-avatar>
@@ -72,7 +75,7 @@
                     right
                     top
                     fixed
-                    style="top: 88px;"
+                    style="top: 88px; z-index:0;"
                     v-if="items.length !== 0"
                 >
                     <v-btn slot="activator" color="blue darken-2" fab @click="markItems('all')">
@@ -233,6 +236,9 @@ export default {
         },
         changePage() {
             this.refreshList({ isChangePage: true });
+        },
+        showDetails(title, author, content) {
+            this.$emit('showDetails', { title, author, content });
         }
     },
     beforeRouteEnter(to, from, next) {
@@ -252,5 +258,8 @@ export default {
 .small {
     width: 24px !important;
     height: 24px !important;
+}
+.small > [class^="custom-feed-icon"] {
+    background-size: 24px;
 }
 </style>
