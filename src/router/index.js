@@ -17,16 +17,15 @@ const router = new Router({
             name: 'itemList'
         },
         {
-            path: '/edit/:type/:id',
+            path: '/add',
+            component: () => import('views/Edit'),
+            name: 'add'
+        },
+        {
+            path: '/edit/:editType/:editId',
             component: () => import('views/Edit'),
             props: true,
             name: 'edit'
-        },
-        {
-            path: '/add',
-            component: () => import('views/Add'),
-            props: true,
-            name: 'add'
         },
         {
             path: '*',

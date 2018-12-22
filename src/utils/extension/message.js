@@ -1,10 +1,20 @@
 import store from '~/store';
 
 const message = {
-    init() {
-        browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
-            console.log('Message from the background script: ' + request.test);
-            sendResponse({ test: 'Response from browser action page' });
+    init(app) {
+        browser.runtime.onMessage.addListener(async ({ action, data }) => {
+            switch (action) {
+                case 'background update': {
+                    Object.keys(store.state.feedState).forEach(id => store.dispatch('updateFeedState', { id, isLoading: true }));
+                    break;
+                }
+                case 'background update complete': {
+                    let { id, result: unread } = data;
+                    await store.dispatch('updateFeedState', { id, unread, isLoading: false });
+                    if (store.state.active.type === 'list') app.refreshList({ type: 'feed', id, isUpdateComplete: true });
+                    break;
+                }
+            }
         });
     },
     send(payload) {
@@ -45,9 +55,6 @@ const message = {
             return await this.send({ action: 'update', data: { type, id } });
         }
         catch (e) { throw e; }
-    },
-    async sendUpdateFeed(id) {
-        return await this.sendUpdate('feed', id);
     },
     sendModifyItems(ids, keyValues) {
         return this.send({ action: 'modify', data: { ids, keyValues } });

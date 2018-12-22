@@ -17,6 +17,13 @@
                 </v-navigation-drawer>
                 <v-toolbar fixed app>
                     <v-toolbar-side-icon @click="drawer = !drawer"/>
+                    <v-btn
+                        icon
+                        :disabled="active.type !== 'list' || active.subType !== 'feed' || $store.getters.getFeed(active.id).home === ''"
+                        @click="openHomePage"
+                    >
+                        <v-icon v-text="'home'"/>
+                    </v-btn>
                     <v-fade-transition mode="out-in" :duration="40">
                         <v-toolbar-title
                             :key="$store.getters.activeTitle"
@@ -145,10 +152,14 @@ export default {
         parsedDetailsContent() {
             return this.detailsContent.replace(/<(a[^>]*)>/g, '<$1 target="_blank">')
                 .replace(/<img[^>]*src=["']([^"']*)["'][^>]*?>/g, '<span><img class="image-box" src="$1"/></span>');
+        },
+        active() {
+            return this.$store.state.active;
         }
     },
     async mounted() {
         await this.$store.dispatch('initStore');
+        message.init(this);
         this.loading = false;
     },
     methods: {
@@ -159,25 +170,23 @@ export default {
             return await this.$refs.content.refreshList(config);
         },
         async refresh() {
-            let { subType: type, id } = this.$store.state.active;
+            let { subType: type, id } = this.active;
             switch (type) {
                 case 'group': {
+                    if (id === 'all') {
+                        Object.keys(this.$store.state.feedState).forEach(id => this.$store.dispatch('updateFeedState', { id, isLoading: true }));
+                    }
+                    else {
+                        this.$store.getters.getGroup(id).feeds.forEach(({ id }) => this.$store.dispatch('updateFeedState', { id, isLoading: true }));
+                    }
                     break;
                 }
                 case 'feed': {
                     await this.$store.dispatch('updateFeedState', { id, isLoading: true });
-                    let { result, data } = await message.sendUpdateFeed(id);
-                    if (result === 'ok') {
-                        await this.refreshList({ type, id, isUpdateComplete: true });
-                        await this.$store.dispatch('updateFeedState', { id, isLoading: false, unread: data });
-                    }
-                    else if (result === 'fail') {
-                        await this.$store.dispatch('updateFeedState', { id, isLoading: false, errorMessage: data });
-                        throw data;
-                    }
                     break;
                 }
             }
+            await message.sendUpdate(type, id);
         },
         showDetails({ title, content, author }) {
             this.details = true;
@@ -191,6 +200,9 @@ export default {
                     this.detailsImage = image.src;
                 }));
             });
+        },
+        openHomePage() {
+            browser.tabs.create({ url: this.$store.getters.getFeed(this.active.id).home });
         }
     },
     components: {

@@ -44,35 +44,41 @@
                     @mouseleave="hoverId = ''"
                 >
                     <v-list-tile-action>
-                        <v-btn
-                            flat
-                            icon
-                            @click.stop.prevent
-                            :to="`/edit/group/${group.id}`"
-                            v-if="hoverId === group.id"
-                        >
-                            <v-icon>edit</v-icon>
-                        </v-btn>
-                        <v-badge
-                            :value="$store.getters.getGroupUnread(group.id) > 0"
-                            class="small-badge"
-                            overlap
-                            transition="fade-transition"
-                            v-else
-                        >
-                            <span
-                                slot="badge"
-                                v-text="unreadFormatter($store.getters.getGroupUnread(group.id))"
-                            ></span>
-                            <v-progress-circular
-                                indeterminate
-                                :size="22"
-                                :width="2"
-                                color="blue"
-                                v-if="false"
-                            ></v-progress-circular>
-                            <v-icon v-text="'folder'" v-else/>
-                        </v-badge>
+                        <v-fade-transition mode="out-in" :duration="20">
+                            <v-btn
+                                flat
+                                icon
+                                @click.stop.prevent
+                                :to="`/edit/group/${group.id}`"
+                                key="edit"
+                                v-if="hoverId === group.id"
+                            >
+                                <v-icon>edit</v-icon>
+                            </v-btn>
+                            <v-badge
+                                :value="$store.getters.getGroupUnread(group.id) > 0"
+                                class="small-badge"
+                                overlap
+                                transition="fade-transition"
+                                key="icon"
+                                v-else
+                            >
+                                <span
+                                    slot="badge"
+                                    v-text="unreadFormatter($store.getters.getGroupUnread(group.id))"
+                                ></span>
+                                <v-progress-circular
+                                    indeterminate
+                                    :size="22"
+                                    :width="2"
+                                    color="blue"
+                                    v-if="$store.getters.getGroupLoading(group.id)"
+                                ></v-progress-circular>
+                                <v-avatar :size="22" tile v-else>
+                                    <v-icon v-text="'folder'"/>
+                                </v-avatar>
+                            </v-badge>
+                        </v-fade-transition>
                     </v-list-tile-action>
                     <v-list-tile-content>
                         <v-list-tile-title v-text="group.name"/>

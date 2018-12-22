@@ -33,6 +33,12 @@ const getters = {
     getAllUnread: (state, getters) => {
         return state.groups.reduce((total, group) => getters.getGroupUnread(group.id) + total, 0);
     },
+    getGroupLoading: (state) => (id) => {
+        return state.groups.find(group => group.id === id).feeds.some(feed => state.feedState[feed.id].isLoading === true);
+    },
+    getGroupError: (state) => (id) => {
+        return state.groups.find(group => group.id === id).feeds.some(feed => state.feedState[feed.id].errorMessage !== '');
+    },
 };
 
 export default getters;

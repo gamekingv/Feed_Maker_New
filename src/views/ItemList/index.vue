@@ -110,6 +110,7 @@
 </template>
 <script>
 import message from '~/utils/extension/message';
+import { mapState, mapGetters } from 'vuex';
 
 export default {
     data() {
@@ -123,15 +124,25 @@ export default {
     },
     computed: {
         icons() {
-            return this.items.map(item => this.$store.getters.getFeed(item.feedId).icon);
+            return this.items.map(item => this.getFeed(item.feedId).icon);
         },
         totalPage() {
-            return Math.ceil(this.totalItems / this.$store.state.settings.itemsPerPage);
-        }
+            return Math.ceil(this.totalItems / this.settings.itemsPerPage);
+        },
+        ...mapState([
+            'settings',
+            'active',
+            'groups',
+            'feedState'
+        ]),
+        ...mapGetters([
+            'getFeed',
+            'getGroup',
+        ])
     },
     methods: {
         icon(feedId) {
-            return this.$store.getters.getFeed(feedId).icon;
+            return this.getFeed(feedId).icon;
         },
         isUrl(icon) {
             return /http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)?/.test(icon);
@@ -143,20 +154,14 @@ export default {
             else
                 return `${time.getFullYear()}/${time.getMonth() + 1}/${time.getDate()}`;
         },
-        async refreshList({
-            type = this.$store.state.active.subType,
-            id = this.$store.state.active.id,
-            isLoading = false,
-            isChangePage = false,
-            isUpdateComplete = false
-        }) {
+        async refreshList({ type, id, isLoading = false, isChangePage = false, isUpdateComplete = false }) {
             if (isUpdateComplete && !this.isShowing(type, id)) {
-                if (isLoading) this.loading--;
+                isLoading && this.loading--;
                 return;
             }
             if (!isLoading) this.loading++;
             if (!isChangePage) {
-                this.totalItems = await message.sendGetCount(type, id, this.$store.state.settings.view);
+                this.totalItems = await message.sendGetCount(this.active.subType, this.active.id, this.settings.view);
                 if (this.currentPage > this.totalPage) {
                     if (this.totalPage === 0) {
                         this.currentPage = 1;
@@ -166,18 +171,18 @@ export default {
                     }
                 }
             }
-            this.items = await message.sendGet(type, id, this.currentPage);
+            this.items = await message.sendGet(this.active.subType, this.active.id, this.currentPage);
             this.clearSelects();
             this.loading--;
         },
         isShowing(type, id) {
-            let { subType: activeType, id: activeId } = this.$store.state.active;
+            let { subType: activeType, id: activeId } = this.active;
             if (activeType === 'group') {
                 if (activeId === 'all') {
                     return true;
                 }
                 else if (type === 'feed') {
-                    return this.$store.state.groups.find(group => group.id === activeId).feeds.some(feed => feed.id === id);
+                    return this.groups.find(group => group.id === activeId).feeds.some(feed => feed.id === id);
                 }
             }
             else if (activeType === 'feed') {
@@ -185,7 +190,7 @@ export default {
             }
         },
         selectAll() {
-            this.selectedItems = this.items.map(item => ({ id: item.id, feedId: item.feedId }));
+            this.selectedItems = this.items.map(({ id, feedId }) => ({ id, feedId }));
         },
         clearSelects() {
             this.selectedItems = [];
@@ -211,14 +216,14 @@ export default {
                     break;
                 }
                 case 'all': {
-                    let { subType: type, id } = this.$store.state.active;
+                    let { subType: type, id } = this.active;
                     request = await message.sendMarkAllItemsAsRead(type, id);
                     if (type === 'group') {
                         if (id === 'all') {
-                            Object.keys(this.$store.state.feedState).forEach(id => this.$store.dispatch('updateFeedState', { id, unread: 0 }));
+                            Object.keys(this.feedState).forEach(id => this.$store.dispatch('updateFeedState', { id, unread: 0 }));
                         }
                         else {
-                            this.$store.getters.getGroup(id).feeds.forEach(feed => this.$store.dispatch('updateFeedState', { id: feed.id, unread: 0 }));
+                            this.getGroup(id).feeds.forEach(({ id }) => this.$store.dispatch('updateFeedState', { id, unread: 0 }));
                         }
                     }
                     else {

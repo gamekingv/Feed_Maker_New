@@ -9,41 +9,47 @@
             @mouseleave="hoverId = ''"
         >
             <v-list-tile-action>
-                <v-btn
-                    flat
-                    icon
-                    @click.stop.prevent
-                    :to="`/edit/feed/${feed.id}`"
-                    v-if="hoverId === feed.id"
-                >
-                    <v-icon>edit</v-icon>
-                </v-btn>
-                <v-badge
-                    class="small-badge"
-                    :value="$store.state.feedState[feed.id].unread > 0"
-                    overlap
-                    transition="fade-transition"
-                    v-else
-                >
-                    <span
-                        slot="badge"
-                        v-text="unreadFormatter($store.state.feedState[feed.id].unread)"
-                    ></span>
-                    <v-progress-circular
-                        indeterminate
-                        :size="22"
-                        :width="2"
-                        color="blue"
-                        v-if="$store.state.feedState[feed.id].isLoading === true"
-                    ></v-progress-circular>
-                    <v-avatar
-                        :size="22"
-                        v-else-if="/http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)?/.test(feed.icon)"
+                <v-fade-transition mode="out-in" :duration="20">
+                    <v-btn
+                        flat
+                        icon
+                        @click.stop.prevent
+                        :to="`/edit/feed/${feed.id}`"
+                        key="edit"
+                        v-if="hoverId === feed.id"
                     >
-                        <img :class="`custom-feed-icon-${feed.id}`">
-                    </v-avatar>
-                    <v-icon size="22" v-text="feed.icon ? feed.icon : 'insert_drive_file'" v-else/>
-                </v-badge>
+                        <v-icon>edit</v-icon>
+                    </v-btn>
+                    <v-badge
+                        class="small-badge"
+                        :value="$store.state.feedState[feed.id].unread > 0"
+                        overlap
+                        transition="fade-transition"
+                        key="icon"
+                        v-else
+                    >
+                        <span
+                            slot="badge"
+                            v-text="unreadFormatter($store.state.feedState[feed.id].unread)"
+                        ></span>
+                        <v-progress-circular
+                            indeterminate
+                            :size="22"
+                            :width="2"
+                            color="blue"
+                            v-if="$store.state.feedState[feed.id].isLoading === true"
+                        ></v-progress-circular>
+                        <v-avatar
+                            :size="22"
+                            v-else-if="/http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)?/.test(feed.icon)"
+                        >
+                            <img :class="`custom-feed-icon-${feed.id}`">
+                        </v-avatar>
+                        <v-avatar :size="22" tile v-else>
+                            <v-icon v-text="feed.icon ? feed.icon : 'insert_drive_file'"/>
+                        </v-avatar>
+                    </v-badge>
+                </v-fade-transition>
             </v-list-tile-action>
             <v-list-tile-content>
                 <v-list-tile-title v-text="feed.name"/>

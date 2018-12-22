@@ -9,14 +9,17 @@ const message = {
                 case 'update': {
                     let { type, id } = data;
                     if (type === 'group') {
-                        console.log(id);
+                        if (id === 'all') {
+                            crawler.updateAll();
+                        }
+                        else {
+                            crawler.updateGroup(id);
+                        }
                     }
                     else if (type === 'feed') {
-                        crawler.updateFeed(id)
-                            .then(count => sendResponse({ result: 'ok', data: count }))
-                            .catch(e => sendResponse({ result: 'fail', data: e }));
+                        crawler.updateFeed({ id });
                     }
-                    break;
+                    return;
                 }
                 case 'getItems': {
                     let { type, id, page, amount, state } = data;
@@ -59,6 +62,12 @@ const message = {
     },
     send(payload) {
         browser.runtime.sendMessage(payload);
+    },
+    sendBackgroundUpdate() {
+        this.send({ action: 'background update', data: { type: 'group', id: 'all' } });
+    },
+    sendBackgroundUpdateComplete(id, result) {
+        message.send({ action: 'background update complete', data: { id, result } });
     }
 };
 

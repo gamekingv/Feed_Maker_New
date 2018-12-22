@@ -1,8 +1,11 @@
 import axios from 'axios';
 import RSSParser from './rss-parser';
 import db from './db';
+import message from './message';
 
 const crawler = {
+    timer: null,
+    queue: [],
     async getFeed(id) {
         let { groups } = await browser.storage.local.get('groups');
         for (let group of groups) {
@@ -14,13 +17,13 @@ const crawler = {
         let { groups } = await browser.storage.local.get('groups');
         return groups.find(group => group.id === id);
     },
-    async updateFeed(id) {
-        let feed = await this.getFeed(id),
-            config = {
-                method: feed.method,
-                url: feed.url,
-                timeout: feed.timeout * 1000
-            };
+    async updateFeed({ id, feed }) {
+        if (!feed) feed = await this.getFeed(id);
+        let config = {
+            method: feed.method,
+            url: feed.url,
+            timeout: feed.timeout * 1000
+        }, unread;
         if (feed.method === 'post' && feed.body) {
             config.data = feed.body;
         }
@@ -60,8 +63,17 @@ const crawler = {
                 }
                 newItems.push(newItem);
             }
-            return await db.addItems(newItems);
+            unread = await db.addItems(newItems);
         }
+        message.sendBackgroundUpdateComplete(id, unread);
+    },
+    async updateGroup(id) {
+        let group = await this.getGroup(id);
+        group.feeds.forEach(feed => this.updateFeed(feed));
+    },
+    async updateAll() {
+        let { groups } = await browser.storage.local.get('groups');
+        groups.reduce((total, group) => total.concat(group.feeds), []).forEach(feed => this.updateFeed(feed));
     },
     async normalParser(data) {
         try {
@@ -72,6 +84,18 @@ const crawler = {
         catch (e) {
             throw e;
         }
+    },
+    async autoUpdate() {
+        return;
+        // let frequency = 0.5;
+        // this.timer = setInterval(() => {
+        //     message.sendBackgroundUpdate();
+        //     this.updateAll();
+        // }, frequency * 60 * 1000);
+    },
+    stopUpdate() {
+        clearInterval(this.timer);
+        this.timer = null;
     }
 };
 
