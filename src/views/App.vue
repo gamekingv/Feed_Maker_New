@@ -54,15 +54,29 @@
                         <router-view ref="content" @showDetails="showDetails"/>
                     </v-fade-transition>
                 </v-content>
-                <v-navigation-drawer v-model="setting" right temporary fixed>
-                    <v-list>
-                        <v-list-tile ripple @click="setting = !setting">
-                            <v-list-tile-action>
-                                <v-icon>compare_arrows</v-icon>
-                            </v-list-tile-action>
-                            <v-list-tile-title>Switch drawer (click me)</v-list-tile-title>
-                        </v-list-tile>
-                    </v-list>
+                <v-navigation-drawer v-model="setting" :width="500" right temporary fixed>
+                    <v-layout fill-height column>
+                        <v-list>
+                            <v-list-tile ripple @click="setting = !setting">
+                                <v-list-tile-action>
+                                    <v-icon>compare_arrows</v-icon>
+                                </v-list-tile-action>
+                                <v-list-tile-title>Switch drawer (click me)</v-list-tile-title>
+                            </v-list-tile>
+                        </v-list>
+                        <v-spacer></v-spacer>
+                        <v-layout class="mb-3" align-end justify-end>
+                            <v-btn color="blue" @click.native="$refs.selectFile.click()">导入配置</v-btn>
+                            <input
+                                type="file"
+                                ref="selectFile"
+                                v-show="false"
+                                @change="importConfig"
+                            >
+                            <v-btn @click="exportConfig">导出配置</v-btn>
+                            <v-btn color="error">清除配置</v-btn>
+                        </v-layout>
+                    </v-layout>
                 </v-navigation-drawer>
                 <v-navigation-drawer
                     v-model="details"
@@ -71,7 +85,7 @@
                     right
                     :temporary="!showDetailsImage"
                     fixed
-                    @input="e => e || (detailsContent = '')"
+                    @input="e => e || (detailsContent = detailsTitle = detailsAuthor = '')"
                 >
                     <v-card flat>
                         <v-card-title class="headline font-weight-bold pb-1" v-html="detailsTitle"></v-card-title>
@@ -203,6 +217,30 @@ export default {
         },
         openHomePage() {
             browser.tabs.create({ url: this.$store.getters.getFeed(this.active.id).home });
+        },
+        async exportConfig() {
+            let { groups } = await browser.storage.local.get();
+            let file = new Blob([JSON.stringify({ type: 'all', groups })], { type: 'application/json' });
+            browser.downloads.download({
+                url: URL.createObjectURL(file),
+                filename: 'all configs.json',
+                saveAs: true
+            });
+        },
+
+        importConfig(e) {
+            let reader = new FileReader();
+            reader.addEventListener('loadend', async event => {
+                try {
+                    let { type, groups } = JSON.parse(event.target.result);
+                    if (type === 'all') {
+                        await this.$store.dispatch('updateGroups', groups);
+                        location.reload();
+                    }
+                }
+                catch (e) { throw (e); }
+            });
+            reader.readAsText(e.target.files[0]);
         }
     },
     components: {

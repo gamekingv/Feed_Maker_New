@@ -29,6 +29,7 @@
                                     :disabled="!validates.form1"
                                     @click="validate('form1', 2)"
                                 >下一步</v-btn>
+                                <v-btn color="primary" :disabled="!complete" @click="submit">完成</v-btn>
                                 <v-btn @click="clear('form1')">重置</v-btn>
                             </v-layout>
                         </v-form>
@@ -98,9 +99,11 @@
                                 <v-spacer></v-spacer>
                                 <v-btn
                                     color="primary"
-                                    :disabled="!complete"
-                                    @click="type === 'group' ? submit() : validate('form2', 3)"
-                                >{{type === 'group' ? '完成' : '下一步'}}</v-btn>
+                                    :disabled="!validates.form2"
+                                    @click="validate('form2', 3)"
+                                    v-if="type === 'feed' || type === 'custom'"
+                                >下一步</v-btn>
+                                <v-btn color="primary" :disabled="!complete" @click="submit">完成</v-btn>
                                 <v-btn @click="clear('form2')">重置</v-btn>
                             </v-layout>
                         </v-form>
@@ -108,7 +111,7 @@
                     <v-stepper-step
                         editable
                         step="3"
-                        :rules="[() => validates.form2]"
+                        :rules="[() => validates.form3]"
                         v-if="type === 'feed' || type === 'custom'"
                     >源信息</v-stepper-step>
                     <v-stepper-content step="3" v-if="type === 'feed' || type === 'custom'">
@@ -237,6 +240,12 @@
                                 <v-layout key="action">
                                     <v-btn color="secondary" @click="step = 2">上一步</v-btn>
                                     <v-spacer></v-spacer>
+                                    <v-btn
+                                        color="primary"
+                                        :disabled="!validates.form3"
+                                        @click="validate('form3', 4)"
+                                        v-if="type === 'custom'"
+                                    >下一步</v-btn>
                                     <v-btn color="primary" :disabled="!complete" @click="submit">完成</v-btn>
                                     <v-btn @click="clear('form3')">重置</v-btn>
                                 </v-layout>
@@ -382,29 +391,31 @@ export default {
             });
         },
         clear(name) {
-            this.$refs[name].reset();
-            this.$nextTick(() => {
-                if (name === 'form1') {
+            this.$refs[name] && this.$refs[name].reset();
+            switch (name) {
+                case 'form1': {
                     this.type = 'group';
+                    break;
                 }
-                if (name === 'form3') {
-                    this.method = 'GET';
+                case 'form2': {
+                    this.name = '';
+                    this.group = '';
+                    this.icon = '';
+                    this.home = '';
+                    break;
+                }
+                case 'form3': {
+                    this.url = '';
+                    this.method = 'get';
                     this.timeout = 30;
+                    this.headers = {};
+                    this.body = '';
+                    break;
                 }
-            });
+            }
         },
         clearAll() {
-            this.type = 'group';
-            this.id = '';
-            this.name = '';
-            this.group = '';
-            this.icon = '';
-            this.home = '';
-            this.url = '';
-            this.method = 'get';
-            this.timeout = 30;
-            this.headers = {};
-            this.body = '';
+            Object.keys(this.validates).forEach(name => this.clear(name));
         },
         initialize() {
             if (this.action === 'update') {
