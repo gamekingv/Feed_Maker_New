@@ -415,6 +415,7 @@ export default {
             }
         },
         clearAll() {
+            this.id = '';
             Object.keys(this.validates).forEach(name => this.clear(name));
         },
         initialize() {
