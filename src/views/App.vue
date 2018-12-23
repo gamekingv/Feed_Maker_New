@@ -229,6 +229,7 @@ export default {
         },
 
         importConfig(e) {
+            this.loading = true;
             let reader = new FileReader();
             reader.addEventListener('loadend', async event => {
                 try {
