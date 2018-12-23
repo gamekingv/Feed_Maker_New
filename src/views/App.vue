@@ -74,7 +74,7 @@
                                 @change="importConfig"
                             >
                             <v-btn @click="exportConfig">导出配置</v-btn>
-                            <v-btn color="error">清除配置</v-btn>
+                            <v-btn color="error">恢复默认配置</v-btn>
                         </v-layout>
                     </v-layout>
                 </v-navigation-drawer>
