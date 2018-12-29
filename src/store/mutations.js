@@ -16,7 +16,9 @@ const mutations = {
         }
     },
     updateGroup(state, data) {
-        state.groups.splice(state.groups.findIndex(group => group.id === data.id), 1, data);
+        let group = state.groups.find(group => group.id === data.id);
+        group.active = data.active;
+        group.name = data.name;
     },
     updateGroups(state, data) {
         state.groups = data;

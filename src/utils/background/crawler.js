@@ -44,7 +44,6 @@ const crawler = {
                     groupId: feed.groupId
                 };
                 let author = item.author || item.creator;
-                if (typeof author !== 'string') author = JSON.stringify(author);
                 newItem.author = author;
                 if (item.enclosure) {
                     let { type, url } = item.enclosure;

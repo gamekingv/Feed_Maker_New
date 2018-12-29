@@ -3,7 +3,7 @@
         <v-fade-transition mode="out-in" :duration="40">
             <v-flex fill-height v-if="loading === 0" key="steps">
                 <v-stepper v-model="step" vertical non-linear>
-                    <v-stepper-step editable step="1" :rules="[() => validates.form1]">类型</v-stepper-step>
+                    <v-stepper-step editable step="1" :rules="[() => validates.form1]">基本信息</v-stepper-step>
                     <v-stepper-content step="1">
                         <v-form ref="form1" v-model="validates.form1" lazy-validation>
                             <v-layout justify-center>
@@ -22,7 +22,25 @@
                                     ></v-select>
                                 </v-flex>
                             </v-layout>
+                            <v-layout class="mb-4" justify-center v-if="action === 'update'">
+                                <v-flex lg1 align-self-center>
+                                    <v-subheader>启用</v-subheader>
+                                </v-flex>
+                                <v-flex lg4 align-self-center>
+                                    <v-switch
+                                        v-model="active"
+                                        color="blue"
+                                        class="mt-0 pt-0"
+                                        hide-details
+                                    ></v-switch>
+                                </v-flex>
+                            </v-layout>
                             <v-layout>
+                                <v-btn
+                                    color="secondary"
+                                    v-if="action === 'update' && type !== 'group'"
+                                >导出</v-btn>
+                                <v-btn color="error" v-if="action === 'update'">删除</v-btn>
                                 <v-spacer></v-spacer>
                                 <v-btn
                                     color="primary"
@@ -34,7 +52,7 @@
                             </v-layout>
                         </v-form>
                     </v-stepper-content>
-                    <v-stepper-step editable step="2" :rules="[() => validates.form2]">基本信息</v-stepper-step>
+                    <v-stepper-step editable step="2" :rules="[() => validates.form2]">详细信息</v-stepper-step>
                     <v-stepper-content step="2">
                         <v-form ref="form2" v-model="validates.form2" lazy-validation>
                             <v-layout justify-center v-if="type === 'feed' || type === 'custom'">
@@ -252,6 +270,20 @@
                             </transition-group>
                         </v-form>
                     </v-stepper-content>
+                    <template v-for="(step, index) in steps">
+                        <v-stepper-step
+                            editable
+                            :step="index + 4"
+                            :rules="[() => validates.form3]"
+                            :key="`step${index + 4}`"
+                            v-if="type === 'custom'"
+                        >{{`结果组 [${index + 1}]`}}</v-stepper-step>
+                        <v-stepper-content
+                            :step="index + 4"
+                            :key="`content${index + 4}`"
+                            v-if="type === 'custom'"
+                        ></v-stepper-content>
+                    </template>
                 </v-stepper>
             </v-flex>
             <v-layout fill-height justify-center align-center v-else key="loading">
@@ -283,6 +315,7 @@ export default {
             form2: true,
             form3: true
         },
+        active: true,
         id: '',
         type: 'group',
         name: '',
@@ -299,6 +332,13 @@ export default {
         headerValue: '',
         fetching: false,
         result: '',
+        steps: [{
+            title: [],
+            url: [],
+            author: [],
+            pubDate: [],
+            content: []
+        }],
         requireRules: v => !!v || '必填',
         urlRules: v => /http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)?/.test(v) || '请输入合法的链接'
     }),
@@ -363,13 +403,15 @@ export default {
                     switch (this.type) {
                         case 'group': {
                             this.$store.dispatch(`${this.action}Group`, {
+                                active: this.active,
                                 id: this.id,
                                 name: this.name
-                            }).then(() => this.$router.push({ path: `/list/group/${this.id}` }));
+                            }).then(() => this.$router.push({ path: this.active ? `/list/group/${this.id}` : '/list/group/all' }));
                             break;
                         }
                         case 'feed': {
                             this.$store.dispatch(`${this.action}Feed`, {
+                                active: this.active,
                                 id: this.id,
                                 custom: false,
                                 name: this.name,
@@ -381,7 +423,7 @@ export default {
                                 timeout: this.timeout,
                                 headers: this.headers,
                                 body: this.body
-                            }).then(() => this.$router.push({ path: `/list/feed/${this.id}` }));
+                            }).then(() => this.$router.push({ path: this.active ? `/list/feed/${this.id}` : '/list/group/all' }));
                             break;
                         }
                         case 'custom':
@@ -416,18 +458,20 @@ export default {
         },
         clearAll() {
             this.id = '';
+            this.active = true;
             Object.keys(this.validates).forEach(name => this.clear(name));
         },
         initialize() {
             if (this.action === 'update') {
                 this.type = this.editType;
                 if (this.editType === 'group') {
-                    ({ id: this.id, name: this.name } = this.$store.getters.getGroup(this.editId));
+                    ({ id: this.id, name: this.name, active: this.active } = this.$store.getters.getGroup(this.editId));
                 }
                 else if (this.editType === 'feed') {
                     ({
                         id: this.id,
                         name: this.name,
+                        active: this.active,
                         groupId: this.group,
                         home: this.home,
                         icon: this.icon,
@@ -489,5 +533,8 @@ export default {
         transition: all 0.2s;
         width: calc(100% - 83px);
     }
+}
+.no-button .v-input__append-inner {
+    display: none;
 }
 </style>

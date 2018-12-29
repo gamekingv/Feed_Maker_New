@@ -21,24 +21,13 @@ const getters = {
         }
         return title;
     },
-    getFeed: (state) => (id) => {
-        return state.groups.reduce((feeds, group) => feeds.concat(group.feeds), []).find(feed => feed.id === id);
-    },
-    getGroup: (state) => (id) => {
-        return state.groups.find(group => group.id === id);
-    },
-    getGroupUnread: (state) => (id) => {
-        return state.groups.find(group => group.id === id).feeds.reduce((total, feed) => state.feedState[feed.id].unread + total, 0);
-    },
-    getAllUnread: (state, getters) => {
-        return state.groups.reduce((total, group) => getters.getGroupUnread(group.id) + total, 0);
-    },
-    getGroupLoading: (state) => (id) => {
-        return state.groups.find(group => group.id === id).feeds.some(feed => state.feedState[feed.id].isLoading === true);
-    },
-    getGroupError: (state) => (id) => {
-        return state.groups.find(group => group.id === id).feeds.some(feed => state.feedState[feed.id].errorMessage !== '');
-    },
+    getFeed: state => id => state.groups.reduce((feeds, group) => feeds.concat(group.feeds), []).find(feed => feed.id === id),
+    getGroup: state => id => state.groups.find(group => group.id === id),
+    getFeedUnread: (state, getters) => ({ active, id, groupId }) => active && getters.getGroup(groupId).active ? state.feedState[id].unread : 0,
+    getGroupUnread: (state, getters) => id => state.groups.find(group => group.id === id).feeds.reduce((total, feed) => getters.getFeedUnread(feed) + total, 0),
+    getAllUnread: (state, getters) => state.groups.reduce((total, group) => getters.getGroupUnread(group.id) + total, 0),
+    getGroupLoading: state => id => state.groups.find(group => group.id === id).feeds.some(feed => state.feedState[feed.id].isLoading === true),
+    getGroupError: state => id => state.groups.find(group => group.id === id).feeds.some(feed => state.feedState[feed.id].errorMessage !== '')
 };
 
 export default getters;

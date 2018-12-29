@@ -1,6 +1,6 @@
 <template>
     <v-list dense expand>
-        <v-list-tile active-class="blue--text" to="/list/group/collection">
+        <v-list-tile to="/list/group/collection">
             <v-list-tile-action>
                 <v-icon>star</v-icon>
             </v-list-tile-action>
@@ -11,12 +11,12 @@
         <v-list-tile active-class="blue--text" to="/list/group/all">
             <v-list-tile-action>
                 <v-badge
-                    :value="$store.getters.getAllUnread > 0"
+                    :value="getAllUnread > 0"
                     class="small-badge"
                     overlap
                     transition="fade-transition"
                 >
-                    <span slot="badge" v-text="unreadFormatter($store.getters.getAllUnread)"></span>
+                    <span slot="badge" v-text="unreadFormatter(getAllUnread)"></span>
                     <v-icon>dashboard</v-icon>
                 </v-badge>
             </v-list-tile-action>
@@ -38,8 +38,9 @@
                 <v-list-tile
                     active-class="blue--text"
                     slot="activator"
-                    @click.stop
+                    @click="e => group.active && e.stopPropagation()"
                     :to="`/list/group/${group.id}`"
+                    :inactive="!group.active"
                     @mouseenter="hoverId = group.id"
                     @mouseleave="hoverId = ''"
                 >
@@ -56,7 +57,7 @@
                                 <v-icon>edit</v-icon>
                             </v-btn>
                             <v-badge
-                                :value="$store.getters.getGroupUnread(group.id) > 0"
+                                :value="getGroupUnread(group.id) > 0"
                                 class="small-badge"
                                 overlap
                                 transition="fade-transition"
@@ -65,7 +66,7 @@
                             >
                                 <span
                                     slot="badge"
-                                    v-text="unreadFormatter($store.getters.getGroupUnread(group.id))"
+                                    v-text="unreadFormatter(getGroupUnread(group.id))"
                                 ></span>
                                 <v-progress-circular
                                     indeterminate
@@ -81,7 +82,10 @@
                         </v-fade-transition>
                     </v-list-tile-action>
                     <v-list-tile-content>
-                        <v-list-tile-title v-text="group.name"/>
+                        <v-list-tile-title
+                            :class="{'grey--text': !group.active}"
+                            v-text="group.name"
+                        />
                     </v-list-tile-content>
                 </v-list-tile>
                 <feed-list :group="group"/>
@@ -109,11 +113,17 @@ export default {
             set(groups) {
                 this.$store.dispatch('updateGroups', groups);
             }
+        },
+        getAllUnread() {
+            return this.$store.getters.getAllUnread;
         }
     },
     methods: {
         unreadFormatter(count) {
             return count > 99 ? '99+' : count;
+        },
+        getGroupUnread(id) {
+            return this.$store.getters.getGroupUnread(id);
         }
     },
     components: {

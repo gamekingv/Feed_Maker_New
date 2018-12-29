@@ -5,6 +5,7 @@
             v-for="feed in group.feeds"
             :key="feed.id"
             :to="`/list/feed/${feed.id}`"
+            :inactive="!feed.active || !group.active"
             @mouseenter="hoverId = feed.id"
             @mouseleave="hoverId = ''"
         >
@@ -22,16 +23,13 @@
                     </v-btn>
                     <v-badge
                         class="small-badge"
-                        :value="$store.state.feedState[feed.id].unread > 0"
+                        :value="getFeedUnread(feed) > 0"
                         overlap
                         transition="fade-transition"
                         key="icon"
                         v-else
                     >
-                        <span
-                            slot="badge"
-                            v-text="unreadFormatter($store.state.feedState[feed.id].unread)"
-                        ></span>
+                        <span slot="badge" v-text="unreadFormatter(getFeedUnread(feed))"></span>
                         <v-progress-circular
                             indeterminate
                             :size="22"
@@ -52,7 +50,10 @@
                 </v-fade-transition>
             </v-list-tile-action>
             <v-list-tile-content>
-                <v-list-tile-title v-text="feed.name"/>
+                <v-list-tile-title
+                    :class="{'grey--text': !feed.active || !group.active}"
+                    v-text="feed.name"
+                />
             </v-list-tile-content>
         </v-list-tile>
     </draggable>
@@ -82,6 +83,9 @@ export default {
     methods: {
         unreadFormatter(count) {
             return count > 99 ? '99+' : count;
+        },
+        getFeedUnread(feed) {
+            return this.$store.getters.getFeedUnread(feed);
         }
     },
     components: {
