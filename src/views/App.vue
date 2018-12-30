@@ -1,12 +1,12 @@
 ﻿<template>
     <v-app dark>
         <v-fade-transition>
-            <v-container v-if="!loading" fluid>
-                <v-navigation-drawer width="250" stateless value="true" fixed v-model="drawer" app>
+            <v-container fluid v-if="!loading">
+                <v-navigation-drawer app fixed stateless v-model="drawer" value="true" width="250">
                     <v-layout column fill-height>
-                        <v-toolbar flat class="transparent">
+                        <v-toolbar class="transparent" flat>
                             <v-toolbar-items>
-                                <v-icon x-large class="blue--text">wifi_tethering</v-icon>
+                                <v-icon class="blue--text" x-large>wifi_tethering</v-icon>
                             </v-toolbar-items>
                             <v-toolbar-title>Feed Maker</v-toolbar-title>
                         </v-toolbar>
@@ -15,49 +15,46 @@
                         </v-flex>
                     </v-layout>
                 </v-navigation-drawer>
-                <v-toolbar fixed app>
+                <v-toolbar app fixed>
                     <v-toolbar-side-icon @click="drawer = !drawer"/>
                     <v-btn
-                        icon
                         :disabled="active.type !== 'list' || active.subType !== 'feed' || $store.getters.getFeed(active.id).home === ''"
                         @click="openHomePage"
+                        icon
                     >
                         <v-icon v-text="'home'"/>
                     </v-btn>
-                    <v-fade-transition mode="out-in" :duration="40">
-                        <v-toolbar-title
-                            :key="$store.getters.activeTitle"
-                            v-text="$store.getters.activeTitle"
-                        />
+                    <v-fade-transition :duration="40" mode="out-in">
+                        <v-toolbar-title :key="$store.getters.activeTitle" v-text="$store.getters.activeTitle"/>
                     </v-fade-transition>
                     <v-spacer/>
-                    <v-btn-toggle class="ml-3 mr-3" v-model="view" mandatory>
-                        <v-btn value="unread" flat>
+                    <v-btn-toggle class="ml-3 mr-3" mandatory v-model="view">
+                        <v-btn flat value="unread">
                             <v-icon>bookmark_border</v-icon>
                         </v-btn>
-                        <v-btn value="read" flat>
+                        <v-btn flat value="read">
                             <v-icon>bookmark</v-icon>
                         </v-btn>
-                        <v-btn value="all" flat>
+                        <v-btn flat value="all">
                             <v-icon>bookmarks</v-icon>
                         </v-btn>
                     </v-btn-toggle>
-                    <v-btn icon @click.stop="refresh">
+                    <v-btn @click.stop="refresh" icon>
                         <v-icon>refresh</v-icon>
                     </v-btn>
-                    <v-btn icon @click="setting = !setting">
+                    <v-btn @click="setting = !setting" icon>
                         <v-icon>settings</v-icon>
                     </v-btn>
                 </v-toolbar>
                 <v-content class="fill-height">
-                    <v-fade-transition mode="out-in" duration="80">
-                        <router-view ref="content" @showDetails="showDetails"/>
+                    <v-fade-transition duration="80" mode="out-in">
+                        <router-view @showDetails="showDetails" ref="content"/>
                     </v-fade-transition>
                 </v-content>
-                <v-navigation-drawer v-model="setting" :width="500" right temporary fixed>
-                    <v-layout fill-height column>
+                <v-navigation-drawer :width="500" fixed right temporary v-model="setting">
+                    <v-layout column fill-height>
                         <v-list>
-                            <v-list-tile ripple @click="setting = !setting">
+                            <v-list-tile @click="setting = !setting" ripple>
                                 <v-list-tile-action>
                                     <v-icon>compare_arrows</v-icon>
                                 </v-list-tile-action>
@@ -65,39 +62,28 @@
                             </v-list-tile>
                         </v-list>
                         <v-spacer></v-spacer>
-                        <v-layout class="mb-3" align-end justify-end>
-                            <v-btn color="blue" @click.native="$refs.selectFile.click()">导入配置</v-btn>
-                            <input
-                                type="file"
-                                ref="selectFile"
-                                v-show="false"
-                                @change="importConfig"
-                            >
+                        <v-layout align-end class="mb-3">
+                            <v-btn @click.native="$refs.selectFile.click()" color="blue">导入配置</v-btn>
+                            <input @change="importConfig" ref="selectFile" type="file" v-show="false">
                             <v-btn @click="exportConfig">导出配置</v-btn>
+                            <v-spacer></v-spacer>
                             <v-btn color="error">恢复默认配置</v-btn>
                         </v-layout>
                     </v-layout>
                 </v-navigation-drawer>
                 <v-navigation-drawer
-                    v-model="details"
-                    style="scrollbar-width: none;"
-                    :width="1300"
-                    right
                     :temporary="!showDetailsImage"
-                    fixed
+                    :width="1300"
                     @input="e => e || (detailsContent = detailsTitle = detailsAuthor = '')"
+                    fixed
+                    right
+                    style="scrollbar-width: none;"
+                    v-model="details"
                 >
                     <v-card flat>
                         <v-card-title class="headline font-weight-bold pb-1" v-html="detailsTitle"></v-card-title>
                         <v-card-title class="pt-1 pb-1">
-                            <v-chip
-                                class="ml-0"
-                                color="primary"
-                                text-color="white"
-                                small
-                                selected
-                                v-if="detailsAuthor"
-                            >
+                            <v-chip class="ml-0" color="primary" selected small text-color="white" v-if="detailsAuthor">
                                 <v-avatar class="small">
                                     <v-icon>account_circle</v-icon>
                                 </v-avatar>
@@ -109,19 +95,14 @@
                 </v-navigation-drawer>
             </v-container>
         </v-fade-transition>
-        <v-dialog v-model="loading" persistent width="300">
+        <v-dialog persistent v-model="loading" width="300">
             <v-card color="primary">
                 <v-card-text>正在加载数据
                     <v-progress-linear class="mb-0" color="white" indeterminate></v-progress-linear>
                 </v-card-text>
             </v-card>
         </v-dialog>
-        <v-dialog
-            width="unset"
-            v-model="showDetailsImage"
-            scrollable
-            @input="e => e || (detailsImage = '')"
-        >
+        <v-dialog @input="e => e || (detailsImage = '')" scrollable v-model="showDetailsImage" width="unset">
             <v-card>
                 <v-card-title class="font-weight-bold">查看图片</v-card-title>
                 <v-divider></v-divider>

@@ -1,46 +1,29 @@
 <template>
-    <draggable v-model="feeds" :options="options">
+    <draggable :options="{ animation: 100 }" v-model="feeds">
         <v-list-tile
-            active-class="blue--text"
-            v-for="feed in group.feeds"
+            :inactive="!feed.active || !group.active"
             :key="feed.id"
             :to="`/list/feed/${feed.id}`"
-            :inactive="!feed.active || !group.active"
             @mouseenter="hoverId = feed.id"
             @mouseleave="hoverId = ''"
+            active-class="blue--text"
+            v-for="feed in group.feeds"
         >
             <v-list-tile-action>
-                <v-fade-transition mode="out-in" :duration="20">
-                    <v-btn
-                        flat
-                        icon
-                        @click.stop.prevent
-                        :to="`/edit/feed/${feed.id}`"
-                        key="edit"
-                        v-if="hoverId === feed.id"
-                    >
+                <v-fade-transition :duration="20" mode="out-in">
+                    <v-btn :to="`/edit/feed/${feed.id}`" @click.stop.prevent flat icon key="edit" v-if="hoverId === feed.id">
                         <v-icon>edit</v-icon>
                     </v-btn>
-                    <v-badge
-                        class="small-badge"
-                        :value="getFeedUnread(feed) > 0"
-                        overlap
-                        transition="fade-transition"
-                        key="icon"
-                        v-else
-                    >
+                    <v-badge :value="getFeedUnread(feed) > 0" class="small-badge" key="icon" overlap transition="fade-transition" v-else>
                         <span slot="badge" v-text="unreadFormatter(getFeedUnread(feed))"></span>
                         <v-progress-circular
-                            indeterminate
                             :size="22"
                             :width="2"
                             color="blue"
+                            indeterminate
                             v-if="$store.state.feedState[feed.id].isLoading === true"
                         ></v-progress-circular>
-                        <v-avatar
-                            :size="22"
-                            v-else-if="/http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)?/.test(feed.icon)"
-                        >
+                        <v-avatar :size="22" v-else-if="/http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)?/.test(feed.icon)">
                             <img :class="`custom-feed-icon-${feed.id}`">
                         </v-avatar>
                         <v-avatar :size="22" tile v-else>
@@ -50,10 +33,7 @@
                 </v-fade-transition>
             </v-list-tile-action>
             <v-list-tile-content>
-                <v-list-tile-title
-                    :class="{'grey--text': !feed.active || !group.active}"
-                    v-text="feed.name"
-                />
+                <v-list-tile-title :class="{'grey--text': !feed.active || !group.active}" v-text="feed.name"/>
             </v-list-tile-content>
         </v-list-tile>
     </draggable>
@@ -65,9 +45,6 @@ import Draggable from 'vuedraggable';
 export default {
     props: ['group'],
     data: () => ({
-        options: {
-            animation: 100
-        },
         hoverId: ''
     }),
     computed: {

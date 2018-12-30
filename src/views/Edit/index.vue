@@ -1,73 +1,61 @@
 <template>
     <v-container class="pl-5 pr-5" fill-height fluid>
-        <v-fade-transition mode="out-in" :duration="40">
-            <v-flex fill-height v-if="loading === 0" key="steps">
-                <v-stepper v-model="step" vertical non-linear>
-                    <v-stepper-step editable step="1" :rules="[() => validates.form1]">基本信息</v-stepper-step>
+        <v-fade-transition :duration="40" mode="out-in">
+            <v-flex fill-height key="steps" v-if="loading === 0">
+                <v-stepper non-linear v-model="step" vertical>
+                    <v-stepper-step :rules="[() => validates.form1]" editable step="1">基本信息</v-stepper-step>
                     <v-stepper-content step="1">
-                        <v-form ref="form1" v-model="validates.form1" lazy-validation>
+                        <v-form lazy-validation ref="form1" v-model="validates.form1">
                             <v-layout justify-center>
                                 <v-flex lg1>
                                     <v-subheader>类型</v-subheader>
                                 </v-flex>
                                 <v-flex lg4>
                                     <v-select
-                                        v-model="type"
-                                        :items="types"
+                                        :disabled="action === 'update'"
+                                        :items="[{ text: '分组', value: 'group' }, { text: '订阅源', value: 'feed' }, { text: '自定义源', value: 'custom' }]"
                                         :rules="[requireRules]"
                                         placeholder="请选择类型"
-                                        solo
                                         required
-                                        :disabled="action === 'update'"
+                                        solo
+                                        v-model="type"
                                     ></v-select>
                                 </v-flex>
                             </v-layout>
                             <v-layout class="mb-4" justify-center v-if="action === 'update'">
-                                <v-flex lg1 align-self-center>
+                                <v-flex align-self-center lg1>
                                     <v-subheader>启用</v-subheader>
                                 </v-flex>
-                                <v-flex lg4 align-self-center>
-                                    <v-switch
-                                        v-model="active"
-                                        color="blue"
-                                        class="mt-0 pt-0"
-                                        hide-details
-                                    ></v-switch>
+                                <v-flex align-self-center lg4>
+                                    <v-switch class="mt-0 pt-0" color="blue" hide-details v-model="active"></v-switch>
                                 </v-flex>
                             </v-layout>
                             <v-layout>
-                                <v-btn
-                                    color="secondary"
-                                    v-if="action === 'update' && type !== 'group'"
-                                >导出</v-btn>
+                                <v-btn color="secondary" v-if="action === 'update' && type !== 'group'">导出</v-btn>
                                 <v-btn color="error" v-if="action === 'update'">删除</v-btn>
                                 <v-spacer></v-spacer>
-                                <v-btn
-                                    color="primary"
-                                    :disabled="!validates.form1"
-                                    @click="validate('form1', 2)"
-                                >下一步</v-btn>
-                                <v-btn color="primary" :disabled="!complete" @click="submit">完成</v-btn>
+                                <v-btn :disabled="!validates.form1" @click="validate('form1', 2)" color="primary">下一步</v-btn>
+                                <v-btn :disabled="!complete" @click="submit" color="primary">完成</v-btn>
                                 <v-btn @click="clear('form1')">重置</v-btn>
                             </v-layout>
                         </v-form>
                     </v-stepper-content>
-                    <v-stepper-step editable step="2" :rules="[() => validates.form2]">详细信息</v-stepper-step>
+                    <v-stepper-step :rules="[() => validates.form2]" editable step="2">详细信息</v-stepper-step>
                     <v-stepper-content step="2">
-                        <v-form ref="form2" v-model="validates.form2" lazy-validation>
+                        <v-form lazy-validation ref="form2" v-model="validates.form2">
                             <v-layout justify-center v-if="type === 'feed' || type === 'custom'">
                                 <v-flex lg1>
                                     <v-subheader>分组</v-subheader>
                                 </v-flex>
                                 <v-flex lg4>
                                     <v-select
-                                        v-model="group"
                                         :items="groups"
                                         :rules="[requireRules]"
-                                        placeholder="请选择所属分组"
                                         no-data-text="无任何分组"
-                                        solo
+                                        placeholder="请选择所属分组"
                                         required
+                                        solo
+                                        v-model="group"
                                     ></v-select>
                                 </v-flex>
                             </v-layout>
@@ -76,14 +64,7 @@
                                     <v-subheader>名称</v-subheader>
                                 </v-flex>
                                 <v-flex lg4>
-                                    <v-text-field
-                                        v-model="name"
-                                        :rules="[requireRules]"
-                                        placeholder="请输入名称"
-                                        solo
-                                        clearable
-                                        required
-                                    ></v-text-field>
+                                    <v-text-field :rules="[requireRules]" clearable placeholder="请输入名称" required solo v-model="name"></v-text-field>
                                 </v-flex>
                             </v-layout>
                             <v-layout justify-center v-if="type === 'feed' || type === 'custom'">
@@ -91,12 +72,7 @@
                                     <v-subheader>主页</v-subheader>
                                 </v-flex>
                                 <v-flex lg4>
-                                    <v-text-field
-                                        v-model="home"
-                                        placeholder="请输入主页链接"
-                                        solo
-                                        clearable
-                                    ></v-text-field>
+                                    <v-text-field clearable placeholder="请输入主页链接" solo v-model="home"></v-text-field>
                                 </v-flex>
                             </v-layout>
                             <v-layout justify-center v-if="type === 'feed' || type === 'custom'">
@@ -104,49 +80,32 @@
                                     <v-subheader>图标</v-subheader>
                                 </v-flex>
                                 <v-flex lg4>
-                                    <v-text-field
-                                        v-model="icon"
-                                        placeholder="可输入图片链接或Material Icons的名称"
-                                        solo
-                                        clearable
-                                    ></v-text-field>
+                                    <v-text-field clearable placeholder="可输入图片链接或Material Icons的名称" solo v-model="icon"></v-text-field>
                                 </v-flex>
                             </v-layout>
                             <v-layout>
-                                <v-btn color="secondary" @click="step = 1">上一步</v-btn>
+                                <v-btn @click="step--" color="secondary">上一步</v-btn>
                                 <v-spacer></v-spacer>
                                 <v-btn
-                                    color="primary"
                                     :disabled="!validates.form2"
                                     @click="validate('form2', 3)"
+                                    color="primary"
                                     v-if="type === 'feed' || type === 'custom'"
                                 >下一步</v-btn>
-                                <v-btn color="primary" :disabled="!complete" @click="submit">完成</v-btn>
+                                <v-btn :disabled="!complete" @click="submit" color="primary">完成</v-btn>
                                 <v-btn @click="clear('form2')">重置</v-btn>
                             </v-layout>
                         </v-form>
                     </v-stepper-content>
-                    <v-stepper-step
-                        editable
-                        step="3"
-                        :rules="[() => validates.form3]"
-                        v-if="type === 'feed' || type === 'custom'"
-                    >源信息</v-stepper-step>
+                    <v-stepper-step :rules="[() => validates.form3]" editable step="3" v-if="type === 'feed' || type === 'custom'">源信息</v-stepper-step>
                     <v-stepper-content step="3" v-if="type === 'feed' || type === 'custom'">
-                        <v-form ref="form3" v-model="validates.form3" lazy-validation>
+                        <v-form lazy-validation ref="form3" v-model="validates.form3">
                             <v-layout justify-center>
                                 <v-flex lg1>
                                     <v-subheader>链接</v-subheader>
                                 </v-flex>
                                 <v-flex lg11>
-                                    <v-text-field
-                                        v-model="url"
-                                        :rules="[requireRules, urlRules]"
-                                        placeholder="请输入链接"
-                                        clearable
-                                        solo
-                                        required
-                                    ></v-text-field>
+                                    <v-text-field :rules="[requireRules, urlRules]" clearable placeholder="请输入链接" required solo v-model="url"></v-text-field>
                                 </v-flex>
                             </v-layout>
                             <v-layout>
@@ -155,13 +114,13 @@
                                 </v-flex>
                                 <v-flex lg3>
                                     <v-select
-                                        v-model="method"
-                                        class="pa-0"
-                                        label="方法"
                                         :items="[{text: 'GET', value: 'get'}, {text: 'POST', value: 'post'}]"
                                         :rules="[requireRules]"
-                                        solo
+                                        class="pa-0"
+                                        label="方法"
                                         required
+                                        solo
+                                        v-model="method"
                                     ></v-select>
                                 </v-flex>
                                 <v-spacer></v-spacer>
@@ -169,31 +128,25 @@
                                     <v-subheader>超时（秒）</v-subheader>
                                 </v-flex>
                                 <v-flex lg2>
-                                    <v-slider
-                                        v-model="timeout"
-                                        thumb-label="always"
-                                        min="1"
-                                        max="60"
-                                        always-dirty
-                                    ></v-slider>
+                                    <v-slider always-dirty max="60" min="1" thumb-label="always" v-model="timeout"></v-slider>
                                 </v-flex>
                                 <v-spacer></v-spacer>
-                                <v-btn @click="test" :disabled="fetching">测试</v-btn>
+                                <v-btn :disabled="fetching" @click="test">测试</v-btn>
                             </v-layout>
                             <v-layout class="mb-4">
                                 <v-flex lg1>
                                     <v-subheader>消息头</v-subheader>
                                 </v-flex>
-                                <v-flex lg11 align-self-center>
+                                <v-flex align-self-center lg11>
                                     <v-chip
+                                        :key="key"
+                                        @input="$delete(headers, key)"
+                                        close
                                         color="primary"
+                                        selected
+                                        small
                                         text-color="white"
                                         v-for="(value, key) in headers"
-                                        :key="key"
-                                        small
-                                        selected
-                                        close
-                                        @input="$delete(headers, key)"
                                     >{{`${key}: ${value}`}}</v-chip>
                                     <v-dialog v-model="addHeaderDialog" width="500">
                                         <v-btn icon slot="activator">
@@ -202,42 +155,36 @@
                                         <v-card class="grey darken-4">
                                             <v-card-title class="headline">添加一个消息头</v-card-title>
                                             <v-card-text class="pb-0">
-                                                <v-form ref="header" lazy-validation>
+                                                <v-form lazy-validation ref="header">
                                                     <v-layout class="ma-3">
                                                         <v-text-field
-                                                            v-model="headerKey"
-                                                            placeholder="键"
-                                                            solo
                                                             :rules="[requireRules, v => !headers.hasOwnProperty(v) || '已添加该属性']"
                                                             clearable
+                                                            placeholder="键"
+                                                            solo
+                                                            v-model="headerKey"
                                                         ></v-text-field>
                                                         <v-subheader>:</v-subheader>
-                                                        <v-text-field
-                                                            v-model="headerValue"
-                                                            placeholder="值"
-                                                            solo
-                                                            :rules="[requireRules]"
-                                                            clearable
-                                                        ></v-text-field>
+                                                        <v-text-field :rules="[requireRules]" clearable placeholder="值" solo v-model="headerValue"></v-text-field>
                                                     </v-layout>
                                                 </v-form>
                                             </v-card-text>
                                             <v-card-actions>
                                                 <v-spacer></v-spacer>
-                                                <v-btn color="primary" @click="addHeader">确定</v-btn>
-                                                <v-btn color="secondary" @click="close">取消</v-btn>
+                                                <v-btn @click="addHeader" color="primary">确定</v-btn>
+                                                <v-btn @click="close" color="secondary">取消</v-btn>
                                             </v-card-actions>
                                         </v-card>
                                     </v-dialog>
                                 </v-flex>
                             </v-layout>
                             <transition-group name="forms">
-                                <v-layout class="mb-3" v-show="method === 'post'" key="body">
+                                <v-layout class="mb-3" key="body" v-show="method === 'post'">
                                     <v-flex lg1>
                                         <v-subheader>主体</v-subheader>
                                     </v-flex>
                                     <v-flex lg11>
-                                        <v-textarea v-model="body" solo hide-details></v-textarea>
+                                        <v-textarea hide-details solo v-model="body"></v-textarea>
                                     </v-flex>
                                 </v-layout>
                                 <v-layout class="mb-3" key="result">
@@ -245,51 +192,134 @@
                                         <v-subheader>测试结果</v-subheader>
                                     </v-flex>
                                     <v-flex lg11>
-                                        <v-textarea
-                                            solo
-                                            v-model="result"
-                                            rows="10"
-                                            readonly
-                                            hide-details
-                                            :loading="fetching"
-                                        ></v-textarea>
+                                        <v-textarea :loading="fetching" hide-details readonly rows="10" solo v-model="result"></v-textarea>
                                     </v-flex>
                                 </v-layout>
-                                <v-layout key="action">
-                                    <v-btn color="secondary" @click="step = 2">上一步</v-btn>
-                                    <v-spacer></v-spacer>
-                                    <v-btn
-                                        color="primary"
-                                        :disabled="!validates.form3"
-                                        @click="validate('form3', 4)"
-                                        v-if="type === 'custom'"
-                                    >下一步</v-btn>
-                                    <v-btn color="primary" :disabled="!complete" @click="submit">完成</v-btn>
-                                    <v-btn @click="clear('form3')">重置</v-btn>
-                                </v-layout>
                             </transition-group>
+                            <v-layout>
+                                <v-btn @click="step--" color="secondary">上一步</v-btn>
+                                <v-spacer></v-spacer>
+                                <v-btn :disabled="!validates.form3" @click="validate('form3', 4)" color="primary" v-if="type === 'custom'">下一步</v-btn>
+                                <v-btn :disabled="!complete" @click="submit" color="primary">完成</v-btn>
+                                <v-btn @click="clear('form3')">重置</v-btn>
+                            </v-layout>
                         </v-form>
                     </v-stepper-content>
-                    <template v-for="(step, index) in steps">
+                    <template v-for="(resultGroup, index) in resultGroups">
                         <v-stepper-step
-                            editable
-                            :step="index + 4"
-                            :rules="[() => validates.form3]"
                             :key="`step${index + 4}`"
+                            :rules="[() => validates.form3]"
+                            :step="index + 4"
+                            editable
                             v-if="type === 'custom'"
                         >{{`结果组 [${index + 1}]`}}</v-stepper-step>
-                        <v-stepper-content
-                            :step="index + 4"
-                            :key="`content${index + 4}`"
-                            v-if="type === 'custom'"
-                        ></v-stepper-content>
+                        <v-stepper-content :key="`content${index + 4}`" :step="index + 4" v-if="type === 'custom'">
+                            <v-layout class="mb-4 mt-4" column>
+                                <v-flex :key="type" v-for="(parsers, type, count) in resultGroup">
+                                    <v-card :key="i" color="#303030" disabled flat hide-actions v-for="(parser, i) in parsers">
+                                        <v-card-title class="pb-0">
+                                            <v-layout>
+                                                <v-flex lg1>
+                                                    <v-subheader v-text="`${resultGroupName[type]} (${i + 1})`"></v-subheader>
+                                                </v-flex>
+                                                <v-flex lg3>
+                                                    <v-select
+                                                        :items="parseSource[index].filter(({value}) => value.indexOf(`${type + (i + 1)}Step`) === -1)"
+                                                        clearable
+                                                        label="来源"
+                                                        solo
+                                                        v-model="parser.source"
+                                                    ></v-select>
+                                                </v-flex>
+                                                <v-spacer></v-spacer>
+                                                <v-btn
+                                                    @click="parser.parserSteps.push({id: Date.now().toString(), method: 'match', regexp: '', flags: [], replaceExp: '', subPattern: ''})"
+                                                    icon
+                                                >
+                                                    <v-icon>add</v-icon>
+                                                </v-btn>
+                                                <v-btn @click="parsers.push({ source: '', parserSteps: [] })" icon>
+                                                    <v-icon>playlist_add</v-icon>
+                                                </v-btn>
+                                                <v-btn @click="parsers.splice(i, 1)" icon v-if="parsers.length > 1">
+                                                    <v-icon>close</v-icon>
+                                                </v-btn>
+                                            </v-layout>
+                                        </v-card-title>
+                                        <v-card-text class="pt-0">
+                                            <draggable :options="{ animation: 100, handle: '.drag-handler' }" v-model="parser.parserSteps">
+                                                <v-toolbar :key="parserStep.id" class="mb-2" dense v-for="(parserStep, i) in parser.parserSteps">
+                                                    <v-toolbar-items>
+                                                        <v-subheader class="pl-0" v-text="i + 1"></v-subheader>
+                                                    </v-toolbar-items>
+                                                    <v-select
+                                                        :items="[{text: '匹配', value: 'match'}, {text: '替换', value: 'replace'}, {text: 'JSON', value: 'json'}, {text: '选择器', value: 'selector'}]"
+                                                        background-color="transparent"
+                                                        flat
+                                                        hide-details
+                                                        solo
+                                                        style="max-width: 110px;"
+                                                        v-model="parserStep.method"
+                                                    ></v-select>
+                                                    <v-divider vertical></v-divider>
+                                                    <v-text-field background-color="transparent" flat hide-details placeholder="请输入表达式" solo></v-text-field>
+                                                    <v-text-field
+                                                        background-color="transparent"
+                                                        flat
+                                                        hide-details
+                                                        placeholder="请输入替换表达式"
+                                                        prepend-icon="arrow_forward"
+                                                        solo
+                                                        v-if="parserStep.method === 'replace'"
+                                                        v-model="parserStep.replaceExp"
+                                                    ></v-text-field>
+                                                    <v-divider class="mr-2" vertical></v-divider>
+                                                    <v-btn-toggle class="transparent" multiple v-model="parserStep.flags">
+                                                        <v-btn flat value="global">
+                                                            <v-icon>format_line_spacing</v-icon>
+                                                        </v-btn>
+                                                        <v-btn flat value="case">
+                                                            <v-icon>font_download</v-icon>
+                                                        </v-btn>
+                                                    </v-btn-toggle>
+                                                    <v-divider class="ml-2 mr-2" vertical></v-divider>
+                                                    <v-btn icon>
+                                                        <v-icon>play_arrow</v-icon>
+                                                    </v-btn>
+                                                    <v-btn @click="parser.parserSteps.splice(i, 1)" icon>
+                                                        <v-icon>close</v-icon>
+                                                    </v-btn>
+                                                    <v-divider class="ml-2 mr-2" vertical></v-divider>
+                                                    <div class="ml-3 drag-handler">
+                                                        <v-icon>swap_vert</v-icon>
+                                                    </div>
+                                                </v-toolbar>
+                                            </draggable>
+                                        </v-card-text>
+                                    </v-card>
+                                    <v-divider class="mt-3" v-if="count < 5"></v-divider>
+                                </v-flex>
+                            </v-layout>
+                            <v-layout>
+                                <v-btn @click="step--" color="secondary">上一步</v-btn>
+                                <v-spacer></v-spacer>
+                                <v-btn
+                                    :disabled="!validates.form3"
+                                    @click="validate('form3', 4)"
+                                    color="primary"
+                                    v-if="index < resultGroups.length"
+                                >下一步</v-btn>
+                                <v-btn :disabled="!complete" @click="submit" color="primary">完成</v-btn>
+                                <v-btn @click="clear('form3')">重置</v-btn>
+                            </v-layout>
+                        </v-stepper-content>
                     </template>
                 </v-stepper>
             </v-flex>
-            <v-layout fill-height justify-center align-center v-else key="loading">
+            <v-layout align-center fill-height justify-center key="loading" v-else>
                 <v-card color="primary" width="300">
                     <v-card-text>正在加载数据
-                        <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
+                        <v-progress-linear class="mb-0" color="white" indeterminate></v-progress-linear>
                     </v-card-text>
                 </v-card>
             </v-layout>
@@ -299,17 +329,13 @@
 
 <script>
 import axios from 'axios';
+import Draggable from 'vuedraggable';
 
 export default {
     props: ['editType', 'editId'],
     data: () => ({
         loading: 1,
         step: 1,
-        types: [
-            { text: '分组', value: 'group' },
-            { text: '订阅源', value: 'feed' },
-            { text: '自定义源', value: 'custom' }
-        ],
         validates: {
             form1: true,
             form2: true,
@@ -332,13 +358,22 @@ export default {
         headerValue: '',
         fetching: false,
         result: '',
-        steps: [{
-            title: [],
-            url: [],
-            author: [],
-            pubDate: [],
-            content: []
+        resultGroups: [{
+            common: [{ source: '', parserSteps: [] }],
+            title: [{ source: '', parserSteps: [] }],
+            url: [{ source: '', parserSteps: [] }],
+            author: [{ source: '', parserSteps: [] }],
+            pubDate: [{ source: '', parserSteps: [] }],
+            content: [{ source: '', parserSteps: [] }]
         }],
+        resultGroupName: {
+            common: '通用',
+            title: '标题',
+            url: '链接',
+            author: '作者',
+            pubDate: '时间',
+            content: '内容',
+        },
         requireRules: v => !!v || '必填',
         urlRules: v => /http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)?/.test(v) || '请输入合法的链接'
     }),
@@ -497,6 +532,15 @@ export default {
         },
         action() {
             return this.$store.state.active.type.replace('edit', 'update');
+        },
+        parseSource() {
+            return this.resultGroups.map(resultGroup => Object.entries(resultGroup).reduce((total, [type, parsers]) => {
+                parsers.map((parser, index) => parser.parserSteps.forEach((step, i) => total.push({
+                    text: `${this.resultGroupName[type]} (${(index + 1)}) 步骤 ${(i + 1)}`,
+                    value: type + (index + 1) + 'Step' + (i + 1)
+                })));
+                return total;
+            }, [{ text: '源', value: 'origin' }]));
         }
     },
     mounted() {
@@ -512,6 +556,9 @@ export default {
                 this.loading--;
             });
         }
+    },
+    components: {
+        Draggable
     }
 };
 </script>
@@ -534,7 +581,7 @@ export default {
         width: calc(100% - 83px);
     }
 }
-.no-button .v-input__append-inner {
-    display: none;
+.drag-handler {
+    cursor: pointer;
 }
 </style>

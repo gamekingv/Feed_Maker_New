@@ -1,38 +1,17 @@
 <template>
     <v-container class="pl-5 pr-5" fill-height fluid>
-        <v-fade-transition mode="out-in" :duration="40">
-            <v-flex fill-height v-if="loading === 0" key="items">
+        <v-fade-transition :duration="40" mode="out-in">
+            <v-flex fill-height key="items" v-if="loading === 0">
                 <v-list class="transparent" dense>
                     <template v-for="(item, i) in items">
-                        <v-list-tile
-                            :key="item.id"
-                            @click="showDetails(item.title, item.author, item.content)"
-                        >
+                        <v-list-tile :key="item.id" @click="showDetails(item.title, item.author, item.content)">
                             <v-list-tile-action style="min-width: unset;">
-                                <v-checkbox
-                                    v-model="selectedItems"
-                                    :value="{id: item.id, feedId: item.feedId}"
-                                    :ripple="false"
-                                    hide-details
-                                ></v-checkbox>
+                                <v-checkbox :ripple="false" :value="{id: item.id, feedId: item.feedId}" hide-details v-model="selectedItems"></v-checkbox>
                             </v-list-tile-action>
-                            <v-chip
-                                color="grey darken-2"
-                                text-color="white"
-                                small
-                                disabled
-                                v-if="item.author"
-                            >
+                            <v-chip color="grey darken-2" disabled small text-color="white" v-if="item.author">
                                 <v-avatar class="small" color="blue">
-                                    <img
-                                        :class="`custom-feed-icon-${item.feedId}`"
-                                        v-if="isUrl(icons[i])"
-                                    >
-                                    <v-icon
-                                        :size="20"
-                                        v-text="icons[i] ? icons[i] : 'insert_drive_file'"
-                                        v-else
-                                    ></v-icon>
+                                    <img :class="`custom-feed-icon-${item.feedId}`" v-if="isUrl(icons[i])">
+                                    <v-icon :size="20" v-else v-text="icons[i] ? icons[i] : 'insert_drive_file'"></v-icon>
                                 </v-avatar>
                                 {{item.author}}
                             </v-chip>
@@ -40,7 +19,7 @@
                                 <v-avatar class="small" v-if="isUrl(icons[i])">
                                     <img :class="`custom-feed-icon-${item.feedId}`">
                                 </v-avatar>
-                                <v-icon v-text="icons[i] ? icons[i] : 'insert_drive_file'" v-else></v-icon>
+                                <v-icon v-else v-text="icons[i] ? icons[i] : 'insert_drive_file'"></v-icon>
                             </v-list-tile-avatar>
                             <v-list-tile-content>
                                 <v-list-tile-title
@@ -48,60 +27,39 @@
                                     v-text="item.title"
                                 ></v-list-tile-title>
                             </v-list-tile-content>
-                            <v-chip
-                                color="grey darken-3"
-                                text-color="white"
-                                small
-                                disabled
-                                outline
-                            >{{timeFormatter(item.pubDate)}}</v-chip>
+                            <v-chip color="grey darken-3" disabled outline small text-color="white">{{timeFormatter(item.pubDate)}}</v-chip>
                         </v-list-tile>
-                        <v-divider v-if="i < items.length - 1" :key="item.id * -1"></v-divider>
+                        <v-divider :key="item.id * -1" v-if="i < items.length - 1"></v-divider>
                     </template>
                 </v-list>
-                <v-layout justify-center align-center>
-                    <v-pagination
-                        v-model="currentPage"
-                        :length="totalPage"
-                        :total-visible="9"
-                        circle
-                        v-if="totalPage > 1"
-                        @input="changePage"
-                    ></v-pagination>
+                <v-layout align-center justify-center>
+                    <v-pagination :length="totalPage" :total-visible="9" @input="changePage" circle v-if="totalPage > 1" v-model="currentPage"></v-pagination>
                 </v-layout>
-                <v-speed-dial
-                    direction="bottom"
-                    open-on-hover
-                    right
-                    top
-                    fixed
-                    style="top: 88px; z-index:0;"
-                    v-if="items.length !== 0"
-                >
-                    <v-btn slot="activator" color="blue darken-2" fab @click="markItems('all')">
+                <v-speed-dial direction="bottom" fixed open-on-hover right style="top: 88px; z-index:0;" top v-if="items.length !== 0">
+                    <v-btn @click="markItems('all')" color="blue darken-2" fab slot="activator">
                         <v-icon>done_all</v-icon>
                     </v-btn>
-                    <v-btn fab small color="pink" @click.stop="selectAll">
+                    <v-btn @click.stop="selectAll" color="pink" fab small>
                         <v-icon>select_all</v-icon>
                     </v-btn>
-                    <v-btn fab small color="green" @click="clearSelects">
+                    <v-btn @click="clearSelects" color="green" fab small>
                         <v-icon>crop_free</v-icon>
                     </v-btn>
-                    <v-btn fab small color="indigo" @click="markItems('read')">
+                    <v-btn @click="markItems('read')" color="indigo" fab small>
                         <v-icon>bookmark</v-icon>
                     </v-btn>
-                    <v-btn fab small color="indigo" @click="markItems('unread')">
+                    <v-btn @click="markItems('unread')" color="indigo" fab small>
                         <v-icon>bookmark_border</v-icon>
                     </v-btn>
-                    <v-btn fab small color="red">
+                    <v-btn color="red" fab small>
                         <v-icon>star</v-icon>
                     </v-btn>
                 </v-speed-dial>
             </v-flex>
-            <v-layout fill-height justify-center align-center v-else key="loading">
+            <v-layout align-center fill-height justify-center key="loading" v-else>
                 <v-card color="primary" width="300">
                     <v-card-text>正在加载数据
-                        <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
+                        <v-progress-linear class="mb-0" color="white" indeterminate></v-progress-linear>
                     </v-card-text>
                 </v-card>
             </v-layout>
