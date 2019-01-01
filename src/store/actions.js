@@ -12,9 +12,14 @@ const actions = {
                 }
             }
         }
+        let { parsers } = await browser.storage.local.get('parsers');
+        if (parsers) commit('updateParsers', parsers);
     },
     saveGroups({ state }) {
         return browser.storage.local.set({ groups: state.groups });
+    },
+    saveParsers({ state }) {
+        return browser.storage.local.set({ parsers: state.parsers });
     },
     addGroup({ dispatch, commit }, group) {
         group.feeds = [];
@@ -54,7 +59,19 @@ const actions = {
     },
     updateFeedState({ commit }, data) {
         commit('updateFeedState', data);
-    }
+    },
+    addParser({ dispatch, commit }, data) {
+        commit('addParser', data);
+        return dispatch('saveParsers');
+    },
+    deleteParser({ dispatch, commit }, data) {
+        commit('deleteParser', data);
+        return dispatch('saveParsers');
+    },
+    updateParser({ dispatch, commit }, data) {
+        commit('updateParser', data);
+        return dispatch('saveParsers');
+    },
 };
 
 export default actions;

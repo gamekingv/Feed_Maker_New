@@ -26,12 +26,12 @@ const message = {
                     if (type === 'group') {
                         let request = id === 'all' ? db.getAllItems(page, amount, state) : db.getItemsByGroupId(id, page, amount, state);
                         request.then(items => sendResponse({ result: 'ok', data: items }))
-                            .catch(e => sendResponse({ result: 'fail', data: e }));
+                            .catch(e => sendResponse({ result: 'fail', data: e.toString() }));
                     }
                     else if (type === 'feed') {
                         db.getItemsByFeedId(id, page, amount, state)
                             .then(items => sendResponse({ result: 'ok', data: items }))
-                            .catch(e => sendResponse({ result: 'fail', data: e }));
+                            .catch(e => sendResponse({ result: 'fail', data: e.toString() }));
                     }
                     break;
                 }
@@ -40,12 +40,12 @@ const message = {
                     if (type === 'group') {
                         let request = data.id === 'all' ? db.getAllItemsCount(state) : db.getItemsCountByGroupId(id, state);
                         request.then(count => sendResponse({ result: 'ok', data: count }))
-                            .catch(e => sendResponse({ result: 'fail', data: e }));
+                            .catch(e => sendResponse({ result: 'fail', data: e.toString() }));
                     }
                     else if (type === 'feed') {
                         db.getItemsCountByFeedId(id, state)
                             .then(count => sendResponse({ result: 'ok', data: count }))
-                            .catch(e => sendResponse({ result: 'fail', data: e }));
+                            .catch(e => sendResponse({ result: 'fail', data: e.toString() }));
                     }
                     break;
                 }
@@ -53,8 +53,35 @@ const message = {
                     let { ids, keyValues } = data;
                     db.updateItems(ids, keyValues)
                         .then(() => sendResponse({ result: 'ok' }))
-                        .catch(e => sendResponse({ result: 'fail', data: e }));
+                        .catch(e => sendResponse({ result: 'fail', data: e.toString() }));
                     break;
+                }
+                case 'fetch source': {
+                    crawler.fetchSource(data.feed).then(response => sendResponse(response));
+                    break;
+                }
+                case 'parse source': {
+                    let { source, type, steps } = data, result;
+                    try {
+                        if (type === 'base') result = crawler.baseStepsParser(source, steps);
+                        else result = crawler.stepGroupParser(source, steps);
+                        if (steps[steps.length - 1].method === 'selector') {
+                            if (steps[steps.length - 1].flags.some(flag => flag === 'g')) result = Array.from(result).map(item => item.outerHTML);
+                            else if (type !== 'base') result = result.map(item => item.outerHTML);
+                            else result = result.outerHTML;
+                        }
+                        sendResponse({ result: 'ok', data: result });
+                    }
+                    catch (e) {
+                        let { type, id, message } = e, errorMessage;
+                        if (type) {
+                            if (type === 'step') {
+                                errorMessage = `处理步骤${steps.findIndex(step => id === step.id) + 1}出错：\n${message}`;
+                            }
+                        }
+                        else errorMessage = e.toString();
+                        sendResponse({ result: 'fail', data: errorMessage });
+                    }
                 }
             }
             return true;
@@ -68,6 +95,9 @@ const message = {
     },
     sendBackgroundUpdateComplete(id, result) {
         message.send({ action: 'background update complete', data: { id, result } });
+    },
+    sendBackgroundUpdateFail(id, errorMessage) {
+        message.send({ action: 'background update fail', data: { id, errorMessage } });
     }
 };
 

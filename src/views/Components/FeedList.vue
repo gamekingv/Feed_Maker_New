@@ -4,9 +4,10 @@
             :inactive="!feed.active || !group.active"
             :key="feed.id"
             :to="`/list/feed/${feed.id}`"
-            @mouseenter="hoverId = feed.id"
-            @mouseleave="hoverId = ''"
+            @mouseenter.native="hoverId = feed.id"
+            @mouseleave.native="hoverId = ''"
             active-class="blue--text"
+            ripple
             v-for="feed in group.feeds"
         >
             <v-list-tile-action>

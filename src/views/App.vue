@@ -29,22 +29,37 @@
                     </v-fade-transition>
                     <v-spacer/>
                     <v-btn-toggle class="ml-3 mr-3" mandatory v-model="view">
-                        <v-btn flat value="unread">
-                            <v-icon>bookmark_border</v-icon>
-                        </v-btn>
-                        <v-btn flat value="read">
-                            <v-icon>bookmark</v-icon>
-                        </v-btn>
-                        <v-btn flat value="all">
-                            <v-icon>bookmarks</v-icon>
-                        </v-btn>
+                        <v-tooltip :disabled="active.type !== 'list'" :open-delay="600" bottom lazy>
+                            <v-btn :disabled="active.type !== 'list'" flat slot="activator" value="unread">
+                                <v-icon>bookmark_border</v-icon>
+                            </v-btn>
+                            <span>只显示未读</span>
+                        </v-tooltip>
+                        <v-tooltip :disabled="active.type !== 'list'" :open-delay="600" bottom lazy>
+                            <v-btn :disabled="active.type !== 'list'" flat slot="activator" value="read">
+                                <v-icon>bookmark</v-icon>
+                            </v-btn>
+                            <span>只显示已读</span>
+                        </v-tooltip>
+                        <v-tooltip :disabled="active.type !== 'list'" :open-delay="600" bottom lazy>
+                            <v-btn :disabled="active.type !== 'list'" flat slot="activator" value="all">
+                                <v-icon>bookmarks</v-icon>
+                            </v-btn>
+                            <span>显示全部</span>
+                        </v-tooltip>
                     </v-btn-toggle>
-                    <v-btn @click.stop="refresh" icon>
-                        <v-icon>refresh</v-icon>
-                    </v-btn>
-                    <v-btn @click="setting = !setting" icon>
-                        <v-icon>settings</v-icon>
-                    </v-btn>
+                    <v-tooltip :disabled="active.type !== 'list'" :open-delay="600" bottom lazy>
+                        <v-btn :disabled="active.type !== 'list'" @click.stop="refresh" icon slot="activator">
+                            <v-icon>refresh</v-icon>
+                        </v-btn>
+                        <span>刷新</span>
+                    </v-tooltip>
+                    <v-tooltip :open-delay="600" bottom lazy>
+                        <v-btn @click="setting = !setting" icon slot="activator">
+                            <v-icon>settings</v-icon>
+                        </v-btn>
+                        <span>打开设置</span>
+                    </v-tooltip>
                 </v-toolbar>
                 <v-content class="fill-height">
                     <v-fade-transition duration="80" mode="out-in">

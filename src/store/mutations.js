@@ -56,7 +56,19 @@ const mutations = {
         if (isLoading !== undefined) state.feedState[id].isLoading = isLoading;
         if (unread !== undefined) state.feedState[id].unread = unread;
         if (errorMessage !== undefined) state.feedState[id].errorMessage = errorMessage;
-    }
+    },
+    addParser(state, { id, parser }) {
+        Vue.set(state.parsers, id, parser);
+    },
+    deleteParser(state, id) {
+        Vue.delete(state.parsers, id);
+    },
+    updateParser(state, { id, parser }) {
+        state.parsers[id] = parser;
+    },
+    updateParsers(state, data) {
+        state.parsers = data;
+    },
 };
 
 export default mutations;

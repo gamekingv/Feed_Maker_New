@@ -9,6 +9,7 @@ Vue.use(Vuex);
 const store = new Vuex.Store({
     state: {
         groups: [],
+        parsers: {},
         feedState: {},
         settings: {
             itemsPerPage: 15,

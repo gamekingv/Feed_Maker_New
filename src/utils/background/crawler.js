@@ -17,54 +17,96 @@ const crawler = {
         let { groups } = await browser.storage.local.get('groups');
         return groups.find(group => group.id === id);
     },
-    async updateFeed({ id, feed }) {
-        if (!feed) feed = await this.getFeed(id);
+    async getParser(id) {
+        let { parsers } = await browser.storage.local.get('parsers');
+        return parsers[id];
+    },
+    async fetchSource(feed) {
+        function modifyHeader(details) {
+            browser.webRequest.onBeforeSendHeaders.removeListener(modifyHeader);
+            for (let name in feed.headers) {
+                let gotName = false;
+                for (let requestHeader of details.requestHeaders) {
+                    gotName = requestHeader.name.toLowerCase() === name;
+                    if (gotName) {
+                        requestHeader.value = feed.headers[name];
+                    }
+                }
+                if (!gotName) {
+                    details.requestHeaders.push({ name: name, value: feed.headers[name] });
+                }
+            }
+            return { requestHeaders: details.requestHeaders };
+        }
+        browser.webRequest.onBeforeSendHeaders.addListener(modifyHeader, { urls: [feed.url] }, ['blocking', 'requestHeaders']);
+
         let config = {
             method: feed.method,
             url: feed.url,
             timeout: feed.timeout * 1000
-        }, unread;
+        };
         if (feed.method === 'post' && feed.body) {
             config.data = feed.body;
         }
-        let result = await axios(config);
-        if (feed.custom) {
-            console.log(feed);
+        try {
+            let response = await axios(config);
+            return { result: 'ok', data: response.data };
         }
-        else {
-            let { items } = await this.normalParser(result.data);
-            let newItems = [];
-            for (let item of items) {
-                let newItem = {
-                    title: item.title,
-                    url: item.link,
-                    content: item['content:encoded'] ? item['content:encoded'] : item.content,
-                    pubDate: Date.parse(item.pubDate),
-                    feedId: id,
-                    groupId: feed.groupId
-                };
-                let author = item.author || item.creator;
-                newItem.author = author;
-                if (item.enclosure) {
-                    let { type, url } = item.enclosure;
-                    if (type.indexOf('video') > -1) {
-                        newItem.content += `<br /><div><video controls src="${url}" /></div>`;
-                    }
-                    else if (type.indexOf('audio') > -1) {
-                        newItem.content += `<br /><div><audio src="${url}" /></div>`;
-                    }
-                    else if (type.indexOf('image') > -1) {
-                        newItem.content += `<br /><div><img src="${url}" /></div>`;
-                    }
-                    else {
-                        newItem.content += `<br /><div><a href="${url}">File</a></div>`;
-                    }
-                }
-                newItems.push(newItem);
+        catch (e) {
+            return { result: 'fail', data: e.toString() };
+        }
+    },
+    async updateFeed({ id, feed }) {
+        if (!feed) feed = await this.getFeed(id);
+        let { result, data } = await this.fetchSource(feed), unread;
+        if (result === 'fail') {
+            message.sendBackgroundUpdateFail(id, data);
+            return;
+        }
+        try {
+            if (feed.custom) {
+                let parserGroups = await this.getParser(id),
+                    items = this.customParser(data, parserGroups);
+                unread = 0;
             }
-            unread = await db.addItems(newItems);
+            else {
+                let { items } = await this.normalParser(data);
+                let newItems = [];
+                for (let item of items) {
+                    let newItem = {
+                        title: item.title,
+                        url: item.link,
+                        content: item['content:encoded'] ? item['content:encoded'] : item.content,
+                        pubDate: Date.parse(item.pubDate),
+                        feedId: id,
+                        groupId: feed.groupId
+                    };
+                    let author = item.author || item.creator;
+                    newItem.author = author;
+                    if (item.enclosure) {
+                        let { type, url } = item.enclosure;
+                        if (type.indexOf('video') > -1) {
+                            newItem.content += `<br /><div><video controls src="${url}" /></div>`;
+                        }
+                        else if (type.indexOf('audio') > -1) {
+                            newItem.content += `<br /><div><audio src="${url}" /></div>`;
+                        }
+                        else if (type.indexOf('image') > -1) {
+                            newItem.content += `<br /><div><img src="${url}" /></div>`;
+                        }
+                        else {
+                            newItem.content += `<br /><div><a href="${url}">File</a></div>`;
+                        }
+                    }
+                    newItems.push(newItem);
+                }
+                unread = await db.addItems(newItems);
+            }
+            message.sendBackgroundUpdateComplete(id, unread);
         }
-        message.sendBackgroundUpdateComplete(id, unread);
+        catch (e) {
+            message.sendBackgroundUpdateFail(id, e.toString());
+        }
     },
     async updateGroup(id) {
         let group = await this.getGroup(id);
@@ -82,6 +124,100 @@ const crawler = {
         }
         catch (e) {
             throw e;
+        }
+    },
+    async customParser(source, parserGroups) {
+        let baseResults = parserGroups.map(parserGroup => this.baseStepsParser(source, parserGroup.base[0].parserSteps)),
+            bufferResultsIndex = parserGroups.map(parserGroup => this.getBufferIndex(parserGroup)),
+            commonResults = parserGroups.map((parserGroup, index) => this.commonStepsParser(baseResults[index], parserGroup.common, bufferResultsIndex[index]));
+        console.log(commonResults);
+    },
+    getBufferIndex(parserGroup) {
+        return Object.values(parserGroup).reduce((result, parsers) => Object.assign(result, parsers.reduce((result, parser) => {
+            if (parser.source && parser.source !== 'base' && parser.source !== 'origin') result[parser.source] = true;
+            return result;
+        }, {})), {});
+    },
+    baseStepsParser(source, steps) {
+        return steps.reduce((result, step, index) => this.stepParser(result, step, steps[index - 1] && steps[index - 1].method), source);
+    },
+    commonStepsParser(baseSources, parsers, bufferResultIndex) {
+        let results = {};
+        parsers.forEach((parser, parserIndex) => {
+            let sources, { source, parserSteps } = parser;
+            if (source === 'base') {
+                sources = baseSources;
+            }
+            else {
+                sources = results[source];
+            }
+            parserSteps.forEach((step, index) => {
+                let stepName = `common${parserIndex + 1}Step${index + 1}`;
+                if (bufferResultIndex[stepName])
+                    results[stepName] = sources.map(source => this.stepParser(source, step, parserSteps[index - 1] && parserSteps[index - 1].method));
+            });
+        }
+        );
+        return results;
+    },
+    stepGroupParser(sources, steps) {
+        return sources.map(source => this.baseStepsParser(source, steps));
+    },
+    stepParser(source, step, lastMethod) {
+        if (!source) return source;
+        try {
+            if (!source) throw `无法处理此输入源“${source}”`;
+            let result = '',
+                { method, regexp, flags, replaceExp, subPattern } = step,
+                isGlobal = flags.some(flag => flag === 'g');
+            switch (method) {
+                case 'match':
+                case 'replace': {
+                    if (typeof source === 'string') result = source;
+                    else if (source instanceof HTMLElement) result = source.outerHTML;
+                    else if (Number(source)) result = source.toString();
+                    else if (typeof source === 'object') result = JSON.stringify(source);
+                    else throw `无法处理此输入源“${source}”`;
+                    let mode = 'm' + flags.join(''),
+                        subs, matches = [],
+                        pattern = new RegExp(regexp, mode);
+                    if (method === 'replace') result = result.replace(pattern, replaceExp);
+                    else if (method === 'match' && !isGlobal) result = result.match(pattern);
+                    else {
+                        while ((subs = pattern.exec(result)) !== null) {
+                            matches.push(subs);
+                        }
+                        result = matches;
+                    }
+                    break;
+                }
+                case 'json': {
+                    if (typeof source === 'string') result = JSON.parse(source);
+                    else if (typeof source === 'object') result = source;
+                    else throw `无法处理此输入源“${source}”`;
+                    result = regexp.split('.').reduce((target, propertyName) => target = target[propertyName], result);
+                    break;
+                }
+                case 'selector': {
+                    let dom;
+                    if (lastMethod == 'selector') dom = source;
+                    else {
+                        if (typeof source === 'string') result = source;
+                        else if (typeof source === 'object') result = JSON.stringify(source);
+                        else throw `无法处理此输入源“${source}”`;
+                        dom = document.createElement('body');
+                        dom.innerHTML = result;
+                    }
+                    if (isGlobal) result = dom.querySelectorAll(regexp);
+                    else result = dom.querySelector(regexp);
+                    break;
+                }
+            }
+            if (subPattern) return result[subPattern];
+            else return result;
+        }
+        catch (e) {
+            throw { type: 'step', id: step.id, message: e };
         }
     },
     async autoUpdate() {

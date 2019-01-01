@@ -6,9 +6,9 @@
                     <template v-for="(item, i) in items">
                         <v-list-tile :key="item.id" @click="showDetails(item.title, item.author, item.content)">
                             <v-list-tile-action style="min-width: unset;">
-                                <v-checkbox :ripple="false" :value="{id: item.id, feedId: item.feedId}" hide-details v-model="selectedItems"></v-checkbox>
+                                <v-checkbox :ripple="false" :value="item.id" @click.stop hide-details v-model="selectedItems"></v-checkbox>
                             </v-list-tile-action>
-                            <v-chip color="grey darken-2" disabled small text-color="white" v-if="item.author">
+                            <v-chip @click.stop color="grey darken-2" disabled small text-color="white" v-if="item.author">
                                 <v-avatar class="small" color="blue">
                                     <img :class="`custom-feed-icon-${item.feedId}`" v-if="isUrl(icons[i])">
                                     <v-icon :size="20" v-else v-text="icons[i] ? icons[i] : 'insert_drive_file'"></v-icon>
@@ -27,7 +27,7 @@
                                     v-text="item.title"
                                 ></v-list-tile-title>
                             </v-list-tile-content>
-                            <v-chip color="grey darken-3" disabled outline small text-color="white">{{timeFormatter(item.pubDate)}}</v-chip>
+                            <v-chip @click.stop color="grey darken-3" disabled outline small text-color="white">{{timeFormatter(item.pubDate)}}</v-chip>
                         </v-list-tile>
                         <v-divider :key="item.id * -1" v-if="i < items.length - 1"></v-divider>
                     </template>
@@ -148,29 +148,30 @@ export default {
             }
         },
         selectAll() {
-            this.selectedItems = this.items.map(({ id, feedId }) => ({ id, feedId }));
+            this.selectedItems = this.items.map(({ id }) => id);
         },
         clearSelects() {
             this.selectedItems = [];
         },
-        modifyUnreadCount() {
-            this.selectedItems.map(item => item.feedId).forEach(async id => {
-                let count = await message.sendGetCount('feed', id, 'unread');
-                await this.$store.dispatch('updateFeedState', { id, unread: count });
-            });
+        async modifyUnreadCount() {
+            let feedIds = new Set(this.selectedItems.map(id => this.items.find(item => item.id === id).feedId));
+            for (let feedId of feedIds) {
+                let count = await message.sendGetCount('feed', feedId, 'unread');
+                await this.$store.dispatch('updateFeedState', { id: feedId, unread: count });
+            }
         },
         async markItems(type) {
             this.loading++;
             let request;
             switch (type) {
                 case 'read': {
-                    request = await message.sendMarkItemsAsRead(this.selectedItems.map(item => item.id));
-                    this.modifyUnreadCount();
+                    request = await message.sendMarkItemsAsRead(this.selectedItems);
+                    await this.modifyUnreadCount();
                     break;
                 }
                 case 'unread': {
-                    request = await message.sendMarkItemsAsUnread(this.selectedItems.map(item => item.id));
-                    this.modifyUnreadCount();
+                    request = await message.sendMarkItemsAsUnread(this.selectedItems);
+                    await this.modifyUnreadCount();
                     break;
                 }
                 case 'all': {

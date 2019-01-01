@@ -1,6 +1,6 @@
 <template>
     <v-list dense expand>
-        <v-list-tile to="/list/group/collection">
+        <v-list-tile ripple to="/list/group/collection">
             <v-list-tile-action>
                 <v-icon>star</v-icon>
             </v-list-tile-action>
@@ -8,7 +8,7 @@
                 <v-list-tile-title>收藏</v-list-tile-title>
             </v-list-tile-content>
         </v-list-tile>
-        <v-list-tile active-class="blue--text" to="/list/group/all">
+        <v-list-tile active-class="blue--text" ripple to="/list/group/all">
             <v-list-tile-action>
                 <v-badge :value="getAllUnread > 0" class="small-badge" overlap transition="fade-transition">
                     <span slot="badge" v-text="unreadFormatter(getAllUnread)"></span>
@@ -30,9 +30,10 @@
                     :inactive="!group.active"
                     :to="`/list/group/${group.id}`"
                     @click="e => group.active && e.stopPropagation()"
-                    @mouseenter="hoverId = group.id"
-                    @mouseleave="hoverId = ''"
+                    @mouseenter.native="hoverId = group.id"
+                    @mouseleave.native="hoverId = ''"
                     active-class="blue--text"
+                    ripple
                     slot="activator"
                 >
                     <v-list-tile-action>

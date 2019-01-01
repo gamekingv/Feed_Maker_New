@@ -14,6 +14,10 @@ const message = {
                     if (store.state.active.type === 'list') app.refreshList({ type: 'feed', id, isUpdateComplete: true });
                     break;
                 }
+                case 'background update fail': {
+                    console.log(data);
+                    break;
+                }
             }
         });
     },
@@ -68,6 +72,12 @@ const message = {
     },
     sendMarkItemsAsUnread(ids) {
         return this.sendModifyItems(ids, { state: 'unread' });
+    },
+    sendFetchSource(feed) {
+        return this.send({ action: 'fetch source', data: { feed } });
+    },
+    sendParseSource(source, type, steps) {
+        return this.send({ action: 'parse source', data: { source, type, steps } });
     }
 };
 
