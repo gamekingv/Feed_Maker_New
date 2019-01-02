@@ -16,6 +16,7 @@ const message = {
                 }
                 case 'background update fail': {
                     console.log(data);
+                    await store.dispatch('updateFeedState', { id: data.id, isLoading: false });
                     break;
                 }
             }

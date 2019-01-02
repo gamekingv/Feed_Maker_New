@@ -8,7 +8,7 @@
                             <v-list-tile-action style="min-width: unset;">
                                 <v-checkbox :ripple="false" :value="item.id" @click.stop hide-details v-model="selectedItems"></v-checkbox>
                             </v-list-tile-action>
-                            <v-chip @click.stop color="grey darken-2" disabled small text-color="white" v-if="item.author">
+                            <v-chip @click.stop color="grey darken-2" disabled small style="margin-left: 7px;" text-color="white" v-if="item.author">
                                 <v-avatar class="small" color="blue">
                                     <img :class="`custom-feed-icon-${item.feedId}`" v-if="isUrl(icons[i])">
                                     <v-icon :size="20" v-else v-text="icons[i] ? icons[i] : 'insert_drive_file'"></v-icon>
@@ -16,10 +16,10 @@
                                 {{item.author}}
                             </v-chip>
                             <v-list-tile-avatar v-else>
-                                <v-avatar class="small" v-if="isUrl(icons[i])">
-                                    <img :class="`custom-feed-icon-${item.feedId}`">
+                                <v-avatar class="small" color="blue">
+                                    <img :class="`custom-feed-icon-${item.feedId}`" v-if="isUrl(icons[i])">
+                                    <v-icon :size="20" v-else v-text="icons[i] ? icons[i] : 'insert_drive_file'"></v-icon>
                                 </v-avatar>
-                                <v-icon v-else v-text="icons[i] ? icons[i] : 'insert_drive_file'"></v-icon>
                             </v-list-tile-avatar>
                             <v-list-tile-content>
                                 <v-list-tile-title

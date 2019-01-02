@@ -12,9 +12,12 @@
         >
             <v-list-tile-action>
                 <v-fade-transition :duration="20" mode="out-in">
-                    <v-btn :to="`/edit/feed/${feed.id}`" @click.stop.prevent flat icon key="edit" v-if="hoverId === feed.id">
-                        <v-icon>edit</v-icon>
-                    </v-btn>
+                    <v-tooltip :open-delay="600" key="edit" lazy top v-if="hoverId === feed.id">
+                        <v-btn :to="`/edit/feed/${feed.id}`" @click.stop.prevent flat icon slot="activator">
+                            <v-icon>edit</v-icon>
+                        </v-btn>
+                        <span>编辑</span>
+                    </v-tooltip>
                     <v-badge :value="getFeedUnread(feed) > 0" class="small-badge" key="icon" overlap transition="fade-transition" v-else>
                         <span slot="badge" v-text="unreadFormatter(getFeedUnread(feed))"></span>
                         <v-progress-circular

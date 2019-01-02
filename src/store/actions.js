@@ -72,6 +72,10 @@ const actions = {
         commit('updateParser', data);
         return dispatch('saveParsers');
     },
+    updateParsers({ dispatch, commit }, data) {
+        commit('updateParsers', data);
+        return dispatch('saveParsers');
+    },
 };
 
 export default actions;

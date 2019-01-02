@@ -19,9 +19,12 @@
                 <v-list-tile-title>全部</v-list-tile-title>
             </v-list-tile-content>
             <v-list-tile-action>
-                <v-btn @click.stop.prevent flat icon to="/add">
-                    <v-icon>add</v-icon>
-                </v-btn>
+                <v-tooltip :open-delay="600" lazy top>
+                    <v-btn @click.stop.prevent flat icon slot="activator" to="/add">
+                        <v-icon>add</v-icon>
+                    </v-btn>
+                    <span>添加一个分组、订阅源或自定义源</span>
+                </v-tooltip>
             </v-list-tile-action>
         </v-list-tile>
         <draggable :options="{ animation: 100 }" v-model="groups">
@@ -38,9 +41,12 @@
                 >
                     <v-list-tile-action>
                         <v-fade-transition :duration="20" mode="out-in">
-                            <v-btn :to="`/edit/group/${group.id}`" @click.stop.prevent flat icon key="edit" v-if="hoverId === group.id">
-                                <v-icon>edit</v-icon>
-                            </v-btn>
+                            <v-tooltip :open-delay="600" key="edit" lazy top v-if="hoverId === group.id">
+                                <v-btn :to="`/edit/group/${group.id}`" @click.stop.prevent flat icon slot="activator" v-if="hoverId === group.id">
+                                    <v-icon>edit</v-icon>
+                                </v-btn>
+                                <span>编辑</span>
+                            </v-tooltip>
                             <v-badge :value="getGroupUnread(group.id) > 0" class="small-badge" key="icon" overlap transition="fade-transition" v-else>
                                 <span slot="badge" v-text="unreadFormatter(getGroupUnread(group.id))"></span>
                                 <v-progress-circular :size="22" :width="2" color="blue" indeterminate v-if="$store.getters.getGroupLoading(group.id)"></v-progress-circular>

@@ -58,26 +58,29 @@ const crawler = {
     },
     async updateFeed({ id, feed }) {
         if (!feed) feed = await this.getFeed(id);
-        let { result, data } = await this.fetchSource(feed), unread;
+        let { result, data } = await this.fetchSource(feed), unread, newItems;
         if (result === 'fail') {
             message.sendBackgroundUpdateFail(id, data);
             return;
         }
         try {
             if (feed.custom) {
-                let parserGroups = await this.getParser(id),
-                    items = this.customParser(data, parserGroups);
-                unread = 0;
+                let parserGroups = await this.getParser(id);
+                newItems = this.customParser(data, parserGroups).map(item => {
+                    item.feedId = id;
+                    item.groupId = feed.groupId;
+                    return item;
+                });
             }
             else {
                 let { items } = await this.normalParser(data);
-                let newItems = [];
+                newItems = [];
                 for (let item of items) {
                     let newItem = {
                         title: item.title,
                         url: item.link,
                         content: item['content:encoded'] ? item['content:encoded'] : item.content,
-                        pubDate: Date.parse(item.pubDate),
+                        pubDate: new Date(item.pubDate).getTime(),
                         feedId: id,
                         groupId: feed.groupId
                     };
@@ -100,8 +103,8 @@ const crawler = {
                     }
                     newItems.push(newItem);
                 }
-                unread = await db.addItems(newItems);
             }
+            unread = await db.addItems(newItems);
             message.sendBackgroundUpdateComplete(id, unread);
         }
         catch (e) {
@@ -117,20 +120,39 @@ const crawler = {
         groups.reduce((total, group) => total.concat(group.feeds), []).forEach(feed => this.updateFeed(feed));
     },
     async normalParser(data) {
-        try {
-            let parser = new RSSParser();
-            let result = await parser.parseString(data);
-            return result;
-        }
-        catch (e) {
-            throw e;
-        }
+        let parser = new RSSParser();
+        let result = await parser.parseString(data);
+        return result;
     },
-    async customParser(source, parserGroups) {
+    customParser(source, parserGroups) {
         let baseResults = parserGroups.map(parserGroup => this.baseStepsParser(source, parserGroup.base[0].parserSteps)),
             bufferResultsIndex = parserGroups.map(parserGroup => this.getBufferIndex(parserGroup)),
-            commonResults = parserGroups.map((parserGroup, index) => this.commonStepsParser(baseResults[index], parserGroup.common, bufferResultsIndex[index]));
-        console.log(commonResults);
+            bufferResults = parserGroups.map((parserGroup, index) => this.commonStepsParser(baseResults[index], parserGroup.common, bufferResultsIndex[index])),
+            titleResults = this.resultStepsParser(parserGroups, bufferResults, 'title', '标题'),
+            urlResults = this.resultStepsParser(parserGroups, bufferResults, 'url', '链接'),
+            authorResults = this.resultStepsParser(parserGroups, bufferResults, 'author', '作者'),
+            pubDateResults = this.resultStepsParser(parserGroups, bufferResults, 'pubDate', '时间'),
+            contentResults = this.resultStepsParser(parserGroups, bufferResults, 'content', '内容'),
+            isEqual = [titleResults, urlResults, authorResults, pubDateResults, contentResults].every(({ length }, i, arr) => length === 0 || arr[0].length === length);
+        if (isEqual === false) {
+            throw `并非所有处理组的元素数量相等（数量为0将被忽略）：\n标题：${titleResults.length}；链接：${urlResults.length}；作者：${authorResults.length}；时间：${pubDateResults.length}；内容：${contentResults.length}；`;
+        }
+        let date = new Date(), today = {
+            year: `${date.getFullYear()}`,
+            month: ('0' + (date.getMonth() + 1)).substr(-2),
+            day: ('0' + date.getDate()).substr(-2),
+            hour: ('0' + date.getHours()).substr(-2),
+            minute: ('0' + date.getMinutes()).substr(-2),
+            second: ('0' + date.getSeconds()).substr(-2),
+        };
+        pubDateResults = pubDateResults.map(result => this.pubDateParser(result, today));
+        return titleResults.map((titleResult, index) => ({
+            title: titleResult,
+            url: urlResults[index],
+            content: contentResults[index],
+            pubDate: pubDateResults[index],
+            author: authorResults[index]
+        }));
     },
     getBufferIndex(parserGroup) {
         return Object.values(parserGroup).reduce((result, parsers) => Object.assign(result, parsers.reduce((result, parser) => {
@@ -141,16 +163,10 @@ const crawler = {
     baseStepsParser(source, steps) {
         return steps.reduce((result, step, index) => this.stepParser(result, step, steps[index - 1] && steps[index - 1].method), source);
     },
-    commonStepsParser(baseSources, parsers, bufferResultIndex) {
-        let results = {};
+    commonStepsParser(baseResults, parsers, bufferResultIndex) {
+        let results = { base: baseResults };
         parsers.forEach((parser, parserIndex) => {
-            let sources, { source, parserSteps } = parser;
-            if (source === 'base') {
-                sources = baseSources;
-            }
-            else {
-                sources = results[source];
-            }
+            let { source, parserSteps } = parser, sources = results[source];
             parserSteps.forEach((step, index) => {
                 let stepName = `common${parserIndex + 1}Step${index + 1}`;
                 if (bufferResultIndex[stepName])
@@ -160,13 +176,20 @@ const crawler = {
         );
         return results;
     },
+    resultStepsParser(parserGroups, bufferResults, parserId, parsersName) {
+        return parserGroups.map((parserGroup, index) =>
+            parserGroup[parserId].map(parser => parser.source ? this.stepGroupParser(bufferResults[index][parser.source], parser.parserSteps) : []).reduce((results, groupResults, index) => {
+                if (results.length !== groupResults.length) throw `${parsersName}组 (${index + 1}) 的元素数量与之前${parsersName}组的元素数量不相等`;
+                else return results.map((result, index) => result += groupResults[index]);
+            })
+        ).reduce((total, result) => total.concat(result), []);
+    },
     stepGroupParser(sources, steps) {
         return sources.map(source => this.baseStepsParser(source, steps));
     },
     stepParser(source, step, lastMethod) {
-        if (!source) return source;
+        if (!source) return '';
         try {
-            if (!source) throw `无法处理此输入源“${source}”`;
             let result = '',
                 { method, regexp, flags, replaceExp, subPattern } = step,
                 isGlobal = flags.some(flag => flag === 'g');
@@ -219,6 +242,13 @@ const crawler = {
         catch (e) {
             throw { type: 'step', id: step.id, message: e };
         }
+    },
+    pubDateParser(pubDate, today) {
+        pubDate = pubDate.replace('yyyy', today.year).replace('MM', today.month).replace('dd', today.day)
+            .replace('HH', today.hour).replace('mm', today.minute).replace('ss', today.second);
+        let result = new Date(Number(pubDate) ? Number(pubDate) : pubDate).getTime();
+        if (isNaN(result)) throw `时间组中存在无法转换为Date对象的字符串：${pubDate}`;
+        else return result;
     },
     async autoUpdate() {
         return;

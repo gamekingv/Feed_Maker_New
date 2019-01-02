@@ -16,14 +16,26 @@
                     </v-layout>
                 </v-navigation-drawer>
                 <v-toolbar app fixed>
-                    <v-toolbar-side-icon @click="drawer = !drawer"/>
-                    <v-btn
+                    <v-tooltip :open-delay="600" bottom lazy>
+                        <v-toolbar-side-icon @click="drawer = !drawer" slot="activator"/>
+                        <span>收起/显示侧边栏</span>
+                    </v-tooltip>
+                    <v-tooltip
                         :disabled="active.type !== 'list' || active.subType !== 'feed' || $store.getters.getFeed(active.id).home === ''"
-                        @click="openHomePage"
-                        icon
+                        :open-delay="600"
+                        bottom
+                        lazy
                     >
-                        <v-icon v-text="'home'"/>
-                    </v-btn>
+                        <v-btn
+                            :disabled="active.type !== 'list' || active.subType !== 'feed' || $store.getters.getFeed(active.id).home === ''"
+                            @click="openHomePage"
+                            icon
+                            slot="activator"
+                        >
+                            <v-icon v-text="'home'"/>
+                        </v-btn>
+                        <span>打开主页</span>
+                    </v-tooltip>
                     <v-fade-transition :duration="40" mode="out-in">
                         <v-toolbar-title :key="$store.getters.activeTitle" v-text="$store.getters.activeTitle"/>
                     </v-fade-transition>
@@ -215,23 +227,23 @@ export default {
             browser.tabs.create({ url: this.$store.getters.getFeed(this.active.id).home });
         },
         async exportConfig() {
-            let { groups } = await browser.storage.local.get();
-            let file = new Blob([JSON.stringify({ type: 'all', groups })], { type: 'application/json' });
+            let { groups, parsers } = await browser.storage.local.get();
+            let file = new Blob([JSON.stringify({ type: 'all', groups, parsers })], { type: 'application/json' });
             browser.downloads.download({
                 url: URL.createObjectURL(file),
                 filename: 'all configs.json',
                 saveAs: true
             });
         },
-
         importConfig(e) {
             this.loading = true;
             let reader = new FileReader();
             reader.addEventListener('loadend', async event => {
                 try {
-                    let { type, groups } = JSON.parse(event.target.result);
+                    let { type, groups, parsers } = JSON.parse(event.target.result);
                     if (type === 'all') {
                         await this.$store.dispatch('updateGroups', groups);
+                        await this.$store.dispatch('updateParsers', parsers);
                         location.reload();
                     }
                 }
