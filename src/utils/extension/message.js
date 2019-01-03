@@ -79,6 +79,12 @@ const message = {
     },
     sendParseSource(source, type, steps) {
         return this.send({ action: 'parse source', data: { source, type, steps } });
+    },
+    sendDeleteFeed(id) {
+        return this.send({ action: 'delete feed', data: { id } });
+    },
+    sendDeleteGroup(id) {
+        return this.send({ action: 'delete group', data: { id } });
     }
 };
 

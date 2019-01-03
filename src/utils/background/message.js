@@ -82,6 +82,19 @@ const message = {
                         else errorMessage = e.toString();
                         sendResponse({ result: 'fail', data: errorMessage });
                     }
+                    break;
+                }
+                case 'delete feed': {
+                    db.getItemsByFeedId(data.id).then(items => Promise.resolve(items.map(item => item.id)))
+                        .then(keys => db.deleteItems(keys)).then(() => sendResponse({ result: 'ok' }))
+                        .catch(e => sendResponse({ result: 'fail', data: e.toString() }));
+                    break;
+                }
+                case 'delete group': {
+                    db.getItemsByGroupId(data.id).then(items => Promise.resolve(items.map(item => item.id)))
+                        .then(keys => db.deleteItems(keys)).then(() => sendResponse({ result: 'ok' }))
+                        .catch(e => sendResponse({ result: 'fail', data: e.toString() }));
+                    break;
                 }
             }
             return true;

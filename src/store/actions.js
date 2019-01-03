@@ -26,9 +26,9 @@ const actions = {
         commit('addGroup', group);
         return dispatch('saveGroups');
     },
-    deleteGroup({ dispatch, commit }, group) {
+    async deleteGroup({ dispatch, commit }, group) {
         commit('deleteGroup', group);
-        return dispatch('saveGroups');
+        return await dispatch('saveGroups');
     },
     updateGroup({ dispatch, commit }, group) {
         commit('updateGroup', group);
@@ -42,9 +42,9 @@ const actions = {
         commit('addFeed', feed);
         return dispatch('saveGroups');
     },
-    deleteFeed({ dispatch, commit }, feed) {
+    async deleteFeed({ dispatch, commit }, feed) {
         commit('deleteFeed', feed);
-        return dispatch('saveGroups');
+        return await dispatch('saveGroups');
     },
     updateFeed({ dispatch, commit }, feed) {
         commit('updateFeed', feed);
