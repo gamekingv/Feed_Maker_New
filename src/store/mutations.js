@@ -8,6 +8,7 @@ const mutations = {
     },
     addGroup(state, data) {
         state.groups.push(data);
+
     },
     deleteGroup(state, data) {
         state.groups.splice(state.groups.findIndex(group => group.id === data.id), 1);
@@ -27,7 +28,8 @@ const mutations = {
         state.groups.find(group => group.id === data.groupId).feeds.push(data);
         Vue.set(state.feedState, data.id, {
             unread: 0,
-            isLoading: false
+            isLoading: false,
+            errorMessage: ''
         });
     },
     deleteFeed(state, data) {

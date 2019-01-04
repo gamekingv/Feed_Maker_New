@@ -28,7 +28,7 @@
             </v-list-tile-action>
         </v-list-tile>
         <draggable :options="{ animation: 100 }" v-model="groups">
-            <v-list-group :append-icon="group.feeds.length > 0 ? $vuetify.icons.expand : ''" :key="group.id" v-for="group in groups">
+            <v-list-group :append-icon="group.feeds.length > 0 ? $vuetify.icons.expand : ''" :key="group.id" :ref="group.id" v-for="group in groups">
                 <v-list-tile
                     :inactive="!group.active"
                     :to="`/list/group/${group.id}`"
@@ -60,7 +60,7 @@
                         <v-list-tile-title :class="{'grey--text': !group.active}" v-text="group.name"/>
                     </v-list-tile-content>
                 </v-list-tile>
-                <feed-list :group="group"/>
+                <feed-list :group="group" @groupEmpty="collapseGroup"/>
             </v-list-group>
         </draggable>
     </v-list>
@@ -93,6 +93,9 @@ export default {
         },
         getGroupUnread(id) {
             return this.$store.getters.getGroupUnread(id);
+        },
+        collapseGroup(id) {
+            this.$refs[id][0]._data.isActive = false;
         }
     },
     components: {

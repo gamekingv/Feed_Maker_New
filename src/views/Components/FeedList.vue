@@ -59,6 +59,14 @@ export default {
             set(feeds) {
                 this.$store.dispatch('updateFeeds', { groupId: this.group.id, feeds });
             }
+        },
+        feedsLength() {
+            return this.feeds.length;
+        }
+    },
+    watch: {
+        feedsLength(newValue) {
+            if (newValue === 0) this.$emit('groupEmpty', this.group.id);
         }
     },
     methods: {

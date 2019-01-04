@@ -568,7 +568,7 @@ export default {
         },
         submit() {
             Object.keys(this.validates).forEach(name => this.$refs[name] && this.$refs[name].validate());
-            this.resultGroupValidates.forEach((validate, index) => this.$refs['resultForm'][index].validate());
+            this.resultGroupValidates.forEach((validate, index) => this.$refs['resultForm'] && this.$refs['resultForm'][index].validate());
             this.$nextTick(async () => {
                 if (this.complete) {
                     if (this.action === 'add') this.id = Date.now().toString();
