@@ -29,37 +29,52 @@
         </v-list-tile>
         <draggable :options="{ animation: 100 }" v-model="groups">
             <v-list-group :append-icon="group.feeds.length > 0 ? $vuetify.icons.expand : ''" :key="group.id" :ref="group.id" v-for="group in groups">
-                <v-list-tile
-                    :inactive="!group.active"
-                    :to="`/list/group/${group.id}`"
-                    @click="e => group.active && e.stopPropagation()"
-                    @mouseenter.native="hoverId = group.id"
-                    @mouseleave.native="hoverId = ''"
-                    active-class="blue--text"
-                    ripple
-                    slot="activator"
-                >
-                    <v-list-tile-action>
-                        <v-fade-transition :duration="20" mode="out-in">
-                            <v-tooltip :open-delay="600" key="edit" lazy top v-if="hoverId === group.id">
-                                <v-btn :to="`/edit/group/${group.id}`" @click.stop.prevent flat icon slot="activator" v-if="hoverId === group.id">
-                                    <v-icon>edit</v-icon>
-                                </v-btn>
-                                <span>编辑</span>
-                            </v-tooltip>
-                            <v-badge :value="getGroupUnread(group.id) > 0" class="small-badge" key="icon" overlap transition="fade-transition" v-else>
-                                <span slot="badge" v-text="unreadFormatter(getGroupUnread(group.id))"></span>
-                                <v-progress-circular :size="22" :width="2" color="blue" indeterminate v-if="$store.getters.getGroupLoading(group.id)"></v-progress-circular>
-                                <v-avatar :size="22" tile v-else>
-                                    <v-icon v-text="'folder'"/>
-                                </v-avatar>
-                            </v-badge>
-                        </v-fade-transition>
-                    </v-list-tile-action>
-                    <v-list-tile-content>
-                        <v-list-tile-title :class="{'grey--text': !group.active}" v-text="group.name"/>
-                    </v-list-tile-content>
-                </v-list-tile>
+                <div slot="activator">
+                    <v-hover>
+                        <v-list-tile
+                            :inactive="!group.active"
+                            :to="`/list/group/${group.id}`"
+                            @click="e => group.active && e.stopPropagation()"
+                            active-class="blue--text"
+                            ripple
+                            slot-scope="{ hover: isHover }"
+                        >
+                            <v-list-tile-action>
+                                <v-fade-transition :duration="20" mode="out-in">
+                                    <v-tooltip :open-delay="600" key="edit" lazy top v-if="isHover">
+                                        <v-btn :to="`/edit/group/${group.id}`" @click.stop.prevent flat icon slot="activator">
+                                            <v-icon>edit</v-icon>
+                                        </v-btn>
+                                        <span>编辑</span>
+                                    </v-tooltip>
+                                    <v-badge
+                                        :value="getGroupUnread(group.id) > 0"
+                                        class="small-badge"
+                                        key="icon"
+                                        overlap
+                                        transition="fade-transition"
+                                        v-else
+                                    >
+                                        <span slot="badge" v-text="unreadFormatter(getGroupUnread(group.id))"></span>
+                                        <v-progress-circular
+                                            :size="22"
+                                            :width="2"
+                                            color="blue"
+                                            indeterminate
+                                            v-if="$store.getters.getGroupLoading(group.id)"
+                                        ></v-progress-circular>
+                                        <v-avatar :size="22" tile v-else>
+                                            <v-icon v-text="'folder'"/>
+                                        </v-avatar>
+                                    </v-badge>
+                                </v-fade-transition>
+                            </v-list-tile-action>
+                            <v-list-tile-content>
+                                <v-list-tile-title :class="{'grey--text': !group.active}" v-text="group.name"/>
+                            </v-list-tile-content>
+                        </v-list-tile>
+                    </v-hover>
+                </div>
                 <feed-list :group="group" @groupEmpty="collapseGroup"/>
             </v-list-group>
         </draggable>
@@ -71,9 +86,6 @@ import FeedList from './FeedList';
 import Draggable from 'vuedraggable';
 
 export default {
-    data: () => ({
-        hoverId: ''
-    }),
     computed: {
         groups: {
             get() {

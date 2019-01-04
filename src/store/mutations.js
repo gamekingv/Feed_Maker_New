@@ -37,9 +37,16 @@ const mutations = {
         feeds.splice(feeds.findIndex(feed => feed.id === data.id), 1);
         Vue.delete(state.feedState, data.id);
     },
-    updateFeed(state, data) {
-        let feeds = state.groups.find(group => group.id === data.groupId).feeds;
-        feeds.splice(feeds.findIndex(feed => feed.id === data.id), 1, data);
+    updateFeed(state, { newFeed, oldFeed }) {
+        if (oldFeed) {
+            let oldFeeds = state.groups.find(group => group.id === oldFeed.groupId).feeds;
+            oldFeeds.splice(oldFeeds.findIndex(feed => feed.id === oldFeed.id), 1);
+            state.groups.find(group => group.id === newFeed.groupId).feeds.push(newFeed);
+        }
+        else {
+            let feeds = state.groups.find(group => group.id === newFeed.groupId).feeds;
+            feeds.splice(feeds.findIndex(feed => feed.id === feed.id), 1, newFeed);
+        }
     },
     updateFeeds(state, { groupId, feeds }) {
         state.groups.find(group => group.id === groupId).feeds = feeds;

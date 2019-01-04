@@ -10,13 +10,13 @@ const message = {
                 }
                 case 'background update complete': {
                     let { id, result: unread } = data;
-                    await store.dispatch('updateFeedState', { id, unread, isLoading: false });
+                    await store.dispatch('updateFeedState', { id, unread, errorMessage: '', isLoading: false });
                     if (store.state.active.type === 'list') app.refreshList({ type: 'feed', id, isUpdateComplete: true });
                     break;
                 }
                 case 'background update fail': {
-                    console.log(data);
-                    await store.dispatch('updateFeedState', { id: data.id, isLoading: false });
+                    let { id, errorMessage } = data;
+                    await store.dispatch('updateFeedState', { id, errorMessage, isLoading: false });
                     break;
                 }
             }

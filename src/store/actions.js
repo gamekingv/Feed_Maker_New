@@ -42,13 +42,20 @@ const actions = {
         commit('addFeed', feed);
         return dispatch('saveGroups');
     },
-    async deleteFeed({ dispatch, commit }, feed) {
+    deleteFeed({ dispatch, commit }, feed) {
         commit('deleteFeed', feed);
-        return await dispatch('saveGroups');
-    },
-    updateFeed({ dispatch, commit }, feed) {
-        commit('updateFeed', feed);
         return dispatch('saveGroups');
+    },
+    async updateFeed({ dispatch, commit, getters }, feed) {
+        let oldFeed = getters.getFeed(feed.id);
+        if (feed.groupId !== oldFeed.groupId) {
+            let items = await message.sendGet('feed', feed.id),
+                ids = items.map(item => item.id);
+            await message.sendModifyItems(ids, { groupId: feed.groupId });
+            commit('updateFeed', { newFeed: feed, oldFeed });
+        }
+        else commit('updateFeed', { newFeed: feed });
+        return await dispatch('saveGroups');
     },
     updateFeeds({ dispatch, commit }, data) {
         commit('updateFeeds', data);

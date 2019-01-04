@@ -16,13 +16,13 @@
                     </v-layout>
                 </v-navigation-drawer>
                 <v-toolbar app fixed>
-                    <v-tooltip :open-delay="600" bottom lazy>
+                    <v-tooltip :open-delay="1000" bottom lazy>
                         <v-toolbar-side-icon @click="drawer = !drawer" slot="activator"/>
                         <span>收起/显示侧边栏</span>
                     </v-tooltip>
                     <v-tooltip
                         :disabled="active.type !== 'list' || active.subType !== 'feed' || $store.getters.getFeed(active.id).home === ''"
-                        :open-delay="600"
+                        :open-delay="1000"
                         bottom
                         lazy
                     >
@@ -41,32 +41,32 @@
                     </v-fade-transition>
                     <v-spacer/>
                     <v-btn-toggle class="ml-3 mr-3" mandatory v-model="view">
-                        <v-tooltip :disabled="active.type !== 'list'" :open-delay="600" bottom lazy>
+                        <v-tooltip :disabled="active.type !== 'list'" :open-delay="1000" bottom lazy>
                             <v-btn :disabled="active.type !== 'list'" flat slot="activator" value="unread">
                                 <v-icon>bookmark_border</v-icon>
                             </v-btn>
                             <span>只显示未读</span>
                         </v-tooltip>
-                        <v-tooltip :disabled="active.type !== 'list'" :open-delay="600" bottom lazy>
+                        <v-tooltip :disabled="active.type !== 'list'" :open-delay="1000" bottom lazy>
                             <v-btn :disabled="active.type !== 'list'" flat slot="activator" value="read">
                                 <v-icon>bookmark</v-icon>
                             </v-btn>
                             <span>只显示已读</span>
                         </v-tooltip>
-                        <v-tooltip :disabled="active.type !== 'list'" :open-delay="600" bottom lazy>
+                        <v-tooltip :disabled="active.type !== 'list'" :open-delay="1000" bottom lazy>
                             <v-btn :disabled="active.type !== 'list'" flat slot="activator" value="all">
                                 <v-icon>bookmarks</v-icon>
                             </v-btn>
                             <span>显示全部</span>
                         </v-tooltip>
                     </v-btn-toggle>
-                    <v-tooltip :disabled="active.type !== 'list'" :open-delay="600" bottom lazy>
+                    <v-tooltip :disabled="active.type !== 'list'" :open-delay="1000" bottom lazy>
                         <v-btn :disabled="active.type !== 'list'" @click.stop="refresh" icon slot="activator">
                             <v-icon>refresh</v-icon>
                         </v-btn>
                         <span>刷新</span>
                     </v-tooltip>
-                    <v-tooltip :open-delay="600" bottom lazy>
+                    <v-tooltip :open-delay="1000" bottom lazy>
                         <v-btn @click="setting = !setting" icon slot="activator">
                             <v-icon>settings</v-icon>
                         </v-btn>
