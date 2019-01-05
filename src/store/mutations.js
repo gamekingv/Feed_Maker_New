@@ -45,7 +45,7 @@ const mutations = {
         }
         else {
             let feeds = state.groups.find(group => group.id === newFeed.groupId).feeds;
-            feeds.splice(feeds.findIndex(feed => feed.id === feed.id), 1, newFeed);
+            feeds.splice(feeds.findIndex(feed => feed.id === newFeed.id), 1, newFeed);
         }
     },
     updateFeeds(state, { groupId, feeds }) {

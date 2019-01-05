@@ -360,7 +360,7 @@
 
 <script>
 import message from '~/utils/extension/message';
-import ParserStep from 'views/components/ParserStep';
+import ParserStep from './ParserStep';
 
 export default {
     props: ['editType', 'editId'],
@@ -580,7 +580,6 @@ export default {
                     if (feed.custom) {
                         this.type = 'custom';
                         this.parserGroups = JSON.parse(JSON.stringify(this.$store.state.parsers[this.editId]));
-                        // this.parserGroups = JSON.parse(JSON.stringify(this.$store.state.parsers[this.editId]));
                     }
                     ({
                         id: this.id,

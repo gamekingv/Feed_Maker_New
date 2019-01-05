@@ -56,16 +56,27 @@
                                         v-else
                                     >
                                         <span slot="badge" v-text="unreadFormatter(getGroupUnread(group.id))"></span>
-                                        <v-progress-circular
-                                            :size="22"
-                                            :width="2"
-                                            color="blue"
-                                            indeterminate
-                                            v-if="$store.getters.getGroupLoading(group.id)"
-                                        ></v-progress-circular>
-                                        <v-avatar :size="22" tile v-else>
-                                            <v-icon v-text="'folder'"/>
-                                        </v-avatar>
+                                        <v-badge
+                                            :value="getGroupError(group.id)"
+                                            class="small-badge"
+                                            color="transparent"
+                                            key="icon"
+                                            left
+                                            overlap
+                                            transition="fade-transition"
+                                        >
+                                            <v-icon class="warning--text" slot="badge">report_problem</v-icon>
+                                            <v-progress-circular
+                                                :size="22"
+                                                :width="2"
+                                                color="blue"
+                                                indeterminate
+                                                v-if="$store.getters.getGroupLoading(group.id)"
+                                            ></v-progress-circular>
+                                            <v-avatar :size="22" tile v-else>
+                                                <v-icon v-text="'folder'"/>
+                                            </v-avatar>
+                                        </v-badge>
                                     </v-badge>
                                 </v-fade-transition>
                             </v-list-tile-action>
@@ -97,14 +108,17 @@ export default {
         },
         getAllUnread() {
             return this.$store.getters.getAllUnread;
+        },
+        getGroupUnread() {
+            return this.$store.getters.getGroupUnread;
+        },
+        getGroupError() {
+            return this.$store.getters.getGroupError;
         }
     },
     methods: {
         unreadFormatter(count) {
             return count > 99 ? '99+' : count;
-        },
-        getGroupUnread(id) {
-            return this.$store.getters.getGroupUnread(id);
         },
         collapseGroup(id) {
             this.$refs[id][0]._data.isActive = false;
@@ -117,11 +131,14 @@ export default {
 };
 </script>
 
-<style lang="scss">
-.small-badge > .v-badge__badge {
+<style lang="scss" scoped>
+.small-badge /deep/ .v-badge__badge {
     height: 18px;
     width: 18px;
     font-size: 10px;
     top: -6px;
+}
+.small-badge /deep/ .v-badge__badge .v-icon {
+    font-size: 18px;
 }
 </style>

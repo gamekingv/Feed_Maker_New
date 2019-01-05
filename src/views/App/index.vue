@@ -99,16 +99,17 @@
                     </v-layout>
                 </v-navigation-drawer>
                 <v-navigation-drawer
+                    :class="['d-flex',{resizing: isResizing}]"
                     :temporary="!showDetailsImage"
-                    :width="1300"
+                    :width="detailsWidth"
                     @input="e => e || (detailsContent = detailsTitle = detailsAuthor = '')"
                     fixed
                     right
-                    style="scrollbar-width: none;"
                     v-model="details"
                 >
-                    <v-card flat>
-                        <v-card-title class="headline font-weight-bold pb-1" v-html="detailsTitle"></v-card-title>
+                    <div @mousedown="onResizing" style="height: 100%; width: 5px; cursor: e-resize; min-width: 5px;"></div>
+                    <v-card flat id="scroll-target" v-scroll:#scroll-target="onDetailsScroll">
+                        <v-card-title class="headline font-weight-bold pb-1" id="scroll-top" v-html="detailsTitle"></v-card-title>
                         <v-card-title class="pt-1 pb-1">
                             <v-chip class="ml-0" color="primary" selected small text-color="white" v-if="detailsAuthor">
                                 <v-avatar class="small">
@@ -119,6 +120,19 @@
                         </v-card-title>
                         <v-card-text ref="detailsContent" v-html="parsedDetailsContent"></v-card-text>
                     </v-card>
+                    <v-fab-transition>
+                        <v-btn
+                            @click="$scrollTo('#scroll-top', 300, { container: '#scroll-target'})"
+                            bottom
+                            color="green"
+                            fab
+                            fixed
+                            right
+                            v-if="detailsOffsetTop > 0"
+                        >
+                            <v-icon>keyboard_arrow_up</v-icon>
+                        </v-btn>
+                    </v-fab-transition>
                 </v-navigation-drawer>
             </v-container>
         </v-fade-transition>
@@ -143,9 +157,9 @@
 </template>
 
 <script>
-import GroupList from 'views/Components/GroupList';
+import GroupList from './GroupList';
+import CustomIconStyle from './CustomIconStyle';
 import message from '~/utils/extension/message';
-import CustomIconStyle from 'views/Components/CustomIconStyle';
 
 export default {
     data: () => ({
@@ -158,6 +172,9 @@ export default {
         detailsAuthor: '',
         detailsContent: '',
         detailsImage: '',
+        detailsOffsetTop: 0,
+        detailsWidth: 1300,
+        isResizing: false,
         searchString: ''
     }),
     computed: {
@@ -250,6 +267,26 @@ export default {
                 catch (e) { throw (e); }
             });
             reader.readAsText(e.target.files[0]);
+        },
+        onDetailsScroll(e) {
+            this.detailsOffsetTop = e.target.scrollTop;
+        },
+        onResizing(e) {
+            this.isResizing = true;
+            let offset = e.clientX;
+            let originWidth = this.detailsWidth;
+            document.onmousemove = (e) => {
+                let newWidth = offset - e.clientX + originWidth;
+                if (newWidth < 300) {
+                    newWidth = 300;
+                }
+                this.detailsWidth = newWidth;
+            };
+            document.onmouseup = () => {
+                this.isResizing = false;
+                document.onmousemove = undefined;
+                document.onmouseup = undefined;
+            };
         }
     },
     components: {
@@ -264,11 +301,21 @@ export default {
     width: 24px !important;
     height: 24px !important;
 }
+#scroll-target {
+    overflow-y: scroll;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(94, 94, 94) transparent;
+}
+.resizing {
+    transition: none !important;
+    -moz-user-select: none;
+}
 </style>
 
 <style lang="scss">
 .image-box {
     max-width: calc(100% - 16px);
+    max-height: 500px;
     cursor: pointer;
 }
 </style>

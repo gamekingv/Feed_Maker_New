@@ -19,19 +19,30 @@
                             </v-tooltip>
                             <v-badge :value="getFeedUnread(feed) > 0" class="small-badge" key="icon" overlap transition="fade-transition" v-else>
                                 <span slot="badge" v-text="unreadFormatter(getFeedUnread(feed))"></span>
-                                <v-progress-circular
-                                    :size="22"
-                                    :width="2"
-                                    color="blue"
-                                    indeterminate
-                                    v-if="$store.state.feedState[feed.id].isLoading === true"
-                                ></v-progress-circular>
-                                <v-avatar :size="22" v-else-if="/http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)?/.test(feed.icon)">
-                                    <img :class="`custom-feed-icon-${feed.id}`">
-                                </v-avatar>
-                                <v-avatar :size="22" tile v-else>
-                                    <v-icon v-text="feed.icon ? feed.icon : 'insert_drive_file'"/>
-                                </v-avatar>
+                                <v-badge
+                                    :value="getFeedError(feed.id)"
+                                    class="small-badge"
+                                    color="transparent"
+                                    key="icon"
+                                    left
+                                    overlap
+                                    transition="fade-transition"
+                                >
+                                    <v-icon class="warning--text" slot="badge">report_problem</v-icon>
+                                    <v-progress-circular
+                                        :size="22"
+                                        :width="2"
+                                        color="blue"
+                                        indeterminate
+                                        v-if="$store.state.feedState[feed.id].isLoading === true"
+                                    ></v-progress-circular>
+                                    <v-avatar :size="22" v-else-if="/http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)?/.test(feed.icon)">
+                                        <img :class="`custom-feed-icon-${feed.id}`">
+                                    </v-avatar>
+                                    <v-avatar :size="22" tile v-else>
+                                        <v-icon v-text="feed.icon ? feed.icon : 'insert_drive_file'"/>
+                                    </v-avatar>
+                                </v-badge>
                             </v-badge>
                         </v-fade-transition>
                     </v-list-tile-action>
@@ -60,6 +71,15 @@ export default {
         },
         feedsLength() {
             return this.feeds.length;
+        },
+        feedState() {
+            return this.$store.state.feedState;
+        },
+        getFeedError() {
+            return this.$store.getters.getFeedError;
+        },
+        getFeedUnread() {
+            return this.$store.getters.getFeedUnread;
         }
     },
     watch: {
@@ -70,9 +90,6 @@ export default {
     methods: {
         unreadFormatter(count) {
             return count > 99 ? '99+' : count;
-        },
-        getFeedUnread(feed) {
-            return this.$store.getters.getFeedUnread(feed);
         }
     },
     components: {
@@ -80,3 +97,15 @@ export default {
     }
 };
 </script>
+
+<style lang="scss" scoped>
+.small-badge /deep/ .v-badge__badge {
+    height: 18px;
+    width: 18px;
+    font-size: 10px;
+    top: -6px;
+}
+.small-badge /deep/ .v-badge__badge .v-icon {
+    font-size: 18px;
+}
+</style>

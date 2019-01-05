@@ -1,69 +1,97 @@
 <template>
     <v-container class="pl-5 pr-5" fill-height fluid>
-        <v-fade-transition :duration="40" mode="out-in">
-            <v-flex fill-height key="items" v-if="loading === 0">
-                <v-list class="transparent" dense>
-                    <template v-for="(item, i) in items">
-                        <v-list-tile :key="item.id" @click="showDetails(item.title, item.author, item.content)">
-                            <v-list-tile-action style="min-width: unset;">
-                                <v-checkbox :ripple="false" :value="item.id" @click.stop hide-details v-model="selectedItems"></v-checkbox>
-                            </v-list-tile-action>
-                            <v-chip @click.stop color="grey darken-2" disabled small style="margin-left: 7px;" text-color="white" v-if="item.author">
-                                <v-avatar class="small" color="blue">
-                                    <img :class="`custom-feed-icon-${item.feedId}`" v-if="isUrl(icons[i])">
-                                    <v-icon :size="20" v-else v-text="icons[i] ? icons[i] : 'insert_drive_file'"></v-icon>
-                                </v-avatar>
-                                {{item.author}}
-                            </v-chip>
-                            <v-list-tile-avatar v-else>
-                                <v-avatar class="small" color="blue">
-                                    <img :class="`custom-feed-icon-${item.feedId}`" v-if="isUrl(icons[i])">
-                                    <v-icon :size="20" v-else v-text="icons[i] ? icons[i] : 'insert_drive_file'"></v-icon>
-                                </v-avatar>
-                            </v-list-tile-avatar>
-                            <v-list-tile-content>
-                                <v-list-tile-title
-                                    :class="item.state === 'unread' ? 'font-weight-bold' : 'grey--text text--lighten-1'"
-                                    v-text="item.title"
-                                ></v-list-tile-title>
-                            </v-list-tile-content>
-                            <v-chip @click.stop color="grey darken-3" disabled outline small text-color="white">{{timeFormatter(item.pubDate)}}</v-chip>
-                        </v-list-tile>
-                        <v-divider :key="item.id * -1" v-if="i < items.length - 1"></v-divider>
-                    </template>
-                </v-list>
-                <v-layout align-center justify-center>
-                    <v-pagination :length="totalPage" :total-visible="9" @input="changePage" circle v-if="totalPage > 1" v-model="currentPage"></v-pagination>
+        <v-layout column fill-height>
+            <v-fade-transition :duration="40" mode="out-in">
+                <v-flex fill-height key="items" v-if="loading === 0">
+                    <v-alert class="pt-1 pb-1" dismissible type="warning" v-if="isAlertShown" v-model="isAlertShown">
+                        <div v-html="`上一次更新失败，错误信息为：<br>${getFeedError(active.id)}`"></div>
+                    </v-alert>
+                    <v-list class="transparent" dense>
+                        <template v-for="(item, i) in items">
+                            <v-hover :key="item.id">
+                                <v-list-tile @click="showDetails(item.title, item.author, item.content)" slot-scope="{ hover: isHover }">
+                                    <v-list-tile-action style="min-width: unset;">
+                                        <v-checkbox :ripple="false" :value="item.id" @click.stop hide-details v-model="selectedItems"></v-checkbox>
+                                    </v-list-tile-action>
+                                    <v-chip
+                                        @click.stop
+                                        color="grey darken-2"
+                                        disabled
+                                        small
+                                        style="margin-left: 7px;"
+                                        text-color="white"
+                                        v-if="item.author"
+                                    >
+                                        <v-avatar class="small" color="blue">
+                                            <img :class="`custom-feed-icon-${item.feedId}`" v-if="isUrl(icons[i])">
+                                            <v-icon :size="20" v-else v-text="icons[i] ? icons[i] : 'insert_drive_file'"></v-icon>
+                                        </v-avatar>
+                                        {{item.author}}
+                                    </v-chip>
+                                    <v-list-tile-avatar v-else>
+                                        <v-avatar class="small" color="blue">
+                                            <img :class="`custom-feed-icon-${item.feedId}`" v-if="isUrl(icons[i])">
+                                            <v-icon :size="20" v-else v-text="icons[i] ? icons[i] : 'insert_drive_file'"></v-icon>
+                                        </v-avatar>
+                                    </v-list-tile-avatar>
+                                    <v-list-tile-content>
+                                        <v-list-tile-title
+                                            :class="item.state === 'unread' ? 'font-weight-bold' : 'grey--text text--lighten-1'"
+                                            v-text="item.title"
+                                        ></v-list-tile-title>
+                                    </v-list-tile-content>
+                                    <v-tooltip :open-delay="1000" lazy top v-if="isHover">
+                                        <v-btn @click.stop icon slot="activator">
+                                            <v-icon>arrow_forward</v-icon>
+                                        </v-btn>
+                                        <span>在新标签页打开</span>
+                                    </v-tooltip>
+                                    <v-chip
+                                        @click.stop
+                                        color="grey darken-3"
+                                        disabled
+                                        outline
+                                        small
+                                        text-color="white"
+                                    >{{timeFormatter(item.pubDate)}}</v-chip>
+                                </v-list-tile>
+                            </v-hover>
+                            <v-divider :key="item.id * -1" v-if="i < items.length - 1"></v-divider>
+                        </template>
+                    </v-list>
+                    <v-layout align-center justify-center>
+                        <v-pagination :length="totalPage" :total-visible="9" @input="changePage" circle v-if="totalPage > 1" v-model="currentPage"></v-pagination>
+                    </v-layout>
+                    <v-speed-dial direction="bottom" fixed open-on-hover right style="top: 88px; z-index:0;" top v-if="items.length !== 0">
+                        <v-btn @click="markItems('all')" color="blue darken-2" fab slot="activator">
+                            <v-icon>done_all</v-icon>
+                        </v-btn>
+                        <v-btn @click.stop="selectAll" color="pink" fab small>
+                            <v-icon>select_all</v-icon>
+                        </v-btn>
+                        <v-btn @click="clearSelects" color="green" fab small>
+                            <v-icon>crop_free</v-icon>
+                        </v-btn>
+                        <v-btn @click="markItems('read')" color="indigo" fab small>
+                            <v-icon>bookmark</v-icon>
+                        </v-btn>
+                        <v-btn @click="markItems('unread')" color="indigo" fab small>
+                            <v-icon>bookmark_border</v-icon>
+                        </v-btn>
+                        <v-btn color="red" fab small>
+                            <v-icon>star</v-icon>
+                        </v-btn>
+                    </v-speed-dial>
+                </v-flex>
+                <v-layout align-center fill-height justify-center key="loading" v-else>
+                    <v-card color="primary" width="300">
+                        <v-card-text>正在加载数据
+                            <v-progress-linear class="mb-0" color="white" indeterminate></v-progress-linear>
+                        </v-card-text>
+                    </v-card>
                 </v-layout>
-                <v-speed-dial direction="bottom" fixed open-on-hover right style="top: 88px; z-index:0;" top v-if="items.length !== 0">
-                    <v-btn @click="markItems('all')" color="blue darken-2" fab slot="activator">
-                        <v-icon>done_all</v-icon>
-                    </v-btn>
-                    <v-btn @click.stop="selectAll" color="pink" fab small>
-                        <v-icon>select_all</v-icon>
-                    </v-btn>
-                    <v-btn @click="clearSelects" color="green" fab small>
-                        <v-icon>crop_free</v-icon>
-                    </v-btn>
-                    <v-btn @click="markItems('read')" color="indigo" fab small>
-                        <v-icon>bookmark</v-icon>
-                    </v-btn>
-                    <v-btn @click="markItems('unread')" color="indigo" fab small>
-                        <v-icon>bookmark_border</v-icon>
-                    </v-btn>
-                    <v-btn color="red" fab small>
-                        <v-icon>star</v-icon>
-                    </v-btn>
-                </v-speed-dial>
-            </v-flex>
-            <v-layout align-center fill-height justify-center key="loading" v-else>
-                <v-card color="primary" width="300">
-                    <v-card-text>正在加载数据
-                        <v-progress-linear class="mb-0" color="white" indeterminate></v-progress-linear>
-                    </v-card-text>
-                </v-card>
-            </v-layout>
-        </v-fade-transition>
+            </v-fade-transition>
+        </v-layout>
     </v-container>
 </template>
 <script>
@@ -96,7 +124,17 @@ export default {
         ...mapGetters([
             'getFeed',
             'getGroup',
-        ])
+            'getFeedError'
+        ]),
+        isAlertShown: {
+            get() {
+                if (this.active.subType === 'feed') return this.getFeedError(this.active.id);
+                else return false;
+            },
+            set(value) {
+                if (!value) this.$store.dispatch('updateFeedState', { id: this.active.id, errorMessage: '' });
+            }
+        }
     },
     methods: {
         icon(feedId) {
@@ -108,7 +146,7 @@ export default {
         timeFormatter(timeString) {
             let time = new Date(timeString);
             if (time.toDateString() === new Date().toDateString())
-                return `${('0' + time.getHours()).slice(-2)}:${('0' + time.getMinutes()).slice(-2)}`;
+                return `${('0' + time.getHours()).substr(-2)}:${('0' + time.getMinutes()).substr(-2)}`;
             else
                 return `${time.getFullYear()}/${time.getMonth() + 1}/${time.getDate()}`;
         },

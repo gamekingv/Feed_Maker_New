@@ -4,10 +4,12 @@ import store from './store';
 import router from './router';
 import 'material-design-icons-iconfont/dist/material-design-icons.css';
 import Vuetify from 'vuetify';
+import VueScrollTo from 'vue-scrollto';
 import 'vuetify/dist/vuetify.css';
 import './main.css';
 
 Vue.use(Vuetify);
+Vue.use(VueScrollTo);
 
 new Vue({
     el: '#app',

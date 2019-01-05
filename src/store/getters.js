@@ -27,6 +27,7 @@ const getters = {
     getGroupUnread: (state, getters) => id => state.groups.find(group => group.id === id).feeds.reduce((total, feed) => getters.getFeedUnread(feed) + total, 0),
     getAllUnread: (state, getters) => state.groups.reduce((total, group) => getters.getGroupUnread(group.id) + total, 0),
     getGroupLoading: state => id => state.groups.find(group => group.id === id).feeds.some(feed => state.feedState[feed.id].isLoading === true),
+    getFeedError: state => id => state.feedState[id].errorMessage,
     getGroupError: state => id => state.groups.find(group => group.id === id).feeds.some(feed => state.feedState[feed.id].errorMessage !== '')
 };
 
