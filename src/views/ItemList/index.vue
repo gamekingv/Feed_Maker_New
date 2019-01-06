@@ -1,9 +1,9 @@
 <template>
-    <v-container class="pl-5 pr-5" fill-height fluid>
+    <v-container class="px-5" fill-height fluid>
         <v-layout column fill-height>
             <v-fade-transition :duration="40" mode="out-in">
                 <v-flex fill-height key="items" v-if="loading === 0">
-                    <v-alert class="pt-1 pb-1" dismissible type="warning" v-if="isAlertShown" v-model="isAlertShown">
+                    <v-alert class="py-1" dismissible type="warning" v-if="isAlertShown" v-model="isAlertShown">
                         <div v-html="`上一次更新失败，错误信息为：<br>${getFeedError(active.id)}`"></div>
                     </v-alert>
                     <v-list class="transparent" dense>

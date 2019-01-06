@@ -28,6 +28,11 @@ const router = new Router({
             name: 'edit'
         },
         {
+            path: '/button/list',
+            component: () => import('views/Button'),
+            name: 'buttonList'
+        },
+        {
             path: '*',
             redirect: '/list/group/all'
         }

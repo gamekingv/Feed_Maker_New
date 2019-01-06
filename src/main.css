@@ -2,3 +2,9 @@ html {
     overflow-y: auto;
     scrollbar-width: none;
 }
+
+.scrollbar-thin {
+    overflow-y: scroll;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(94, 94, 94) transparent;
+}

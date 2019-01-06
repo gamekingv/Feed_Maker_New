@@ -54,7 +54,7 @@
                     <span>区分大小写</span>
                 </v-tooltip>
             </v-btn-toggle>
-            <v-divider class="ml-2 mr-2" vertical></v-divider>
+            <v-divider class="mx-2" vertical></v-divider>
             <v-tooltip :open-delay="1000" lazy top>
                 <v-btn @click="$emit('test', parserSteps.slice(0, i + 1))" icon slot="activator">
                     <v-icon>play_arrow</v-icon>
@@ -67,7 +67,7 @@
                 </v-btn>
                 <span>删除此步骤</span>
             </v-tooltip>
-            <v-divider class="ml-2 mr-2" vertical></v-divider>
+            <v-divider class="mx-2" vertical></v-divider>
             <div class="ml-3 drag-handler">
                 <v-icon>swap_vert</v-icon>
             </div>

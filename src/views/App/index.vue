@@ -40,7 +40,7 @@
                         <v-toolbar-title :key="$store.getters.activeTitle" v-text="$store.getters.activeTitle"/>
                     </v-fade-transition>
                     <v-spacer/>
-                    <v-btn-toggle class="ml-3 mr-3" mandatory v-model="view">
+                    <v-btn-toggle class="mx-3" mandatory v-model="view">
                         <v-tooltip :disabled="active.type !== 'list'" :open-delay="1000" bottom lazy>
                             <v-btn :disabled="active.type !== 'list'" flat slot="activator" value="unread">
                                 <v-icon>bookmark_border</v-icon>
@@ -78,16 +78,22 @@
                         <router-view @showDetails="showDetails" ref="content"/>
                     </v-fade-transition>
                 </v-content>
-                <v-navigation-drawer :width="500" fixed right temporary v-model="setting">
+                <v-navigation-drawer :width="500" class="scrollbar-thin" fixed right temporary v-model="setting">
                     <v-layout column fill-height>
-                        <v-list>
-                            <v-list-tile @click="setting = !setting" ripple>
-                                <v-list-tile-action>
-                                    <v-icon>compare_arrows</v-icon>
-                                </v-list-tile-action>
-                                <v-list-tile-title>Switch drawer (click me)</v-list-tile-title>
-                            </v-list-tile>
-                        </v-list>
+                        <v-layout column>
+                            <v-subheader>自定义按钮</v-subheader>
+                            <v-list class="pt-0">
+                                <v-list-tile>
+                                    <v-list-tile-action>启用</v-list-tile-action>
+                                    <v-list-tile-content>
+                                        <v-switch class="mt-0 pt-0 ml-4" color="blue" hide-details style="flex: unset;"></v-switch>
+                                    </v-list-tile-content>
+                                    <v-list-tile-content class="align-end">
+                                        <v-btn @click="setting = false" class="mr-0" color="blue" to="/button/list">管理自定义按钮</v-btn>
+                                    </v-list-tile-content>
+                                </v-list-tile>
+                            </v-list>
+                        </v-layout>
                         <v-spacer></v-spacer>
                         <v-layout align-end class="mb-3">
                             <v-btn @click.native="$refs.selectFile.click()" color="blue">导入配置</v-btn>
@@ -107,10 +113,10 @@
                     right
                     v-model="details"
                 >
-                    <div @mousedown="onResizing" style="height: 100%; width: 5px; cursor: e-resize; min-width: 5px;"></div>
-                    <v-card flat id="scroll-target" v-scroll:#scroll-target="onDetailsScroll">
+                    <div @mousedown="onResizing" style="height: 100%; cursor: e-resize; max-width: 5px; min-width: 5px;"></div>
+                    <v-card class="scrollbar-thin" flat id="scroll-target" v-scroll:#scroll-target="onDetailsScroll">
                         <v-card-title class="headline font-weight-bold pb-1" id="scroll-top" v-html="detailsTitle"></v-card-title>
-                        <v-card-title class="pt-1 pb-1">
+                        <v-card-title class="py-1">
                             <v-chip class="ml-0" color="primary" selected small text-color="white" v-if="detailsAuthor">
                                 <v-avatar class="small">
                                     <v-icon>account_circle</v-icon>
@@ -118,7 +124,7 @@
                                 {{detailsAuthor}}
                             </v-chip>
                         </v-card-title>
-                        <v-card-text ref="detailsContent" v-html="parsedDetailsContent"></v-card-text>
+                        <v-card-text class="details-content" ref="detailsContent" v-html="parsedDetailsContent"></v-card-text>
                     </v-card>
                     <v-fab-transition>
                         <v-btn
@@ -144,10 +150,15 @@
             </v-card>
         </v-dialog>
         <v-dialog @input="e => e || (detailsImage = '')" scrollable v-model="showDetailsImage" width="unset">
-            <v-card>
-                <v-card-title class="font-weight-bold">查看图片</v-card-title>
+            <v-card class="grey darken-4">
+                <v-card-title class="font-weight-bold py-0 pr-0">查看图片
+                    <v-spacer></v-spacer>
+                    <v-btn @click="showDetailsImage = false" icon>
+                        <v-icon>close</v-icon>
+                    </v-btn>
+                </v-card-title>
                 <v-divider></v-divider>
-                <v-card-text class="text-md-center" style="scrollbar-width: none;">
+                <v-card-text class="text-md-center scrollbar-thin">
                     <img :src="detailsImage">
                 </v-card-text>
             </v-card>
@@ -175,7 +186,6 @@ export default {
         detailsOffsetTop: 0,
         detailsWidth: 1300,
         isResizing: false,
-        searchString: ''
     }),
     computed: {
         view: {
@@ -202,9 +212,6 @@ export default {
         this.loading = false;
     },
     methods: {
-        search() {
-            console.log(this.searchString);
-        },
         async refreshList(config) {
             return await this.$refs.content.refreshList(config);
         },
@@ -301,19 +308,11 @@ export default {
     width: 24px !important;
     height: 24px !important;
 }
-#scroll-target {
-    overflow-y: scroll;
-    scrollbar-width: thin;
-    scrollbar-color: rgb(94, 94, 94) transparent;
-}
 .resizing {
     transition: none !important;
     -moz-user-select: none;
 }
-</style>
-
-<style lang="scss">
-.image-box {
+.details-content /deep/ .image-box {
     max-width: calc(100% - 16px);
     max-height: 500px;
     cursor: pointer;
