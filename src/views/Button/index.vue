@@ -80,7 +80,8 @@
 import { codemirror } from 'vue-codemirror';
 import 'codemirror/mode/javascript/javascript.js';
 import 'codemirror/lib/codemirror.css';
-import 'codemirror/theme/base16-dark.css';
+import 'codemirror/theme/darcula.css';
+import 'codemirror/addon/selection/active-line';
 
 export default {
     data: () => ({
@@ -109,10 +110,10 @@ export default {
         options: {
             mode: 'javascript',
             lineNumbers: true,
-            theme: 'base16-dark',
+            theme: 'darcula',
             indentUnit: 4,
-            line: true,
-            lineWrapping: true
+            lineWrapping: true,
+            styleActiveLine: true,
         }
     }),
 
