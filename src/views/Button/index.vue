@@ -183,20 +183,25 @@ export default {
         },
         close() {
             this.dialog = false;
-            this.$refs.form.reset();
+            this.$refs.form && this.$refs.form.reset();
             this.$nextTick(() => {
-                this.editedItem.active = true;
-                this.editedItem.feedIds = [];
+                this.editedItem = {
+                    active: true,
+                    name: '',
+                    icon: '',
+                    feedIds: [],
+                    script: '',
+                };
+                setTimeout(() => this.isDeleted = false, 200);
+                this.editedId = '';
             });
-            this.isDeleted = false;
-            this.editedId = '';
         },
         async save() {
             if (this.isDeleted) {
                 await this.$store.dispatch('deleteButton', Object.assign({ id: this.editedId }, this.editedItem));
                 this.close();
             } else {
-                this.$refs.form.validate();
+                this.$refs.form && this.$refs.form.validate();
                 this.$nextTick(async () => {
                     if (this.isCompleted) {
                         if (this.editedId !== '') {
