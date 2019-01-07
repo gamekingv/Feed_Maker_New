@@ -665,7 +665,7 @@ export default {
         }
     },
     components: {
-        ParserStep: () => import('./ParserStep')
+        ParserStep
     }
 };
 </script>
