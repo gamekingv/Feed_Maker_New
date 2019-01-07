@@ -36,6 +36,12 @@ const mutations = {
         let feeds = state.groups.find(group => group.id === data.groupId).feeds;
         feeds.splice(feeds.findIndex(feed => feed.id === data.id), 1);
         Vue.delete(state.feedState, data.id);
+        state.buttons.forEach(button => {
+            let index = button.feedIds.indexOf(data.id);
+            if (index > -1) {
+                button.feedIds.splice(index, 1);
+            }
+        });
     },
     updateFeed(state, { newFeed, oldFeed }) {
         if (oldFeed) {
@@ -69,8 +75,8 @@ const mutations = {
     addParser(state, { id, parser }) {
         Vue.set(state.parsers, id, parser);
     },
-    deleteParser(state, id) {
-        Vue.delete(state.parsers, id);
+    deleteParser(state, data) {
+        Vue.delete(state.parsers, data);
     },
     updateParser(state, { id, parser }) {
         state.parsers[id] = parser;
@@ -78,6 +84,18 @@ const mutations = {
     updateParsers(state, data) {
         state.parsers = data;
     },
+    addButton(state, data) {
+        state.buttons.push(data);
+    },
+    deleteButton(state, data) {
+        state.buttons.splice(state.buttons.findIndex(button => button.id === data.id), 1);
+    },
+    updateButton(state, data) {
+        state.buttons.splice(state.buttons.findIndex(button => button.id === data.id), 1, data);
+    },
+    updateButtons(state, data) {
+        state.buttons = data;
+    }
 };
 
 export default mutations;

@@ -14,12 +14,17 @@ const actions = {
         }
         let { parsers } = await browser.storage.local.get('parsers');
         if (parsers) commit('updateParsers', parsers);
+        let { buttons } = await browser.storage.local.get('buttons');
+        if (buttons) commit('updateButtons', buttons);
     },
     saveGroups({ state }) {
         return browser.storage.local.set({ groups: state.groups });
     },
     saveParsers({ state }) {
         return browser.storage.local.set({ parsers: state.parsers });
+    },
+    saveButtons({ state }) {
+        return browser.storage.local.set({ buttons: state.buttons });
     },
     addGroup({ dispatch, commit }, group) {
         group.feeds = [];
@@ -42,9 +47,10 @@ const actions = {
         commit('addFeed', feed);
         return dispatch('saveGroups');
     },
-    deleteFeed({ dispatch, commit }, feed) {
+    async deleteFeed({ dispatch, commit }, feed) {
         commit('deleteFeed', feed);
-        return dispatch('saveGroups');
+        await dispatch('saveButtons');
+        return await dispatch('saveGroups');
     },
     async updateFeed({ dispatch, commit, getters }, feed) {
         let oldFeed = getters.getFeed(feed.id);
@@ -84,6 +90,22 @@ const actions = {
         commit('updateParsers', data);
         return dispatch('saveParsers');
     },
+    addButton({ dispatch, commit }, data) {
+        commit('addButton', data);
+        return dispatch('saveButtons');
+    },
+    deleteButton({ dispatch, commit }, data) {
+        commit('deleteButton', data);
+        return dispatch('saveButtons');
+    },
+    updateButton({ dispatch, commit }, data) {
+        commit('updateButton', data);
+        return dispatch('saveButtons');
+    },
+    updateButtons({ dispatch, commit }, data) {
+        commit('updateButtons', data);
+        return dispatch('saveButtons');
+    }
 };
 
 export default actions;

@@ -46,6 +46,21 @@
                                         </v-btn>
                                         <span>在新标签页打开</span>
                                     </v-tooltip>
+                                    <div>
+                                        <v-tooltip
+                                            :key="button.id"
+                                            :open-delay="1000"
+                                            lazy
+                                            top
+                                            v-for="button in buttons"
+                                            v-if="button.feedIds.indexOf(item.feedId) > -1"
+                                        >
+                                            <v-btn @click.stop icon slot="activator">
+                                                <v-icon v-text="button.icon"></v-icon>
+                                            </v-btn>
+                                            <span v-text="button.name"></span>
+                                        </v-tooltip>
+                                    </div>
                                     <v-chip
                                         @click.stop
                                         color="grey darken-3"
@@ -119,6 +134,7 @@ export default {
             'settings',
             'active',
             'groups',
+            'buttons',
             'feedState'
         ]),
         ...mapGetters([

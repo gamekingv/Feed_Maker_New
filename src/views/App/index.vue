@@ -134,7 +134,7 @@
                             fab
                             fixed
                             right
-                            v-if="detailsOffsetTop > 0"
+                            v-if="detailsOffsetTop > 100"
                         >
                             <v-icon>keyboard_arrow_up</v-icon>
                         </v-btn>
