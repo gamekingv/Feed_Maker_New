@@ -54,7 +54,7 @@
                                         v-for="button in buttons"
                                         v-if="button.active && button.feedIds.indexOf(item.feedId) > -1"
                                     >
-                                        <v-btn @click.stop="customAction(button.script)" icon slot="activator" small>
+                                        <v-btn @click.stop="customAction(button.script, item)" icon slot="activator" small>
                                             <v-icon small v-text="button.icon"></v-icon>
                                         </v-btn>
                                         <span v-text="button.name"></span>
@@ -256,9 +256,18 @@ export default {
         showDetails(title, author, content) {
             this.$emit('showDetails', { title, author, content });
         },
-        customAction(script) {
+        customAction(script, { url, title }) {
             try {
-                eval(script);
+                let context = {
+                    url,
+                    title,
+                    fetchSource: message.sendFetchSource
+                };
+                (function () {
+                    let window, chrome, browser = undefined;
+                    eval(script);
+                    return [window, chrome, browser, context];
+                })();
             }
             catch (e) {
                 throw e;

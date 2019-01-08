@@ -80,24 +80,32 @@
                 </v-content>
                 <v-navigation-drawer :width="500" class="scrollbar-thin" fixed right temporary v-model="setting">
                     <v-layout column fill-height>
-                        <v-layout column>
-                            <v-subheader>自定义按钮</v-subheader>
-                            <v-list class="pt-0">
-                                <v-list-tile>
-                                    <v-list-tile-content>
-                                        <v-btn @click="setting = false" class="mr-0" color="blue" to="/button/list">管理自定义按钮</v-btn>
-                                    </v-list-tile-content>
-                                </v-list-tile>
-                            </v-list>
-                        </v-layout>
+                        <v-subheader>自定义按钮</v-subheader>
+                        <v-list class="pt-0">
+                            <v-list-tile>
+                                <v-list-tile-content>
+                                    <v-btn @click="setting = false" class="mr-0" color="blue" to="/button/list">管理自定义按钮</v-btn>
+                                </v-list-tile-content>
+                            </v-list-tile>
+                        </v-list>
+                        <v-subheader>自定义按钮</v-subheader>
+                        <v-list class="pt-0">
+                            <v-list-tile>
+                                <v-list-tile-content>
+                                    <v-btn @click="setting = false" class="mr-0" color="blue" to="/button/list">管理自定义按钮</v-btn>
+                                </v-list-tile-content>
+                            </v-list-tile>
+                        </v-list>
                         <v-spacer></v-spacer>
-                        <v-layout align-end class="mb-3">
-                            <v-btn @click.native="$refs.selectFile.click()" color="blue">导入配置</v-btn>
-                            <input @change="importConfig" ref="selectFile" type="file" v-show="false">
-                            <v-btn @click="exportConfig">导出配置</v-btn>
-                            <v-spacer></v-spacer>
-                            <v-btn color="error">恢复默认配置</v-btn>
-                        </v-layout>
+                        <v-list>
+                            <v-layout align-end>
+                                <v-btn @click.native="$refs.selectFile.click()" color="blue">导入配置</v-btn>
+                                <input @change="importConfig" ref="selectFile" type="file" v-show="false">
+                                <v-btn @click="exportConfig">导出配置</v-btn>
+                                <v-spacer></v-spacer>
+                                <v-btn color="error">恢复默认配置</v-btn>
+                            </v-layout>
+                        </v-list>
                     </v-layout>
                 </v-navigation-drawer>
                 <v-navigation-drawer
