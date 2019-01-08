@@ -96,6 +96,10 @@ const message = {
                         .catch(e => sendResponse({ result: 'fail', data: e.toString() }));
                     break;
                 }
+                case 'clear database': {
+                    db.clearDataBase().then(() => sendResponse({ result: 'ok' })).catch(e => sendResponse({ result: 'fail', data: e.toString() }));
+                    break;
+                }
             }
             return true;
         });

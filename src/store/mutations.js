@@ -98,6 +98,13 @@ const mutations = {
     },
     updateButtons(state, data) {
         state.buttons = data;
+    },
+    changeSetting(state, data) {
+        let [key, value] = Object.entries(data)[0];
+        state.settings[key] = value;
+    },
+    updateSettings(state, data) {
+        state.settings = data;
     }
 };
 

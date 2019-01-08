@@ -88,12 +88,41 @@
                                 </v-list-tile-content>
                             </v-list-tile>
                         </v-list>
-                        <v-subheader>自定义按钮</v-subheader>
+                        <v-subheader>常规</v-subheader>
                         <v-list class="pt-0">
-                            <v-list-tile>
-                                <v-list-tile-content>
-                                    <v-btn @click="setting = false" class="mr-0" color="blue" to="/button/list">管理自定义按钮</v-btn>
-                                </v-list-tile-content>
+                            <v-list-tile class="mt-2">
+                                <v-list-tile-action>列表每页显示条目数量</v-list-tile-action>
+                                <v-list-tile-action class="ml-5">
+                                    <v-slider
+                                        :thumb-size="24"
+                                        @end="updateSetting('itemsPerPage')"
+                                        always-dirty
+                                        max="100"
+                                        min="1"
+                                        thumb-label="always"
+                                        v-model="itemsPerPage"
+                                    ></v-slider>
+                                </v-list-tile-action>
+                            </v-list-tile>
+                            <v-list-tile class="mt-2">
+                                <v-list-tile-action>自动更新</v-list-tile-action>
+                                <v-list-tile-action class="ml-5">
+                                    <v-switch @change="updateSetting('autoUpdate')" class="mt-0 pt-0" color="blue" hide-details v-model="autoUpdate"></v-switch>
+                                </v-list-tile-action>
+                            </v-list-tile>
+                            <v-list-tile class="mt-2">
+                                <v-list-tile-action>自动更新频率（分钟）</v-list-tile-action>
+                                <v-list-tile-action class="ml-5">
+                                    <v-slider
+                                        :thumb-size="24"
+                                        @end="updateSetting('autoUpdateFrequency')"
+                                        always-dirty
+                                        max="60"
+                                        min="1"
+                                        thumb-label="always"
+                                        v-model="autoUpdateFrequency"
+                                    ></v-slider>
+                                </v-list-tile-action>
                             </v-list-tile>
                         </v-list>
                         <v-spacer></v-spacer>
@@ -188,18 +217,22 @@ export default {
         detailsContent: '',
         detailsImage: '',
         detailsOffsetTop: 0,
-        detailsWidth: 1300,
+        detailsWidth: 900,
         isResizing: false,
+        itemsPerPage: 0,
+        autoUpdate: true,
+        autoUpdateFrequency: 0
     }),
     computed: {
         view: {
             get() {
-                return this.$store.state.settings.view;
+                return this.settings.view;
             },
             async set(value) {
                 this.$refs.content.loading++;
                 await this.$store.dispatch('setView', value);
                 await this.refreshList({ isLoading: true });
+                await this.saveSettings();
             }
         },
         parsedDetailsContent() {
@@ -208,12 +241,19 @@ export default {
         },
         active() {
             return this.$store.state.active;
+        },
+        settings() {
+            return this.$store.state.settings;
         }
     },
     async mounted() {
         await this.$store.dispatch('initStore');
         message.init(this);
         this.loading = false;
+        this.itemsPerPage = this.settings.itemsPerPage;
+        this.autoUpdate = this.settings.autoUpdate;
+        this.autoUpdateFrequency = this.settings.autoUpdateFrequency;
+        this.detailsWidth = this.settings.detailsWidth;
     },
     methods: {
         async refreshList(config) {
@@ -255,8 +295,8 @@ export default {
             browser.tabs.create({ url: this.$store.getters.getFeed(this.active.id).home });
         },
         async exportConfig() {
-            let { groups, parsers } = await browser.storage.local.get();
-            let file = new Blob([JSON.stringify({ type: 'all', groups, parsers })], { type: 'application/json' });
+            let { groups, parsers, buttons, settings } = await browser.storage.local.get();
+            let file = new Blob([JSON.stringify({ type: 'all', groups, parsers, buttons, settings })], { type: 'application/json' });
             browser.downloads.download({
                 url: URL.createObjectURL(file),
                 filename: 'all configs.json',
@@ -268,16 +308,24 @@ export default {
             let reader = new FileReader();
             reader.addEventListener('loadend', async event => {
                 try {
-                    let { type, groups, parsers } = JSON.parse(event.target.result);
+                    let { type, groups, parsers, buttons, settings } = JSON.parse(event.target.result);
                     if (type === 'all') {
-                        await this.$store.dispatch('updateGroups', groups);
-                        await this.$store.dispatch('updateParsers', parsers);
+                        await this.resetAllConfig();
+                        groups && await this.$store.dispatch('updateGroups', groups);
+                        parsers && await this.$store.dispatch('updateParsers', parsers);
+                        buttons && await this.$store.dispatch('updateButtons', buttons);
+                        settings && await this.$store.dispatch('updateSettings', settings);
                         location.reload();
                     }
                 }
                 catch (e) { throw (e); }
             });
             reader.readAsText(e.target.files[0]);
+        },
+        async resetAllConfig() {
+            await browser.storage.local.clear();
+            let { result, data } = await message.sendClearDataBase();
+            if (result === 'fail') throw data;
         },
         onDetailsScroll(e) {
             this.detailsOffsetTop = e.target.scrollTop;
@@ -286,18 +334,26 @@ export default {
             this.isResizing = true;
             let offset = e.clientX;
             let originWidth = this.detailsWidth;
+            let newWidth = 0;
             document.onmousemove = (e) => {
-                let newWidth = offset - e.clientX + originWidth;
+                newWidth = offset - e.clientX + originWidth;
                 if (newWidth < 300) {
                     newWidth = 300;
                 }
                 this.detailsWidth = newWidth;
             };
             document.onmouseup = () => {
+                this.$store.dispatch('updateSetting', { detailsWidth: newWidth });
                 this.isResizing = false;
                 document.onmousemove = undefined;
                 document.onmouseup = undefined;
             };
+        },
+        updateSetting(key) {
+            return this.$store.dispatch('updateSetting', { [key]: this[key] });
+        },
+        saveSettings() {
+            return this.$store.dispatch('saveSettings');
         }
     },
     components: {

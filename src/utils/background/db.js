@@ -168,6 +168,10 @@ const database = {
                 request.onsuccess = () => ++count === keys.length && resolve();
             }
         }));
+    },
+    clearDataBase() {
+        return Promise.all([this.startStore(DB_ITEM_STORE_NAME).then(objectStore => new Promise((resolve) => objectStore.clear().onsuccess = () => resolve())),
+        this.startStore(DB_COLLECTION_STORE_NAME).then(objectStore => new Promise((resolve) => objectStore.clear().onsuccess = () => resolve()))]);
     }
 };
 

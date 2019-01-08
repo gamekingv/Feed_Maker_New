@@ -14,7 +14,10 @@ const store = new Vuex.Store({
         buttons: [],
         settings: {
             itemsPerPage: 15,
-            view: 'all'
+            view: 'all',
+            autoUpdate: true,
+            autoUpdateFrequency: 15,
+            detailsWidth: 900
         },
         active: {
             type: 'list',

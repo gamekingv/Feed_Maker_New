@@ -85,6 +85,9 @@ const message = {
     },
     sendDeleteGroup(id) {
         return this.send({ action: 'delete group', data: { id } });
+    },
+    sendClearDataBase() {
+        return this.send({ action: 'clear database' });
     }
 };
 

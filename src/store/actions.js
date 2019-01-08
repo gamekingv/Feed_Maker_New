@@ -16,6 +16,8 @@ const actions = {
         if (parsers) commit('updateParsers', parsers);
         let { buttons } = await browser.storage.local.get('buttons');
         if (buttons) commit('updateButtons', buttons);
+        let { settings } = await browser.storage.local.get('settings');
+        if (settings) commit('updateSettings', settings);
     },
     saveGroups({ state }) {
         return browser.storage.local.set({ groups: state.groups });
@@ -25,6 +27,9 @@ const actions = {
     },
     saveButtons({ state }) {
         return browser.storage.local.set({ buttons: state.buttons });
+    },
+    saveSettings({ state }) {
+        return browser.storage.local.set({ settings: state.settings });
     },
     addGroup({ dispatch, commit }, group) {
         group.feeds = [];
@@ -109,6 +114,17 @@ const actions = {
     updateButtons({ dispatch, commit }, data) {
         commit('updateButtons', data);
         return dispatch('saveButtons');
+    },
+    changeSetting({ commit }, data) {
+        commit('changeSetting', data);
+    },
+    updateSetting({ dispatch, commit }, data) {
+        commit('changeSetting', data);
+        return dispatch('saveSettings');
+    },
+    updateSettings({ dispatch, commit }, data) {
+        commit('updateSettings', data);
+        return dispatch('saveSettings');
     }
 };
 
