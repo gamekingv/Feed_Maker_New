@@ -84,11 +84,7 @@
                             <v-subheader>自定义按钮</v-subheader>
                             <v-list class="pt-0">
                                 <v-list-tile>
-                                    <v-list-tile-action>启用</v-list-tile-action>
                                     <v-list-tile-content>
-                                        <v-switch class="mt-0 pt-0 ml-4" color="blue" hide-details style="flex: unset;"></v-switch>
-                                    </v-list-tile-content>
-                                    <v-list-tile-content class="align-end">
                                         <v-btn @click="setting = false" class="mr-0" color="blue" to="/button/list">管理自定义按钮</v-btn>
                                     </v-list-tile-content>
                                 </v-list-tile>

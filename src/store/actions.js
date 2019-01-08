@@ -102,6 +102,10 @@ const actions = {
         commit('updateButton', data);
         return dispatch('saveButtons');
     },
+    updateButtonState({ dispatch, commit }, data) {
+        commit('updateButtonState', data);
+        return dispatch('saveButtons');
+    },
     updateButtons({ dispatch, commit }, data) {
         commit('updateButtons', data);
         return dispatch('saveButtons');

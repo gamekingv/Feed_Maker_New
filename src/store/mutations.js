@@ -93,6 +93,9 @@ const mutations = {
     updateButton(state, data) {
         state.buttons.splice(state.buttons.findIndex(button => button.id === data.id), 1, data);
     },
+    updateButtonState(state, { id, active }) {
+        state.buttons.find(button => button.id === id).active = active;
+    },
     updateButtons(state, data) {
         state.buttons = data;
     }

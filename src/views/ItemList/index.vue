@@ -41,26 +41,24 @@
                                         ></v-list-tile-title>
                                     </v-list-tile-content>
                                     <v-tooltip :open-delay="1000" lazy top v-if="isHover">
-                                        <v-btn @click.stop icon slot="activator">
-                                            <v-icon>arrow_forward</v-icon>
+                                        <v-btn @click.stop icon slot="activator" small>
+                                            <v-icon small>arrow_forward</v-icon>
                                         </v-btn>
                                         <span>在新标签页打开</span>
                                     </v-tooltip>
-                                    <div>
-                                        <v-tooltip
-                                            :key="button.id"
-                                            :open-delay="1000"
-                                            lazy
-                                            top
-                                            v-for="button in buttons"
-                                            v-if="button.feedIds.indexOf(item.feedId) > -1"
-                                        >
-                                            <v-btn @click.stop icon slot="activator">
-                                                <v-icon v-text="button.icon"></v-icon>
-                                            </v-btn>
-                                            <span v-text="button.name"></span>
-                                        </v-tooltip>
-                                    </div>
+                                    <v-tooltip
+                                        :key="button.id"
+                                        :open-delay="1000"
+                                        lazy
+                                        top
+                                        v-for="button in buttons"
+                                        v-if="button.active && button.feedIds.indexOf(item.feedId) > -1"
+                                    >
+                                        <v-btn @click.stop="customAction(button.script)" icon slot="activator" small>
+                                            <v-icon small v-text="button.icon"></v-icon>
+                                        </v-btn>
+                                        <span v-text="button.name"></span>
+                                    </v-tooltip>
                                     <v-chip
                                         @click.stop
                                         color="grey darken-3"
@@ -257,6 +255,14 @@ export default {
         },
         showDetails(title, author, content) {
             this.$emit('showDetails', { title, author, content });
+        },
+        customAction(script) {
+            try {
+                eval(script);
+            }
+            catch (e) {
+                throw e;
+            }
         }
     },
     beforeRouteEnter(to, from, next) {

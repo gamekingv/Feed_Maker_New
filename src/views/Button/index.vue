@@ -13,7 +13,7 @@
                     </v-card-title>
                     <v-card-text v-if="!isDeleted">
                         <v-form lazy-validation ref="form" v-model="isCompleted">
-                            <v-layout class="mb-4">
+                            <v-layout class="mb-4" v-if="this.editedId !== ''">
                                 <v-flex align-self-center lg2>
                                     <v-subheader>启用</v-subheader>
                                 </v-flex>
@@ -214,9 +214,8 @@ export default {
                 });
             }
         },
-        async activeChanged(e, item) {
-            console.log(e, item.active);
-            // await this.$store.dispatch('updateButton', Object.assign({ active: this.editedId }, item));
+        async activeChanged(active, item) {
+            await this.$store.dispatch('updateButtonState', { id: item.id, active });
         }
     },
     components: {
