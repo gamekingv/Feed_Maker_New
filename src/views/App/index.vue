@@ -196,6 +196,31 @@
                 </v-card-text>
             </v-card>
         </v-dialog>
+        <v-dialog :width="300" content-class="grey darken-4" v-model="importAlert">
+            <v-card class="grey darken-4">
+                <v-card-text v-if="!isDeleted">
+                    <v-form lazy-validation ref="form" v-model="isCompleted">
+                        <v-layout>
+                            <v-flex lg10>
+                                <v-select
+                                    :items="groups.map(group => ({text: group.name, value: group.id}))"
+                                    multiple
+                                    placeholder="添加到分组"
+                                    solo
+                                    v-model="importToGroup"
+                                ></v-select>
+                            </v-flex>
+                        </v-layout>
+                    </v-form>
+                </v-card-text>
+                <v-card-text class="my-4" v-else>{{`导入此配置将清除所有现有配置及数据，是否继续？`}}</v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn :disabled="!isCompleted" @click="save" color="blue">保存</v-btn>
+                    <v-btn @click="close" color="secondary">取消</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
         <custom-icon-style/>
     </v-app>
 </template>
@@ -204,6 +229,7 @@
 import GroupList from './GroupList';
 import CustomIconStyle from './CustomIconStyle';
 import message from '~/utils/extension/message';
+import { mapState } from 'vuex';
 
 export default {
     data: () => ({
@@ -211,6 +237,7 @@ export default {
         drawer: true,
         setting: false,
         details: false,
+        confirm: false,
         showDetailsImage: false,
         detailsTitle: '',
         detailsAuthor: '',
@@ -221,7 +248,11 @@ export default {
         isResizing: false,
         itemsPerPage: 0,
         autoUpdate: true,
-        autoUpdateFrequency: 0
+        autoUpdateFrequency: 0,
+        config: '',
+        importType: '',
+        importToGroup: '',
+        importAlert: false
     }),
     computed: {
         view: {
@@ -230,21 +261,21 @@ export default {
             },
             async set(value) {
                 this.$refs.content.loading++;
-                await this.$store.dispatch('setView', value);
-                await this.refreshList({ isLoading: true });
+                await this.$store.dispatch('updateSetting', { view: value });
                 await this.saveSettings();
+                await this.refreshList({ isLoading: true });
             }
         },
         parsedDetailsContent() {
             return this.detailsContent.replace(/<(a[^>]*)>/g, '<$1 target="_blank">')
                 .replace(/<img[^>]*src=["']([^"']*)["'][^>]*?>/g, '<span><img class="image-box" src="$1"/></span>');
         },
-        active() {
-            return this.$store.state.active;
-        },
-        settings() {
-            return this.$store.state.settings;
-        }
+        ...mapState([
+            'active',
+            'settings',
+            'groups',
+            'feedState'
+        ])
     },
     async mounted() {
         await this.$store.dispatch('initStore');
@@ -264,7 +295,7 @@ export default {
             switch (type) {
                 case 'group': {
                     if (id === 'all') {
-                        Object.keys(this.$store.state.feedState).forEach(id => this.$store.dispatch('updateFeedState', { id, isLoading: true }));
+                        Object.keys(this.feedState).forEach(id => this.$store.dispatch('updateFeedState', { id, isLoading: true }));
                     }
                     else {
                         this.$store.getters.getGroup(id).feeds.forEach(({ id }) => this.$store.dispatch('updateFeedState', { id, isLoading: true }));
@@ -304,7 +335,6 @@ export default {
             });
         },
         importConfig(e) {
-            this.loading = true;
             let reader = new FileReader();
             reader.addEventListener('loadend', async event => {
                 try {
@@ -318,9 +348,12 @@ export default {
                         location.reload();
                     }
                 }
-                catch (e) { throw (e); }
+                catch (e) { throw e; }
             });
             reader.readAsText(e.target.files[0]);
+        },
+        applyConfig() {
+
         },
         async resetAllConfig() {
             await browser.storage.local.clear();

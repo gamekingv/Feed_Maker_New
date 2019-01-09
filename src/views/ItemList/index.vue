@@ -269,9 +269,7 @@ export default {
                     return [window, chrome, browser, context];
                 })();
             }
-            catch (e) {
-                throw e;
-            }
+            catch (e) { throw e; }
         }
     },
     beforeRouteEnter(to, from, next) {
