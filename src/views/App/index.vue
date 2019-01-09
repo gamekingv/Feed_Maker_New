@@ -78,7 +78,15 @@
                         <router-view @showDetails="showDetails" ref="content"/>
                     </v-fade-transition>
                 </v-content>
-                <v-navigation-drawer :width="500" class="scrollbar-thin" fixed right temporary v-model="setting">
+                <v-navigation-drawer
+                    :temporary="!importAlert"
+                    :width="500"
+                    @input="settingClose"
+                    class="scrollbar-thin"
+                    fixed
+                    right
+                    v-model="setting"
+                >
                     <v-layout column fill-height>
                         <v-subheader>自定义按钮</v-subheader>
                         <v-list class="pt-0">
@@ -95,7 +103,7 @@
                                 <v-list-tile-action class="ml-5">
                                     <v-slider
                                         :thumb-size="24"
-                                        @end="updateSetting('itemsPerPage')"
+                                        @end="updateSetting('itemsPerPage'); itemsPerPageChanged = true"
                                         always-dirty
                                         max="100"
                                         min="1"
@@ -129,10 +137,10 @@
                         <v-list>
                             <v-layout align-end>
                                 <v-btn @click.native="$refs.selectFile.click()" color="blue">导入配置</v-btn>
-                                <input @change="importConfig" ref="selectFile" type="file" v-show="false">
+                                <input @change="importConfig" accept="application/json" ref="selectFile" type="file" v-show="false">
                                 <v-btn @click="exportConfig">导出配置</v-btn>
                                 <v-spacer></v-spacer>
-                                <v-btn color="error">恢复默认配置</v-btn>
+                                <v-btn @click="importAlert = true" color="error">恢复默认配置</v-btn>
                             </v-layout>
                         </v-list>
                     </v-layout>
@@ -198,13 +206,12 @@
         </v-dialog>
         <v-dialog :width="300" content-class="grey darken-4" v-model="importAlert">
             <v-card class="grey darken-4">
-                <v-card-text v-if="!isDeleted">
-                    <v-form lazy-validation ref="form" v-model="isCompleted">
-                        <v-layout>
+                <v-card-text class="mt-3" v-if="importType === 'feed'">
+                    <v-form lazy-validation ref="form" v-model="importFeedInfo">
+                        <v-layout justify-center>
                             <v-flex lg10>
                                 <v-select
                                     :items="groups.map(group => ({text: group.name, value: group.id}))"
-                                    multiple
                                     placeholder="添加到分组"
                                     solo
                                     v-model="importToGroup"
@@ -213,10 +220,10 @@
                         </v-layout>
                     </v-form>
                 </v-card-text>
-                <v-card-text class="my-4" v-else>{{`导入此配置将清除所有现有配置及数据，是否继续？`}}</v-card-text>
+                <v-card-text class="my-4" v-else>{{`${importType === 'all' ? '导入此配置' : '即'}将清除所有现有配置及数据，是否继续？`}}</v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn :disabled="!isCompleted" @click="save" color="blue">保存</v-btn>
+                    <v-btn :disabled="!importFeedInfo" @click="apply" color="blue">确定</v-btn>
                     <v-btn @click="close" color="secondary">取消</v-btn>
                 </v-card-actions>
             </v-card>
@@ -247,11 +254,13 @@ export default {
         detailsWidth: 900,
         isResizing: false,
         itemsPerPage: 0,
+        itemsPerPageChanged: false,
         autoUpdate: true,
         autoUpdateFrequency: 0,
         config: '',
         importType: '',
         importToGroup: '',
+        importFeedInfo: true,
         importAlert: false
     }),
     computed: {
@@ -280,14 +289,14 @@ export default {
     async mounted() {
         await this.$store.dispatch('initStore');
         message.init(this);
-        this.loading = false;
         this.itemsPerPage = this.settings.itemsPerPage;
         this.autoUpdate = this.settings.autoUpdate;
         this.autoUpdateFrequency = this.settings.autoUpdateFrequency;
         this.detailsWidth = this.settings.detailsWidth;
+        this.loading = false;
     },
     methods: {
-        async refreshList(config) {
+        async refreshList(config = {}) {
             return await this.$refs.content.refreshList(config);
         },
         async refresh() {
@@ -338,27 +347,51 @@ export default {
             let reader = new FileReader();
             reader.addEventListener('loadend', async event => {
                 try {
-                    let { type, groups, parsers, buttons, settings } = JSON.parse(event.target.result);
-                    if (type === 'all') {
-                        await this.resetAllConfig();
-                        groups && await this.$store.dispatch('updateGroups', groups);
-                        parsers && await this.$store.dispatch('updateParsers', parsers);
-                        buttons && await this.$store.dispatch('updateButtons', buttons);
-                        settings && await this.$store.dispatch('updateSettings', settings);
-                        location.reload();
-                    }
+                    let config = JSON.parse(event.target.result);
+                    this.importType = config.type;
+                    this.config = config;
+                    this.importAlert = true;
                 }
                 catch (e) { throw e; }
             });
             reader.readAsText(e.target.files[0]);
         },
-        applyConfig() {
-
-        },
         async resetAllConfig() {
             await browser.storage.local.clear();
             let { result, data } = await message.sendClearDataBase();
             if (result === 'fail') throw data;
+        },
+        async apply() {
+            this.importAlert = false;
+            if (this.importType === 'all') {
+                let { groups, parsers, buttons, settings } = this.config;
+                await this.resetAllConfig();
+                groups && await browser.storage.local.set({ groups });
+                parsers && await browser.storage.local.set({ parsers });
+                buttons && await browser.storage.local.set({ buttons });
+                settings && await browser.storage.local.set({ settings });
+                location.reload();
+            }
+            else if (this.importType === 'feed') {
+                let { feed, parser } = this.config;
+                feed.id = Date.now().toString();
+                feed.groupId = this.importToGroup;
+                feed && await this.$store.dispatch('addFeed', feed);
+                feed.custom && parser && await this.$store.dispatch('addParser', { id: feed.id, parser });
+                this.setting = false;
+            }
+            else {
+                await this.resetAllConfig();
+                location.reload();
+            }
+            this.close();
+        },
+        close() {
+            this.config = '';
+            this.importType = '';
+            this.importToGroup = '';
+            this.importFeedInfo = true;
+            this.importAlert = false;
         },
         onDetailsScroll(e) {
             this.detailsOffsetTop = e.target.scrollTop;
@@ -387,6 +420,12 @@ export default {
         },
         saveSettings() {
             return this.$store.dispatch('saveSettings');
+        },
+        settingClose(e) {
+            if (!e && this.itemsPerPageChanged) {
+                this.itemsPerPageChanged = false;
+                this.refreshList();
+            }
         }
     },
     components: {

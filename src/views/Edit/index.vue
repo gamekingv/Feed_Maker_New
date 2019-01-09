@@ -31,7 +31,13 @@
                                 </v-flex>
                             </v-layout>
                             <v-layout>
-                                <v-btn color="secondary" v-if="action === 'update' && type !== 'group'">导出</v-btn>
+                                <v-btn
+                                    :disabled="exporting"
+                                    :loading="exporting"
+                                    @click="exportFeed"
+                                    color="secondary"
+                                    v-if="action === 'update' && type !== 'group'"
+                                >导出</v-btn>
                                 <v-btn @click="deleteItem(type.replace('custom', 'feed'), id)" color="error" v-if="action === 'update'">删除</v-btn>
                                 <v-spacer></v-spacer>
                                 <v-btn :disabled="!validates.form1" @click="validate('form1', 2)" color="primary">下一步</v-btn>
@@ -373,6 +379,7 @@ export default {
         loading: 1,
         step: 1,
         stepResult: false,
+        exporting: false,
         parsing: '',
         validates: {
             form1: true,
@@ -626,6 +633,22 @@ export default {
             this.parserGroups.splice(index, 1);
             this.resultGroupValidates.splice(index, 1);
             if ((index + 1) > this.parserGroups.length) this.step--;
+        },
+        exportFeed() {
+            this.exporting = true;
+            let feed = Object.assign({}, this.$store.getters.getFeed(this.editId)), parser;
+            if (feed.custom) parser = this.$store.state.parsers[this.editId];
+            delete feed.id;
+            delete feed.groupId;
+            let config = { type: 'feed', feed };
+            if (parser) config.parser = parser;
+            let file = new Blob([JSON.stringify(config)], { type: 'application/json' });
+            browser.downloads.download({
+                url: URL.createObjectURL(file),
+                filename: `${feed.name}.json`,
+                saveAs: true
+            });
+            this.exporting = false;
         }
     },
     computed: {
