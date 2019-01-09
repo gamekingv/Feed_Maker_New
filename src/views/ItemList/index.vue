@@ -164,7 +164,9 @@ export default {
             else
                 return `${time.getFullYear()}/${time.getMonth() + 1}/${time.getDate()}`;
         },
-        async refreshList({ type, id, isLoading = false, isChangePage = false, isUpdateComplete = false }) {
+        async refreshList(config) {
+            if (!config) config = {};
+            let { type, id, isLoading = false, isChangePage = false, isUpdateComplete = false } = config;
             if (isUpdateComplete && !this.isShowing(type, id)) {
                 isLoading && this.loading--;
                 return;

@@ -103,7 +103,7 @@
                                 <v-list-tile-action class="ml-5">
                                     <v-slider
                                         :thumb-size="24"
-                                        @end="updateSetting('itemsPerPage'); itemsPerPageChanged = true"
+                                        @end="itemsPerPageChanged = true"
                                         always-dirty
                                         max="100"
                                         min="1"
@@ -296,7 +296,7 @@ export default {
         this.loading = false;
     },
     methods: {
-        async refreshList(config = {}) {
+        async refreshList(config) {
             return await this.$refs.content.refreshList(config);
         },
         async refresh() {
@@ -424,6 +424,7 @@ export default {
         settingClose(e) {
             if (!e && this.itemsPerPageChanged) {
                 this.itemsPerPageChanged = false;
+                this.updateSetting('itemsPerPage');
                 this.refreshList();
             }
         }
