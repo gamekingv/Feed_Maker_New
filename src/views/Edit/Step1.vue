@@ -1,5 +1,5 @@
 <template>
-    <v-form lazy-validation ref="form1" v-model="validate">
+    <v-form lazy-validation ref="form" v-model="formValidation">
         <v-layout justify-center>
             <v-flex lg1>
                 <v-subheader>类型*</v-subheader>
@@ -29,17 +29,9 @@
 
 <script>
 export default {
-    props: ['step1', 'validation', 'requireRule', 'action'],
+    props: ['step', 'validation', 'requireRule', 'action'],
     computed: {
-        step: {
-            get() {
-                return this.step1;
-            },
-            set(value) {
-                this.$emit('modifyStep', value);
-            }
-        },
-        validate: {
+        formValidation: {
             get() {
                 return this.validation;
             },
@@ -48,5 +40,10 @@ export default {
             }
         }
     },
+    methods: {
+        validate() {
+            return this.$refs.form.validate();
+        }
+    }
 };
 </script>

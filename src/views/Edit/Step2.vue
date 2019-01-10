@@ -1,5 +1,5 @@
 <template>
-    <v-form lazy-validation ref="form2" v-model="validate">
+    <v-form lazy-validation ref="form" v-model="formValidation">
         <v-layout justify-center v-if="type === 'feed' || type === 'custom'">
             <v-flex lg1>
                 <v-subheader>分组*</v-subheader>
@@ -37,17 +37,9 @@
 
 <script>
 export default {
-    props: ['type', 'step2', 'validation', 'groups', 'requireRule'],
+    props: ['type', 'step', 'validation', 'groups', 'requireRule'],
     computed: {
-        step: {
-            get() {
-                return this.step2;
-            },
-            set(value) {
-                this.$emit('modifyStep', value);
-            }
-        },
-        validate: {
+        formValidation: {
             get() {
                 return this.validation;
             },
@@ -56,5 +48,10 @@ export default {
             }
         }
     },
+    methods: {
+        validate() {
+            return this.$refs.form.validate();
+        }
+    }
 };
 </script>

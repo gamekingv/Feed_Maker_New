@@ -1,5 +1,5 @@
 <template>
-    <v-form lazy-validation ref="form3" v-model="validate">
+    <v-form lazy-validation ref="form" v-model="formValidation">
         <v-layout justify-center>
             <v-flex lg1>
                 <v-subheader>链接*</v-subheader>
@@ -31,7 +31,7 @@
                 <v-slider always-dirty max="60" min="1" thumb-label="always" v-model="step.timeout"></v-slider>
             </v-flex>
             <v-spacer></v-spacer>
-            <v-btn :disabled="fetching !== ''" @click="fetchSource">抓取</v-btn>
+            <v-btn :disabled="fetching !== ''" :loading="fetching !== ''" @click="fetchSource">抓取</v-btn>
         </v-layout>
         <v-layout class="mb-4">
             <v-flex lg1>
@@ -86,7 +86,15 @@
                     <v-subheader>测试结果</v-subheader>
                 </v-flex>
                 <v-flex lg11>
-                    <v-textarea :loading="fetching !== ''" hide-details readonly rows="10" solo v-model="fetchResult"></v-textarea>
+                    <v-textarea
+                        :loading="fetching !== ''"
+                        :value="typeof fetchResult === 'object' ? JSON.stringify(fetchResult) : fetchResult"
+                        class="scrollbar-thin"
+                        hide-details
+                        readonly
+                        rows="10"
+                        solo
+                    ></v-textarea>
                 </v-flex>
             </v-layout>
         </transition-group>
@@ -94,25 +102,15 @@
 </template>
 
 <script>
-import message from '~/utils/extension/message';
-
 export default {
-    props: ['step3', 'validation', 'requireRule', 'fetching', 'fetchResult'],
+    props: ['step', 'validation', 'requireRule', 'fetchSource', 'fetching', 'fetchResult'],
     data: () => ({
         addHeaderDialog: false,
         headerKey: '',
         headerValue: ''
     }),
     computed: {
-        step: {
-            get() {
-                return this.step3;
-            },
-            set(value) {
-                this.$emit('modifyStep', value);
-            }
-        },
-        validate: {
+        formValidation: {
             get() {
                 return this.validation;
             },
@@ -136,21 +134,34 @@ export default {
             this.addHeaderDialog = false;
             this.$refs.header.reset();
         },
-        async fetchSource() {
-            let timestamp = Date.now().toString();
-            this.$emit('modifyFetching', timestamp);
-
-            let { data } = await message.sendFetchSource({
-                url: this.url,
-                method: this.method,
-                timeout: this.timeout,
-                headers: this.headers,
-                body: this.body
-            });
-            if (this.fetching !== timestamp) return;
-            this.$emit('modifyFetchResult', data);
-            this.$emit('modifyFetching', '');
+        validate() {
+            return this.$refs.form.validate();
         }
     }
 };
 </script>
+
+<style lang="scss" scoped>
+.source-forms {
+    &-move {
+        transition: all 0.2s;
+    }
+    &-enter {
+        opacity: 0;
+        transform: translateX(-100px) !important;
+    }
+    &-leave-to {
+        opacity: 0;
+        transform: translateX(100px) !important;
+    }
+    &-leave-active {
+        position: absolute;
+        transition: all 0.2s;
+        width: calc(100% - 83px);
+    }
+}
+.scrollbar-thin /deep/ textarea {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(94, 94, 94) transparent;
+}
+</style>

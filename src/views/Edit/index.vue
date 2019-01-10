@@ -8,10 +8,10 @@
                         <step-1
                             :action="action"
                             :requireRule="requireRule"
-                            :step1="step1"
+                            :step="step1"
                             :validation="validates.form1"
-                            @modifyStep="v => step1 = v"
                             @modifyValidation="v => validates.form1 = v"
+                            ref="form1"
                         ></step-1>
                         <v-layout>
                             <v-btn
@@ -19,11 +19,11 @@
                                 :loading="exporting"
                                 @click="exportFeed"
                                 color="secondary"
-                                v-if="action === 'update' && step1.type !== 'group'"
+                                v-if="action === 'update' && type !== 'group'"
                             >导出</v-btn>
-                            <v-btn @click="deleteItem(step1.type.replace('custom', 'feed'), id)" color="error" v-if="action === 'update'">删除</v-btn>
+                            <v-btn @click="deleteItem(type.replace('custom', 'feed'), id)" color="error" v-if="action === 'update'">删除</v-btn>
                             <v-spacer></v-spacer>
-                            <v-btn :disabled="!validates.form1" @click="validate('form1', 2)" color="primary">下一步</v-btn>
+                            <v-btn :disabled="!validates.form1" @click="nextStep('form1', 2)" color="primary">下一步</v-btn>
                             <v-btn :disabled="!complete" @click="submit" color="primary">完成</v-btn>
                             <v-btn @click="clear('form1')">重置</v-btn>
                         </v-layout>
@@ -33,42 +33,43 @@
                         <step-2
                             :groups="groups"
                             :requireRule="requireRule"
-                            :step2="step2"
-                            :type="step1.type"
+                            :step="step2"
+                            :type="type"
                             :validation="validates.form2"
-                            @modifyStep="v => step2 = v"
                             @modifyValidation="v => validates.form2 = v"
+                            ref="form2"
                         ></step-2>
                         <v-layout>
                             <v-btn @click="step--" color="secondary">上一步</v-btn>
                             <v-spacer></v-spacer>
                             <v-btn
                                 :disabled="!validates.form2"
-                                @click="validate('form2', 3)"
+                                @click="nextStep('form2', 3)"
                                 color="primary"
-                                v-if="step1.type === 'feed' || step1.type === 'custom'"
+                                v-if="type === 'feed' || type === 'custom'"
                             >下一步</v-btn>
                             <v-btn :disabled="!complete" @click="submit" color="primary">完成</v-btn>
                             <v-btn @click="clear('form2')">重置</v-btn>
                         </v-layout>
                     </v-stepper-content>
-                    <v-stepper-step :rules="[() => validates.form3]" editable step="3" v-if="step1.type === 'feed' || step1.type === 'custom'">源信息</v-stepper-step>
-                    <v-stepper-content step="3" v-if="step1.type === 'feed' || step1.type === 'custom'">
+                    <v-stepper-step :rules="[() => validates.form3]" editable step="3" v-if="type === 'feed' || type === 'custom'">源信息</v-stepper-step>
+                    <v-stepper-content step="3" v-if="type === 'feed' || type === 'custom'">
                         <step-3
                             :fetching="fetching"
+                            :fetchResult="fetchResult"
+                            :fetchSource="fetchSource"
                             :requireRule="requireRule"
-                            :step3="step3"
+                            :step="step3"
                             :validation="validates.form3"
                             @modifyFetching="v => fetching = v"
                             @modifyFetchResult="v => fetchResult = v"
-                            @modifyStep="v => step3 = v"
                             @modifyValidation="v => validates.form3 = v"
-                            ref="step3"
+                            ref="form3"
                         ></step-3>
                         <v-layout>
                             <v-btn @click="step--" color="secondary">上一步</v-btn>
                             <v-spacer></v-spacer>
-                            <v-btn :disabled="!validates.form3" @click="validate('form3', 4)" color="primary" v-if="step1.type === 'custom'">下一步</v-btn>
+                            <v-btn :disabled="!validates.form3" @click="nextStep('form3', 4)" color="primary" v-if="type === 'custom'">下一步</v-btn>
                             <v-btn :disabled="!complete" @click="submit" color="primary">完成</v-btn>
                             <v-btn @click="clear('form3')">重置</v-btn>
                         </v-layout>
@@ -79,106 +80,37 @@
                             :rules="[() => resultGroupValidates[index]]"
                             :step="index + 4"
                             editable
-                            v-if="step1.type === 'custom'"
+                            v-if="type === 'custom'"
                         >{{`结果组 [${index + 1}]`}}</v-stepper-step>
-                        <v-stepper-content :key="`content${index + 4}`" :step="index + 4" v-if="step1.type === 'custom'">
-                            <v-form lazy-validation ref="resultForm" v-model="resultGroupValidates[index]">
-                                <v-layout class="my-4" column>
-                                    <v-flex :key="parserType" v-for="(parsers, parserType, count) in parserGroup">
-                                        <lazy-render :time="500 * (count + 1)">
-                                            <v-layout align-center justify-center slot="tip">
-                                                <v-progress-circular :size="50" color="blue" indeterminate></v-progress-circular>
-                                            </v-layout>
-                                            <v-card :key="i" color="#303030" disabled flat hide-actions v-for="(parser, i) in parsers">
-                                                <v-card-title class="pb-0">
-                                                    <v-container fluid>
-                                                        <v-layout>
-                                                            <v-flex lg1 style="min-width: 100px;">
-                                                                <v-subheader
-                                                                    v-text="parserType !== 'base' ? `${parserName[parserType]}${parserType === 'title' || parserType === 'url' || parserType === 'pubDate' ? '*': ''} (${i + 1})` : `${parserName[parserType]}*`"
-                                                                ></v-subheader>
-                                                            </v-flex>
-                                                            <v-flex lg3 v-if="parserType !== 'base'">
-                                                                <v-select
-                                                                    :items="parseSource[index].filter(({value}) => parseSourceFilter(parserType, value, i))"
-                                                                    :required="parserType === 'title' || parserType === 'url' || parserType === 'pubDate'"
-                                                                    :rules="[parserType === 'title' || parserType === 'url' || parserType === 'pubDate' ? requireRule : true]"
-                                                                    clearable
-                                                                    label="输入源"
-                                                                    no-data-text="无可用输入源"
-                                                                    solo
-                                                                    v-model="parser.source"
-                                                                ></v-select>
-                                                            </v-flex>
-                                                            <v-spacer></v-spacer>
-                                                            <v-tooltip :disabled="fetching !== ''" :open-delay="1000" lazy top>
-                                                                <v-btn :disabled="fetching !== ''" icon slot="activator" v-if="parserType === 'base'">
-                                                                    <v-icon>refresh</v-icon>
-                                                                </v-btn>
-                                                                <span>重新抓取</span>
-                                                            </v-tooltip>
-                                                            <v-tooltip :open-delay="1000" lazy top>
-                                                                <v-btn
-                                                                    @click="parser.parserSteps.push({id: Date.now().toString(), method: 'match', regexp: '', flags: [], replaceExp: '', subPattern: ''})"
-                                                                    icon
-                                                                    slot="activator"
-                                                                >
-                                                                    <v-icon>add</v-icon>
-                                                                </v-btn>
-                                                                <span>添加一个步骤</span>
-                                                            </v-tooltip>
-                                                            <v-tooltip :open-delay="1000" lazy top>
-                                                                <v-btn
-                                                                    @click="parsers.splice(i + 1, 0, { source: '', parserSteps: [] })"
-                                                                    icon
-                                                                    slot="activator"
-                                                                    v-if="parserType !== 'base'"
-                                                                >
-                                                                    <v-icon>playlist_add</v-icon>
-                                                                </v-btn>
-                                                                <span>{{`添加一个${parserName[parserType]}组`}}</span>
-                                                            </v-tooltip>
-                                                            <v-tooltip :open-delay="1000" lazy top>
-                                                                <v-btn
-                                                                    @click="parsers.splice(i, 1)"
-                                                                    icon
-                                                                    slot="activator"
-                                                                    v-if="parsers.length > 1 && parserType !== 'base'"
-                                                                >
-                                                                    <v-icon>close</v-icon>
-                                                                </v-btn>
-                                                                <span>{{`删除此${parserName[parserType]}组`}}</span>
-                                                            </v-tooltip>
-                                                        </v-layout>
-                                                    </v-container>
-                                                </v-card-title>
-                                                <v-card-text class="pt-0">
-                                                    <parser-step
-                                                        :steps="parser.parserSteps"
-                                                        @modify="parserSteps => parser.parserSteps = parserSteps"
-                                                        @test="parserSteps => testSteps(index, parser.source, parserType, parserSteps)"
-                                                    ></parser-step>
-                                                </v-card-text>
-                                            </v-card>
-                                        </lazy-render>
-                                        <v-divider class="mt-3" v-if="count < Object.keys(parserGroup).length - 1"></v-divider>
-                                    </v-flex>
-                                </v-layout>
-                                <v-layout>
-                                    <v-btn @click="step--" color="secondary">上一步</v-btn>
-                                    <v-btn @click="deleteParserGroup(index)" color="error" v-if="parserGroups.length > 1">删除此结果组</v-btn>
-                                    <v-spacer></v-spacer>
-                                    <v-btn
-                                        :disabled="!resultGroupValidates[index]"
-                                        @click="validate('resultForm', index + 5, index)"
-                                        color="primary"
-                                        v-if="index < parserGroups.length - 1"
-                                    >下一步</v-btn>
-                                    <v-btn @click="addParserGroup" color="primary" v-else>新增结果组</v-btn>
-                                    <v-btn :disabled="!complete" @click="submit" color="primary">完成</v-btn>
-                                    <v-btn @click="clear('resultForm', index)">重置</v-btn>
-                                </v-layout>
-                            </v-form>
+                        <v-stepper-content :key="`content${index + 4}`" :step="index + 4" v-if="type === 'custom'">
+                            <step-4
+                                :fetching="fetching"
+                                :fetchResult="fetchResult"
+                                :fetchSource="fetchSource"
+                                :index="index"
+                                :parserGroup="parserGroup"
+                                :parserGroups="parserGroups"
+                                :requireRule="requireRule"
+                                :validation="resultGroupValidates[index]"
+                                @modifyFetching="v => fetching = v"
+                                @modifyFetchResult="v => fetchResult = v"
+                                @modifyValidation="v => $set(resultGroupValidates, index, v)"
+                                ref="resultForm"
+                            ></step-4>
+                            <v-layout>
+                                <v-btn @click="step--" color="secondary">上一步</v-btn>
+                                <v-btn @click="deleteParserGroup(index)" color="error" v-if="parserGroups.length > 1">删除此结果组</v-btn>
+                                <v-spacer></v-spacer>
+                                <v-btn
+                                    :disabled="!resultGroupValidates[index]"
+                                    @click="nextStep('resultForm', index + 5, index)"
+                                    color="primary"
+                                    v-if="index < parserGroups.length - 1"
+                                >下一步</v-btn>
+                                <v-btn @click="addParserGroup" color="primary" v-else>新增结果组</v-btn>
+                                <v-btn :disabled="!complete" @click="submit" color="primary">完成</v-btn>
+                                <v-btn @click="clear('resultForm', index)">重置</v-btn>
+                            </v-layout>
                         </v-stepper-content>
                     </template>
                 </v-stepper>
@@ -191,55 +123,22 @@
                 </v-card>
             </v-layout>
         </v-fade-transition>
-        <v-dialog @input="e => e || (result = '')" class="d-flex" scrollable v-model="stepResult">
-            <v-card class="grey darken-4">
-                <v-card-title class="font-weight-bold py-0 pr-0">测试结果
-                    <v-spacer></v-spacer>
-                    <v-btn @click="stepResult = false" icon>
-                        <v-icon>close</v-icon>
-                    </v-btn>
-                </v-card-title>
-                <v-divider></v-divider>
-                <template v-if="parsing === ''">
-                    <v-card-text class="scrollbar-thin" style="overflow-x: hidden; min-height: 300px;" v-if="Array.isArray(result)">
-                        <template v-for="(item, i) in result">
-                            <v-chip :key="i" color="primary" selected small text-color="white">{{`第 ${i} 项`}}</v-chip>
-                            <p :key="'i' + i">{{typeof item === 'object' ? JSON.stringify(item) : item}}</p>
-                        </template>
-                    </v-card-text>
-                    <v-card-text
-                        class="scrollbar-thin"
-                        style="overflow-x: hidden; min-height: 300px;"
-                        v-else
-                    >{{typeof result === 'object' ? JSON.stringify(result) : result}}</v-card-text>
-                </template>
-                <v-layout align-center fill-height justify-center key="parsing" style="min-height: 300px;" v-else>
-                    <v-card color="primary" width="300">
-                        <v-card-text>正在运行步骤
-                            <v-progress-linear class="mb-0" color="white" indeterminate></v-progress-linear>
-                        </v-card-text>
-                    </v-card>
-                </v-layout>
-            </v-card>
-        </v-dialog>
     </v-container>
 </template>
 
 <script>
 import message from '~/utils/extension/message';
-import ParserStep from './ParserStep';
 import Step1 from './Step1';
 import Step2 from './Step2';
 import Step3 from './Step3';
+import Step4 from './Step4';
 
 export default {
     props: ['editType', 'editId'],
     data: () => ({
         loading: 1,
         step: 1,
-        stepResult: false,
         exporting: false,
-        parsing: '',
         validates: {
             form1: true,
             form2: true,
@@ -266,7 +165,6 @@ export default {
         },
         fetching: '',
         fetchResult: '',
-        result: '',
         parserGroups: [{
             base: [{ source: 'origin', parserSteps: [] }],
             common: [{ source: '', parserSteps: [] }],
@@ -275,17 +173,7 @@ export default {
             pubDate: [{ source: '', parserSteps: [] }],
             author: [{ source: '', parserSteps: [] }],
             content: [{ source: '', parserSteps: [] }]
-        }],
-        parserName: {
-            base: '基础数组',
-            common: '通用',
-            title: '标题',
-            url: '链接',
-            pubDate: '时间',
-            author: '作者',
-            content: '内容',
-        },
-        requireRule: v => !!v || '必填'
+        }]
     }),
     mounted() {
         this.initialize();
@@ -301,62 +189,41 @@ export default {
         action() {
             return this.$store.state.active.type.replace('edit', 'update');
         },
-        parseSource() {
-            return this.parserGroups.map(parserGroup => Object.entries(parserGroup).reduce((total, [type, parsers]) => {
-                if (type === 'base' && parsers[0].parserSteps.length > 0) total.push({ text: '基础数组', value: 'base' });
-                if (type !== 'common') return total;
-                parsers.map((parser, index) => parser.parserSteps.forEach((step, i) => total.push({
-                    text: `${this.parserName[type]} (${(index + 1)}) 步骤 ${(i + 1)}`,
-                    value: type + (index + 1) + 'Step' + (i + 1)
-                })));
-                return total;
-            }, []));
+        type() {
+            return this.step1.type;
         }
     },
     methods: {
-        validate(name, next, index) {
-            let validate = isNaN(index) ? this.$refs[name].validate() : this.$refs['resultForm'][index].validate();
+        requireRule: v => !!v || '必填',
+        nextStep(name, next, index) {
+            let validate = isNaN(index) ? this.$refs[name].validate() : this.$refs.resultForm[index].validate();
+            console.log(this.resultGroupValidates);
             if (validate)
                 this.step = next;
         },
         async fetchSource() {
-            this.$refs.step3 && await this.$refs.step3.fetchSource();
-        },
-        async testSteps(parserGroupIndex, parserSource, parserType, parserSteps) {
-            this.stepResult = true;
             let timestamp = Date.now().toString();
-            this.parsing = timestamp;
-            if (this.fetchResult === '') await this.fetchSource();
-            let result = await this.runSteps(parserGroupIndex, parserSource, parserType, parserSteps);
-            if (this.parsing !== timestamp) return;
-            this.result = result;
-            this.parsing = '';
-        },
-        async runSteps(parserGroupIndex, parserSource, parserType, parserSteps) {
-            let source, [type, steps] = [parserType, parserSteps];
-            if (parserSource === 'origin') {
-                source = this.fetchResult;
-            }
-            else if (parserSource === 'base') {
-                let sourceInfo = this.parserGroups[parserGroupIndex].base[0];
-                source = await this.runSteps(parserGroupIndex, sourceInfo.source, parserSource, sourceInfo.parserSteps);
-            }
-            else {
-                let [, sourceType, sourceIndex, sourceStep] = parserSource.match(/(.+?)(\d+)Step(\d+)/);
-                let sourceInfo = this.parserGroups[parserGroupIndex][sourceType][sourceIndex - 1];
-                source = await this.runSteps(parserGroupIndex, sourceInfo.source, sourceType, sourceInfo.parserSteps.slice(0, sourceStep));
-            }
-            let { data } = await message.sendParseSource(source, type, steps);
-            return data;
+            this.fetching = timestamp;
+
+            let { data } = await message.sendFetchSource({
+                url: this.step3.url,
+                method: this.step3.method,
+                timeout: this.step3.timeout,
+                headers: this.step3.headers,
+                body: this.step3.body
+            });
+            if (this.fetching !== timestamp) return;
+            this.fetchResult = data;
+            this.fetching = '';
         },
         submit() {
             Object.keys(this.validates).forEach(name => this.$refs[name] && this.$refs[name].validate());
-            this.resultGroupValidates.forEach((validate, index) => this.$refs['resultForm'] && this.$refs['resultForm'][index].validate());
+            this.resultGroupValidates.forEach((validate, index) => this.$refs.resultForm && this.$refs.resultForm[index].validate());
             this.$nextTick(async () => {
                 if (this.complete) {
                     this.loading++;
                     if (this.action === 'add') this.id = Date.now().toString();
-                    switch (this.step1.type) {
+                    switch (this.type) {
                         case 'group': {
                             await this.$store.dispatch(`${this.action}Group`, {
                                 active: this.step1.active,
@@ -369,8 +236,8 @@ export default {
                         case 'feed':
                         case 'custom': {
                             await this.$store.dispatch(`${this.action}Feed`, {
-                                active: this.step1.active,
                                 id: this.id,
+                                active: this.step1.active,
                                 custom: this.step1.type === 'custom',
                                 name: this.step2.name,
                                 groupId: this.step2.group,
@@ -475,10 +342,6 @@ export default {
                 this.clearAll();
             }
         },
-        parseSourceFilter(type, value, i) {
-            if (type !== 'common' || value.indexOf('base') > -1) return true;
-            else return parseInt(value.match(/common(\d+)Step/)[1]) <= i;
-        },
         async deleteItem(type, id) {
             this.loading++;
             let Type = type.charAt(0).toUpperCase() + type.slice(1),
@@ -524,30 +387,10 @@ export default {
         }
     },
     components: {
-        ParserStep,
         Step1,
         Step2,
-        Step3
+        Step3,
+        Step4
     }
 };
 </script>
-<style lang="scss" scoped>
-.source-forms {
-    &-move {
-        transition: all 0.2s;
-    }
-    &-enter {
-        opacity: 0;
-        transform: translateX(-100px) !important;
-    }
-    &-leave-to {
-        opacity: 0;
-        transform: translateX(100px) !important;
-    }
-    &-leave-active {
-        position: absolute;
-        transition: all 0.2s;
-        width: calc(100% - 83px);
-    }
-}
-</style>
