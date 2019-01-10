@@ -304,10 +304,10 @@ export default {
             switch (type) {
                 case 'group': {
                     if (id === 'all') {
-                        Object.keys(this.feedState).forEach(id => this.$store.dispatch('updateFeedState', { id, isLoading: true }));
+                        this.groups.reduce((total, group) => group.active ? total.concat(group.feeds) : total, []).forEach(feed => feed.active && this.$store.dispatch('updateFeedState', { id: feed.id, isLoading: true }));
                     }
                     else {
-                        this.$store.getters.getGroup(id).feeds.forEach(({ id }) => this.$store.dispatch('updateFeedState', { id, isLoading: true }));
+                        this.$store.getters.getGroup(id).feeds.forEach(feed => feed.active && this.$store.dispatch('updateFeedState', { id: feed.id, isLoading: true }));
                     }
                     break;
                 }

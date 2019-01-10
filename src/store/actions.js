@@ -59,7 +59,6 @@ const actions = {
     },
     async updateFeed({ dispatch, commit, getters }, feed) {
         let oldFeed = getters.getFeed(feed.id);
-        console.log(feed.groupId, oldFeed.groupId);
         if (feed.groupId !== oldFeed.groupId) {
             let items = await message.sendGet('feed', feed.id),
                 ids = items.map(item => item.id);

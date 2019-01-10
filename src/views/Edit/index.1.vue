@@ -5,73 +5,211 @@
                 <v-stepper non-linear v-model="step" vertical>
                     <v-stepper-step :rules="[() => validates.form1]" editable step="1">基本信息</v-stepper-step>
                     <v-stepper-content step="1">
-                        <step-1
-                            :action="action"
-                            :requireRule="requireRule"
-                            :step1="step1"
-                            :validation="validates.form1"
-                            @modifyStep="v => step1 = v"
-                            @modifyValidation="v => validates.form1 = v"
-                        ></step-1>
-                        <v-layout>
-                            <v-btn
-                                :disabled="exporting"
-                                :loading="exporting"
-                                @click="exportFeed"
-                                color="secondary"
-                                v-if="action === 'update' && step1.type !== 'group'"
-                            >导出</v-btn>
-                            <v-btn @click="deleteItem(step1.type.replace('custom', 'feed'), id)" color="error" v-if="action === 'update'">删除</v-btn>
-                            <v-spacer></v-spacer>
-                            <v-btn :disabled="!validates.form1" @click="validate('form1', 2)" color="primary">下一步</v-btn>
-                            <v-btn :disabled="!complete" @click="submit" color="primary">完成</v-btn>
-                            <v-btn @click="clear('form1')">重置</v-btn>
-                        </v-layout>
+                        <v-form lazy-validation ref="form1" v-model="validates.form1">
+                            <v-layout justify-center>
+                                <v-flex lg1>
+                                    <v-subheader>类型*</v-subheader>
+                                </v-flex>
+                                <v-flex lg4>
+                                    <v-select
+                                        :disabled="action === 'update'"
+                                        :items="[{ text: '分组', value: 'group' }, { text: '订阅源', value: 'feed' }, { text: '自定义源', value: 'custom' }]"
+                                        :rules="[requireRules]"
+                                        placeholder="请选择类型"
+                                        required
+                                        solo
+                                        v-model="type"
+                                    ></v-select>
+                                </v-flex>
+                            </v-layout>
+                            <v-layout class="mb-4" justify-center v-if="action === 'update'">
+                                <v-flex align-self-center lg1>
+                                    <v-subheader>启用</v-subheader>
+                                </v-flex>
+                                <v-flex align-self-center lg4>
+                                    <v-switch class="mt-0 pt-0" color="blue" hide-details v-model="active"></v-switch>
+                                </v-flex>
+                            </v-layout>
+                            <v-layout>
+                                <v-btn
+                                    :disabled="exporting"
+                                    :loading="exporting"
+                                    @click="exportFeed"
+                                    color="secondary"
+                                    v-if="action === 'update' && type !== 'group'"
+                                >导出</v-btn>
+                                <v-btn @click="deleteItem(type.replace('custom', 'feed'), id)" color="error" v-if="action === 'update'">删除</v-btn>
+                                <v-spacer></v-spacer>
+                                <v-btn :disabled="!validates.form1" @click="validate('form1', 2)" color="primary">下一步</v-btn>
+                                <v-btn :disabled="!complete" @click="submit" color="primary">完成</v-btn>
+                                <v-btn @click="clear('form1')">重置</v-btn>
+                            </v-layout>
+                        </v-form>
                     </v-stepper-content>
                     <v-stepper-step :rules="[() => validates.form2]" editable step="2">详细信息</v-stepper-step>
                     <v-stepper-content step="2">
-                        <step-2
-                            :groups="groups"
-                            :requireRule="requireRule"
-                            :step2="step2"
-                            :type="step1.type"
-                            :validation="validates.form2"
-                            @modifyStep="v => step2 = v"
-                            @modifyValidation="v => validates.form2 = v"
-                        ></step-2>
-                        <v-layout>
-                            <v-btn @click="step--" color="secondary">上一步</v-btn>
-                            <v-spacer></v-spacer>
-                            <v-btn
-                                :disabled="!validates.form2"
-                                @click="validate('form2', 3)"
-                                color="primary"
-                                v-if="step1.type === 'feed' || step1.type === 'custom'"
-                            >下一步</v-btn>
-                            <v-btn :disabled="!complete" @click="submit" color="primary">完成</v-btn>
-                            <v-btn @click="clear('form2')">重置</v-btn>
-                        </v-layout>
+                        <v-form lazy-validation ref="form2" v-model="validates.form2">
+                            <v-layout justify-center v-if="type === 'feed' || type === 'custom'">
+                                <v-flex lg1>
+                                    <v-subheader>分组*</v-subheader>
+                                </v-flex>
+                                <v-flex lg4>
+                                    <v-select
+                                        :items="groups"
+                                        :rules="[requireRules]"
+                                        no-data-text="无任何分组"
+                                        placeholder="请选择所属分组"
+                                        required
+                                        solo
+                                        v-model="group"
+                                    ></v-select>
+                                </v-flex>
+                            </v-layout>
+                            <v-layout justify-center>
+                                <v-flex lg1>
+                                    <v-subheader>名称*</v-subheader>
+                                </v-flex>
+                                <v-flex lg4>
+                                    <v-text-field :rules="[requireRules]" clearable placeholder="请输入名称" required solo v-model.lazy="name"></v-text-field>
+                                </v-flex>
+                            </v-layout>
+                            <v-layout justify-center v-if="type === 'feed' || type === 'custom'">
+                                <v-flex lg1>
+                                    <v-subheader>主页</v-subheader>
+                                </v-flex>
+                                <v-flex lg4>
+                                    <v-text-field clearable placeholder="请输入主页链接" solo v-model.lazy="home"></v-text-field>
+                                </v-flex>
+                            </v-layout>
+                            <v-layout justify-center v-if="type === 'feed' || type === 'custom'">
+                                <v-flex lg1>
+                                    <v-subheader>图标</v-subheader>
+                                </v-flex>
+                                <v-flex lg4>
+                                    <v-text-field clearable placeholder="可输入图片链接或Material Icons的名称" solo v-model.lazy="icon"></v-text-field>
+                                </v-flex>
+                            </v-layout>
+                            <v-layout>
+                                <v-btn @click="step--" color="secondary">上一步</v-btn>
+                                <v-spacer></v-spacer>
+                                <v-btn
+                                    :disabled="!validates.form2"
+                                    @click="validate('form2', 3)"
+                                    color="primary"
+                                    v-if="type === 'feed' || type === 'custom'"
+                                >下一步</v-btn>
+                                <v-btn :disabled="!complete" @click="submit" color="primary">完成</v-btn>
+                                <v-btn @click="clear('form2')">重置</v-btn>
+                            </v-layout>
+                        </v-form>
                     </v-stepper-content>
-                    <v-stepper-step :rules="[() => validates.form3]" editable step="3" v-if="step1.type === 'feed' || step1.type === 'custom'">源信息</v-stepper-step>
-                    <v-stepper-content step="3" v-if="step1.type === 'feed' || step1.type === 'custom'">
-                        <step-3
-                            :fetching="fetching"
-                            :requireRule="requireRule"
-                            :step3="step3"
-                            :validation="validates.form3"
-                            @modifyFetching="v => fetching = v"
-                            @modifyFetchResult="v => fetchResult = v"
-                            @modifyStep="v => step3 = v"
-                            @modifyValidation="v => validates.form3 = v"
-                            ref="step3"
-                        ></step-3>
-                        <v-layout>
-                            <v-btn @click="step--" color="secondary">上一步</v-btn>
-                            <v-spacer></v-spacer>
-                            <v-btn :disabled="!validates.form3" @click="validate('form3', 4)" color="primary" v-if="step1.type === 'custom'">下一步</v-btn>
-                            <v-btn :disabled="!complete" @click="submit" color="primary">完成</v-btn>
-                            <v-btn @click="clear('form3')">重置</v-btn>
-                        </v-layout>
+                    <v-stepper-step :rules="[() => validates.form3]" editable step="3" v-if="type === 'feed' || type === 'custom'">源信息</v-stepper-step>
+                    <v-stepper-content step="3" v-if="type === 'feed' || type === 'custom'">
+                        <v-form lazy-validation ref="form3" v-model="validates.form3">
+                            <v-layout justify-center>
+                                <v-flex lg1>
+                                    <v-subheader>链接*</v-subheader>
+                                </v-flex>
+                                <v-flex lg11>
+                                    <v-text-field :rules="[requireRules, urlRules]" clearable placeholder="请输入链接" required solo v-model="url"></v-text-field>
+                                </v-flex>
+                            </v-layout>
+                            <v-layout>
+                                <v-flex lg1>
+                                    <v-subheader>方法</v-subheader>
+                                </v-flex>
+                                <v-flex lg3>
+                                    <v-select
+                                        :items="[{text: 'GET', value: 'get'}, {text: 'POST', value: 'post'}]"
+                                        :rules="[requireRules]"
+                                        class="pa-0"
+                                        label="方法"
+                                        required
+                                        solo
+                                        v-model="method"
+                                    ></v-select>
+                                </v-flex>
+                                <v-spacer></v-spacer>
+                                <v-flex lg1>
+                                    <v-subheader>超时（秒）</v-subheader>
+                                </v-flex>
+                                <v-flex lg2>
+                                    <v-slider always-dirty max="60" min="1" thumb-label="always" v-model="timeout"></v-slider>
+                                </v-flex>
+                                <v-spacer></v-spacer>
+                                <v-btn :disabled="fetching !== ''" @click="fetchSource(true)">抓取</v-btn>
+                            </v-layout>
+                            <v-layout class="mb-4">
+                                <v-flex lg1>
+                                    <v-subheader>消息头</v-subheader>
+                                </v-flex>
+                                <v-flex align-self-center lg11>
+                                    <v-chip
+                                        :key="key"
+                                        @input="$delete(headers, key)"
+                                        close
+                                        color="primary"
+                                        selected
+                                        small
+                                        text-color="white"
+                                        v-for="(value, key) in headers"
+                                    >{{`${key}: ${value}`}}</v-chip>
+                                    <v-dialog v-model="addHeaderDialog" width="500">
+                                        <v-btn icon slot="activator">
+                                            <v-icon>add</v-icon>
+                                        </v-btn>
+                                        <v-card class="grey darken-4">
+                                            <v-card-title class="headline">添加一个消息头</v-card-title>
+                                            <v-card-text class="pb-0">
+                                                <v-form lazy-validation ref="header">
+                                                    <v-layout class="ma-3">
+                                                        <v-text-field
+                                                            :rules="[requireRules, v => !headers.hasOwnProperty(v) || '已添加该属性']"
+                                                            clearable
+                                                            placeholder="键"
+                                                            solo
+                                                            v-model="headerKey"
+                                                        ></v-text-field>
+                                                        <v-subheader>:</v-subheader>
+                                                        <v-text-field :rules="[requireRules]" clearable placeholder="值" solo v-model="headerValue"></v-text-field>
+                                                    </v-layout>
+                                                </v-form>
+                                            </v-card-text>
+                                            <v-card-actions>
+                                                <v-spacer></v-spacer>
+                                                <v-btn @click="addHeader" color="primary">确定</v-btn>
+                                                <v-btn @click="close" color="secondary">取消</v-btn>
+                                            </v-card-actions>
+                                        </v-card>
+                                    </v-dialog>
+                                </v-flex>
+                            </v-layout>
+                            <transition-group name="source-forms">
+                                <v-layout class="mb-3" key="body" v-show="method === 'post'">
+                                    <v-flex lg1>
+                                        <v-subheader>主体</v-subheader>
+                                    </v-flex>
+                                    <v-flex lg11>
+                                        <v-textarea hide-details solo v-model="body"></v-textarea>
+                                    </v-flex>
+                                </v-layout>
+                                <v-layout class="mb-3" key="result">
+                                    <v-flex lg1>
+                                        <v-subheader>测试结果</v-subheader>
+                                    </v-flex>
+                                    <v-flex lg11>
+                                        <v-textarea :loading="fetching !== ''" hide-details readonly rows="10" solo v-model="result"></v-textarea>
+                                    </v-flex>
+                                </v-layout>
+                            </transition-group>
+                            <v-layout>
+                                <v-btn @click="step--" color="secondary">上一步</v-btn>
+                                <v-spacer></v-spacer>
+                                <v-btn :disabled="!validates.form3" @click="validate('form3', 4)" color="primary" v-if="type === 'custom'">下一步</v-btn>
+                                <v-btn :disabled="!complete" @click="submit" color="primary">完成</v-btn>
+                                <v-btn @click="clear('form3')">重置</v-btn>
+                            </v-layout>
+                        </v-form>
                     </v-stepper-content>
                     <template v-for="(parserGroup, index) in parserGroups">
                         <v-stepper-step
@@ -79,9 +217,9 @@
                             :rules="[() => resultGroupValidates[index]]"
                             :step="index + 4"
                             editable
-                            v-if="step1.type === 'custom'"
+                            v-if="type === 'custom'"
                         >{{`结果组 [${index + 1}]`}}</v-stepper-step>
-                        <v-stepper-content :key="`content${index + 4}`" :step="index + 4" v-if="step1.type === 'custom'">
+                        <v-stepper-content :key="`content${index + 4}`" :step="index + 4" v-if="type === 'custom'">
                             <v-form lazy-validation ref="resultForm" v-model="resultGroupValidates[index]">
                                 <v-layout class="my-4" column>
                                     <v-flex :key="parserType" v-for="(parsers, parserType, count) in parserGroup">
@@ -102,7 +240,7 @@
                                                                 <v-select
                                                                     :items="parseSource[index].filter(({value}) => parseSourceFilter(parserType, value, i))"
                                                                     :required="parserType === 'title' || parserType === 'url' || parserType === 'pubDate'"
-                                                                    :rules="[parserType === 'title' || parserType === 'url' || parserType === 'pubDate' ? requireRule : true]"
+                                                                    :rules="[parserType === 'title' || parserType === 'url' || parserType === 'pubDate' ? requireRules : true]"
                                                                     clearable
                                                                     label="输入源"
                                                                     no-data-text="无可用输入源"
@@ -112,7 +250,13 @@
                                                             </v-flex>
                                                             <v-spacer></v-spacer>
                                                             <v-tooltip :disabled="fetching !== ''" :open-delay="1000" lazy top>
-                                                                <v-btn :disabled="fetching !== ''" icon slot="activator" v-if="parserType === 'base'">
+                                                                <v-btn
+                                                                    :disabled="fetching !== ''"
+                                                                    @click="fetchSource"
+                                                                    icon
+                                                                    slot="activator"
+                                                                    v-if="parserType === 'base'"
+                                                                >
                                                                     <v-icon>refresh</v-icon>
                                                                 </v-btn>
                                                                 <span>重新抓取</span>
@@ -228,9 +372,6 @@
 <script>
 import message from '~/utils/extension/message';
 import ParserStep from './ParserStep';
-import Step1 from './Step1';
-import Step2 from './Step2';
-import Step3 from './Step3';
 
 export default {
     props: ['editType', 'editId'],
@@ -246,24 +387,21 @@ export default {
             form3: true
         },
         resultGroupValidates: [true],
+        active: true,
         id: '',
-        step1: {
-            active: true,
-            type: 'group'
-        },
-        step2: {
-            name: '',
-            group: '',
-            icon: '',
-            home: '',
-        },
-        step3: {
-            url: '',
-            method: 'get',
-            timeout: 30,
-            headers: {},
-            body: ''
-        },
+        type: 'group',
+        name: '',
+        group: '',
+        icon: '',
+        home: '',
+        url: '',
+        method: 'get',
+        timeout: 30,
+        headers: {},
+        body: '',
+        addHeaderDialog: false,
+        headerKey: '',
+        headerValue: '',
         fetching: '',
         fetchResult: '',
         result: '',
@@ -285,42 +423,41 @@ export default {
             author: '作者',
             content: '内容',
         },
-        requireRule: v => !!v || '必填'
+        requireRules: v => !!v || '必填',
+        urlRules: v => /http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)?/.test(v) || '请输入合法的链接'
     }),
-    mounted() {
-        this.initialize();
-        this.loading--;
-    },
-    computed: {
-        complete() {
-            return Object.values(this.validates).every(validate => validate === true) && this.resultGroupValidates.every(validate => validate === true);
-        },
-        groups() {
-            return this.$store.state.groups.map(({ id, name }) => ({ text: name, value: id }));
-        },
-        action() {
-            return this.$store.state.active.type.replace('edit', 'update');
-        },
-        parseSource() {
-            return this.parserGroups.map(parserGroup => Object.entries(parserGroup).reduce((total, [type, parsers]) => {
-                if (type === 'base' && parsers[0].parserSteps.length > 0) total.push({ text: '基础数组', value: 'base' });
-                if (type !== 'common') return total;
-                parsers.map((parser, index) => parser.parserSteps.forEach((step, i) => total.push({
-                    text: `${this.parserName[type]} (${(index + 1)}) 步骤 ${(i + 1)}`,
-                    value: type + (index + 1) + 'Step' + (i + 1)
-                })));
-                return total;
-            }, []));
-        }
-    },
     methods: {
+        addHeader() {
+            if (this.$refs.header.validate()) {
+                this.$set(this.headers, this.headerKey, this.headerValue);
+                this.close();
+            }
+        },
+        close() {
+            this.addHeaderDialog = false;
+            this.$refs.header.reset();
+        },
         validate(name, next, index) {
             let validate = isNaN(index) ? this.$refs[name].validate() : this.$refs['resultForm'][index].validate();
             if (validate)
                 this.step = next;
         },
-        async fetchSource() {
-            this.$refs.step3 && await this.$refs.step3.fetchSource();
+        async fetchSource(isShow) {
+            let timestamp = Date.now().toString();
+            this.fetching = timestamp;
+            if (isShow) this.result = '';
+
+            let { data } = await message.sendFetchSource({
+                url: this.url,
+                method: this.method,
+                timeout: this.timeout,
+                headers: this.headers,
+                body: this.body
+            });
+            if (this.fetching !== timestamp) return;
+            this.fetchResult = data;
+            if (isShow) this.result = data;
+            this.fetching = '';
         },
         async testSteps(parserGroupIndex, parserSource, parserType, parserSteps) {
             this.stepResult = true;
@@ -356,34 +493,34 @@ export default {
                 if (this.complete) {
                     this.loading++;
                     if (this.action === 'add') this.id = Date.now().toString();
-                    switch (this.step1.type) {
+                    switch (this.type) {
                         case 'group': {
                             await this.$store.dispatch(`${this.action}Group`, {
-                                active: this.step1.active,
+                                active: this.active,
                                 id: this.id,
-                                name: this.step2.name
+                                name: this.name
                             });
-                            this.$router.push({ path: this.step1.active ? `/list/group/${this.id}` : '/list/group/all' });
+                            this.$router.push({ path: this.active ? `/list/group/${this.id}` : '/list/group/all' });
                             break;
                         }
                         case 'feed':
                         case 'custom': {
                             await this.$store.dispatch(`${this.action}Feed`, {
-                                active: this.step1.active,
+                                active: this.active,
                                 id: this.id,
-                                custom: this.step1.type === 'custom',
-                                name: this.step2.name,
-                                groupId: this.step2.group,
-                                home: this.step2.home,
-                                icon: this.step2.icon,
-                                url: this.step3.url,
-                                method: this.step3.method,
-                                timeout: this.step3.timeout,
-                                headers: this.step3.headers,
-                                body: this.step3.body
+                                custom: this.type === 'custom',
+                                name: this.name,
+                                groupId: this.group,
+                                home: this.home,
+                                icon: this.icon,
+                                url: this.url,
+                                method: this.method,
+                                timeout: this.timeout,
+                                headers: this.headers,
+                                body: this.body
                             });
-                            if (this.step1.type === 'custom') await this.$store.dispatch(`${this.action}Parser`, { id: this.id, parser: this.parserGroups });
-                            this.$router.push({ path: this.step1.active ? `/list/feed/${this.id}` : '/list/group/all' });
+                            if (this.type === 'custom') await this.$store.dispatch(`${this.action}Parser`, { id: this.id, parser: this.parserGroups });
+                            this.$router.push({ path: this.active ? `/list/feed/${this.id}` : '/list/group/all' });
                             break;
                         }
                     }
@@ -396,22 +533,22 @@ export default {
             this.$nextTick(() => {
                 switch (name) {
                     case 'form1': {
-                        this.step1.type = 'group';
+                        this.type = 'group';
                         break;
                     }
                     case 'form2': {
-                        this.step2.name = '';
-                        this.step2.group = '';
-                        this.step2.icon = '';
-                        this.step2.home = '';
+                        this.name = '';
+                        this.group = '';
+                        this.icon = '';
+                        this.home = '';
                         break;
                     }
                     case 'form3': {
-                        this.step3.url = '';
-                        this.step3.method = 'get';
-                        this.step3.timeout = 30;
-                        this.step3.headers = {};
-                        this.step3.body = '';
+                        this.url = '';
+                        this.method = 'get';
+                        this.timeout = 30;
+                        this.headers = {};
+                        this.body = '';
                         break;
                     }
                     default: {
@@ -430,9 +567,9 @@ export default {
             });
         },
         clearAll() {
-            Object.keys(this.validates).forEach(name => this.clear(name));
             this.id = '';
-            this.step1.active = true;
+            this.active = true;
+            Object.keys(this.validates).forEach(name => this.clear(name));
             this.parserGroups = [{
                 base: [{ source: 'origin', parserSteps: [] }],
                 common: [{ source: '', parserSteps: [] }],
@@ -446,29 +583,29 @@ export default {
         },
         initialize() {
             if (this.action === 'update') {
-                this.step1.type = this.editType;
+                this.type = this.editType;
                 if (this.editType === 'group') {
-                    ({ id: this.id, name: this.step2.name, active: this.step1.active } = this.$store.getters.getGroup(this.editId));
+                    ({ id: this.id, name: this.name, active: this.active } = this.$store.getters.getGroup(this.editId));
                 }
                 else if (this.editType === 'feed') {
                     let feed = this.$store.getters.getFeed(this.editId);
                     if (feed.custom) {
-                        this.step1.type = 'custom';
+                        this.type = 'custom';
                         this.parserGroups = JSON.parse(JSON.stringify(this.$store.state.parsers[this.editId]));
                     }
                     ({
                         id: this.id,
-                        name: this.step2.name,
-                        active: this.step1.active,
-                        groupId: this.step2.group,
-                        home: this.step2.home,
-                        icon: this.step2.icon,
-                        url: this.step3.url,
-                        method: this.step3.method,
-                        timeout: this.step3.timeout,
-                        body: this.step3.body
+                        name: this.name,
+                        active: this.active,
+                        groupId: this.group,
+                        home: this.home,
+                        icon: this.icon,
+                        url: this.url,
+                        method: this.method,
+                        timeout: this.timeout,
+                        headers: this.headers,
+                        body: this.body
                     } = feed);
-                    this.step3.headers = JSON.parse(JSON.stringify(feed.headers));
                 }
             }
             else {
@@ -513,6 +650,32 @@ export default {
             this.exporting = false;
         }
     },
+    computed: {
+        complete() {
+            return Object.values(this.validates).every(validate => validate === true) && this.resultGroupValidates.every(validate => validate === true);
+        },
+        groups() {
+            return this.$store.state.groups.map(({ id, name }) => ({ text: name, value: id }));
+        },
+        action() {
+            return this.$store.state.active.type.replace('edit', 'update');
+        },
+        parseSource() {
+            return this.parserGroups.map(parserGroup => Object.entries(parserGroup).reduce((total, [type, parsers]) => {
+                if (type === 'base' && parsers[0].parserSteps.length > 0) total.push({ text: '基础数组', value: 'base' });
+                if (type !== 'common') return total;
+                parsers.map((parser, index) => parser.parserSteps.forEach((step, i) => total.push({
+                    text: `${this.parserName[type]} (${(index + 1)}) 步骤 ${(i + 1)}`,
+                    value: type + (index + 1) + 'Step' + (i + 1)
+                })));
+                return total;
+            }, []));
+        }
+    },
+    mounted() {
+        this.initialize();
+        this.loading--;
+    },
     watch: {
         '$route'() {
             this.loading++;
@@ -524,10 +687,7 @@ export default {
         }
     },
     components: {
-        ParserStep,
-        Step1,
-        Step2,
-        Step3
+        ParserStep
     }
 };
 </script>

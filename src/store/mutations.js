@@ -8,7 +8,6 @@ const mutations = {
     },
     addGroup(state, data) {
         state.groups.push(data);
-
     },
     deleteGroup(state, data) {
         state.groups.splice(state.groups.findIndex(group => group.id === data.id), 1);
