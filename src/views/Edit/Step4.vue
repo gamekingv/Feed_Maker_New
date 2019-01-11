@@ -29,6 +29,12 @@
                                 </v-flex>
                                 <v-spacer></v-spacer>
                                 <v-tooltip :disabled="fetching !== ''" :open-delay="1000" lazy top>
+                                    <v-btn :disabled="fetching !== ''" @click="test" icon slot="activator" v-if="parserType === 'base'">
+                                        <v-icon>refresh</v-icon>
+                                    </v-btn>
+                                    <span>test</span>
+                                </v-tooltip>
+                                <v-tooltip :disabled="fetching !== ''" :open-delay="1000" lazy top>
                                     <v-btn :disabled="fetching !== ''" @click="fetchSource" icon slot="activator" v-if="parserType === 'base'">
                                         <v-icon>refresh</v-icon>
                                     </v-btn>
@@ -114,7 +120,7 @@ import message from '~/utils/extension/message';
 import ParserStep from './ParserStep';
 
 export default {
-    props: ['index', 'parserGroup', 'parserGroups', 'validation', 'requireRule', 'fetchSource', 'fetching', 'fetchResult'],
+    props: ['index', 'parserGroup', 'parserGroups', 'requireRule', 'fetchSource', 'fetching', 'fetchResult'],
     data: () => ({
         parserName: {
             base: '基础数组',
@@ -140,6 +146,14 @@ export default {
                 })));
                 return total;
             }, []));
+        },
+        validation() {
+            if (this.$refs.sourcesRequired) {
+                return this.$refs.sourcesRequired.map(source => !source.hasFocused || source.valid).reduce((validates, validate) => validates && validate, true);
+            }
+            else {
+                return true;
+            }
         }
     },
     methods: {
@@ -179,8 +193,8 @@ export default {
             this.$emit('modifyValidation', validate);
             return validate;
         },
-        test(e) {
-            console.log(e);
+        test() {
+            console.log(this.validation);
         }
     },
     components: {

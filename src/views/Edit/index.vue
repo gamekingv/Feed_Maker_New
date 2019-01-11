@@ -91,7 +91,6 @@
                                 :parserGroup="parserGroup"
                                 :parserGroups="parserGroups"
                                 :requireRule="requireRule"
-                                :validation="resultGroupValidates[index]"
                                 @modifyFetching="v => fetching = v"
                                 @modifyFetchResult="v => fetchResult = v"
                                 @modifyValidation="v => $set(resultGroupValidates, index, v)"
@@ -197,7 +196,6 @@ export default {
         requireRule: v => !!v || '必填',
         nextStep(name, next, index) {
             let validate = isNaN(index) ? this.$refs[name].validate() : this.$refs.resultForm[index].validate();
-            console.log(this.resultGroupValidates);
             if (validate)
                 this.step = next;
         },
