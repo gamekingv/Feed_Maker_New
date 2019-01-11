@@ -76,13 +76,13 @@
                     </v-stepper-content>
                     <template v-for="(parserGroup, index) in parserGroups">
                         <v-stepper-step
-                            :key="`step${index + 4}`"
+                            :key="`step${parserGroup.id}`"
                             :rules="[() => resultGroupValidates[index]]"
                             :step="index + 4"
                             editable
                             v-if="type === 'custom'"
                         >{{`结果组 [${index + 1}]`}}</v-stepper-step>
-                        <v-stepper-content :key="`content${index + 4}`" :step="index + 4" v-if="type === 'custom'">
+                        <v-stepper-content :key="`content${parserGroup.id}`" :step="index + 4" v-if="type === 'custom'">
                             <step-4
                                 :fetching="fetching"
                                 :fetchResult="fetchResult"
@@ -165,6 +165,7 @@ export default {
         fetching: '',
         fetchResult: '',
         parserGroups: [{
+            id: Date.now().toString(),
             base: [{ source: 'origin', parserSteps: [] }],
             common: [{ source: '', parserSteps: [] }],
             title: [{ source: '', parserSteps: [] }],
@@ -281,6 +282,7 @@ export default {
                     }
                     default: {
                         this.parserGroups.splice(index, 1, {
+                            id: Date.now().toString(),
                             base: [{ source: 'origin', parserSteps: [] }],
                             common: [{ source: '', parserSteps: [] }],
                             title: [{ source: '', parserSteps: [] }],
@@ -299,6 +301,7 @@ export default {
             this.id = '';
             this.step1.active = true;
             this.parserGroups = [{
+                id: Date.now().toString(),
                 base: [{ source: 'origin', parserSteps: [] }],
                 common: [{ source: '', parserSteps: [] }],
                 title: [{ source: '', parserSteps: [] }],
@@ -349,13 +352,13 @@ export default {
             this.$router.push({ path: '/list/group/all' }, () => this.$store.dispatch(`delete${Type}`, item));
         },
         addParserGroup() {
-            this.parserGroups.push({ base: [{ parserSteps: [] }], common: [{ source: '', parserSteps: [] }], title: [{ source: '', parserSteps: [] }], url: [{ source: '', parserSteps: [] }], author: [{ source: '', parserSteps: [] }], pubDate: [{ source: '', parserSteps: [] }], content: [{ source: '', parserSteps: [] }] });
+            this.parserGroups.push({ id: Date.now().toString(), base: [{ parserSteps: [] }], common: [{ source: '', parserSteps: [] }], title: [{ source: '', parserSteps: [] }], url: [{ source: '', parserSteps: [] }], author: [{ source: '', parserSteps: [] }], pubDate: [{ source: '', parserSteps: [] }], content: [{ source: '', parserSteps: [] }] });
             this.resultGroupValidates.push(true);
         },
         deleteParserGroup(index) {
             this.parserGroups.splice(index, 1);
             this.resultGroupValidates.splice(index, 1);
-            if ((index + 1) > this.parserGroups.length) this.step--;
+            this.step--;
         },
         exportFeed() {
             this.exporting = true;

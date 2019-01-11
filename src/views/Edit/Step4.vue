@@ -1,6 +1,6 @@
 <template>
     <v-layout class="my-4" column>
-        <v-flex :key="parserType" v-for="(parsers, parserType, count) in parserGroup">
+        <v-flex :key="parserType" v-for="(parsers, parserType, count) in parserGroup" v-if="parserType !== 'id'">
             <lazy-render :time="500 * (count + 1)">
                 <v-layout align-center justify-center slot="tip">
                     <v-progress-circular :size="50" color="blue" indeterminate></v-progress-circular>
@@ -17,9 +17,10 @@
                                 <v-flex lg3 v-if="parserType !== 'base'">
                                     <v-select
                                         :items="parseSource[index].filter(({value}) => parseSourceFilter(parserType, value, i))"
-                                        :ref="`sources${parserType === 'title' || parserType === 'url' || parserType === 'pubDate' ? 'Required' : ''}`"
                                         :required="parserType === 'title' || parserType === 'url' || parserType === 'pubDate'"
                                         :rules="[parserType === 'title' || parserType === 'url' || parserType === 'pubDate' ? requireRule : true]"
+                                        @blur="onBlur($event, parserType, i, parser.source)"
+                                        @change="onChange($event, parserType, i)"
                                         clearable
                                         label="输入源"
                                         no-data-text="无可用输入源"
@@ -28,12 +29,6 @@
                                     ></v-select>
                                 </v-flex>
                                 <v-spacer></v-spacer>
-                                <v-tooltip :disabled="fetching !== ''" :open-delay="1000" lazy top>
-                                    <v-btn :disabled="fetching !== ''" @click="test" icon slot="activator" v-if="parserType === 'base'">
-                                        <v-icon>refresh</v-icon>
-                                    </v-btn>
-                                    <span>test</span>
-                                </v-tooltip>
                                 <v-tooltip :disabled="fetching !== ''" :open-delay="1000" lazy top>
                                     <v-btn :disabled="fetching !== ''" @click="fetchSource" icon slot="activator" v-if="parserType === 'base'">
                                         <v-icon>refresh</v-icon>
@@ -133,7 +128,8 @@ export default {
         },
         stepResult: false,
         parsing: '',
-        result: ''
+        result: '',
+        validations: {}
     }),
     computed: {
         parseSource() {
@@ -148,12 +144,12 @@ export default {
             }, []));
         },
         validation() {
-            if (this.$refs.sourcesRequired) {
-                return this.$refs.sourcesRequired.map(source => !source.hasFocused || source.valid).reduce((validates, validate) => validates && validate, true);
-            }
-            else {
-                return true;
-            }
+            return Object.values(this.validations).reduce((result, validation) => result && validation, true);
+        }
+    },
+    watch: {
+        validation(val) {
+            this.$emit('modifyValidation', val);
         }
     },
     methods: {
@@ -193,8 +189,15 @@ export default {
             this.$emit('modifyValidation', validate);
             return validate;
         },
-        test() {
-            console.log(this.validation);
+        onBlur(e, type, i, val) {
+            if (e.type === 'click' && (type === 'title' || type === 'url' || type === 'pubDate')) {
+                this.$set(this.validations, `${type}${i}`, !!val);
+            }
+        },
+        onChange(val, type, i) {
+            if (type === 'title' || type === 'url' || type === 'pubDate') {
+                this.$set(this.validations, `${type}${i}`, !!val);
+            }
         }
     },
     components: {
