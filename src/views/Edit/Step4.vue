@@ -5,7 +5,7 @@
                 <v-layout align-center justify-center slot="tip">
                     <v-progress-circular :size="50" color="blue" indeterminate></v-progress-circular>
                 </v-layout>
-                <v-card :key="i" color="#303030" disabled flat hide-actions v-for="(parser, i) in parsers">
+                <v-card :key="parser.id" color="#303030" disabled flat hide-actions v-for="(parser, i) in parsers">
                     <v-card-title class="pb-0">
                         <v-container fluid>
                             <v-layout>
@@ -17,10 +17,11 @@
                                 <v-flex lg3 v-if="parserType !== 'base'">
                                     <v-select
                                         :items="parseSource[index].filter(({value}) => parseSourceFilter(parserType, value, i))"
+                                        :ref="parserType === 'title' || parserType === 'url' || parserType === 'pubDate' ? 'sourcesRequired' : 'sources'"
                                         :required="parserType === 'title' || parserType === 'url' || parserType === 'pubDate'"
                                         :rules="[parserType === 'title' || parserType === 'url' || parserType === 'pubDate' ? requireRule : true]"
-                                        @blur="onBlur($event, parserType, i, parser.source)"
-                                        @change="onChange($event, parserType, i)"
+                                        @blur="onBlur($event, parserType, parser.id, parser.source)"
+                                        @change="onChange($event, parserType, parser.id)"
                                         clearable
                                         label="输入源"
                                         no-data-text="无可用输入源"
@@ -47,7 +48,7 @@
                                 </v-tooltip>
                                 <v-tooltip :open-delay="1000" lazy top>
                                     <v-btn
-                                        @click="parsers.splice(i + 1, 0, { source: '', parserSteps: [] })"
+                                        @click="parsers.splice(i + 1, 0, {id: Date.now().toString(), source: '', parserSteps: [] })"
                                         icon
                                         slot="activator"
                                         v-if="parserType !== 'base'"
@@ -57,7 +58,12 @@
                                     <span>{{`添加一个${parserName[parserType]}组`}}</span>
                                 </v-tooltip>
                                 <v-tooltip :open-delay="1000" lazy top>
-                                    <v-btn @click="parsers.splice(i, 1)" icon slot="activator" v-if="parsers.length > 1 && parserType !== 'base'">
+                                    <v-btn
+                                        @click="parsers.splice(i, 1); $delete(validations, `${parserType}${parser.id}`)"
+                                        icon
+                                        slot="activator"
+                                        v-if="parsers.length > 1 && parserType !== 'base'"
+                                    >
                                         <v-icon>close</v-icon>
                                     </v-btn>
                                     <span>{{`删除此${parserName[parserType]}组`}}</span>
@@ -185,18 +191,39 @@ export default {
             else return parseInt(value.match(/common(\d+)Step/)[1]) <= i;
         },
         validate() {
-            let validate = this.$refs.sourcesRequired.map(source => source.validate(true)).reduce((validates, validate) => validates && validate, true);
+            let validate;
+            if (this.$refs.sourcesRequired) {
+                validate = this.$refs.sourcesRequired.map(source => source.validate(true)).reduce((validates, validate) => validates && validate, true);
+            }
+            else validate = true;
             this.$emit('modifyValidation', validate);
             return validate;
         },
-        onBlur(e, type, i, val) {
+        reset() {
+            let timestamp = this.parserGroup.id;
+            this.$set(this.parserGroups, this.index, {
+                id: timestamp,
+                base: [{ id: timestamp, source: 'origin', parserSteps: [] }],
+                common: [{ id: timestamp, source: '', parserSteps: [] }],
+                title: [{ id: timestamp, source: '', parserSteps: [] }],
+                url: [{ id: timestamp, source: '', parserSteps: [] }],
+                pubDate: [{ id: timestamp, source: '', parserSteps: [] }],
+                author: [{ id: timestamp, source: '', parserSteps: [] }],
+                content: [{ id: timestamp, source: '', parserSteps: [] }]
+            });
+            this.validations = {};
+            this.$nextTick(() => {
+                this.$refs.sourcesRequired && this.$refs.sourcesRequired.forEach(source => source.resetValidation());
+            });
+        },
+        onBlur(e, type, id, val) {
             if (e.type === 'click' && (type === 'title' || type === 'url' || type === 'pubDate')) {
-                this.$set(this.validations, `${type}${i}`, !!val);
+                this.$set(this.validations, `${type}${id}`, !!val);
             }
         },
-        onChange(val, type, i) {
+        onChange(val, type, id) {
             if (type === 'title' || type === 'url' || type === 'pubDate') {
-                this.$set(this.validations, `${type}${i}`, !!val);
+                this.$set(this.validations, `${type}${id}`, !!val);
             }
         }
     },

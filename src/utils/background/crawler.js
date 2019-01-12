@@ -70,6 +70,8 @@ const crawler = {
                 newItems = this.customParser(data, parserGroups).map(item => {
                     item.feedId = id;
                     item.groupId = feed.groupId;
+                    item.active = 'true';
+                    item.collectionId = '';
                     return item;
                 });
             }
@@ -83,7 +85,9 @@ const crawler = {
                         content: item['content:encoded'] ? item['content:encoded'] : item.content,
                         pubDate: new Date(item.pubDate).getTime(),
                         feedId: id,
-                        groupId: feed.groupId
+                        groupId: feed.groupId,
+                        active: 'true',
+                        collectionId: ''
                     };
                     let author = item.author || item.creator;
                     newItem.author = author;

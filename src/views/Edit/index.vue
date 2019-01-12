@@ -164,16 +164,7 @@ export default {
         },
         fetching: '',
         fetchResult: '',
-        parserGroups: [{
-            id: Date.now().toString(),
-            base: [{ source: 'origin', parserSteps: [] }],
-            common: [{ source: '', parserSteps: [] }],
-            title: [{ source: '', parserSteps: [] }],
-            url: [{ source: '', parserSteps: [] }],
-            pubDate: [{ source: '', parserSteps: [] }],
-            author: [{ source: '', parserSteps: [] }],
-            content: [{ source: '', parserSteps: [] }]
-        }]
+        parserGroups: []
     }),
     mounted() {
         this.initialize();
@@ -217,16 +208,24 @@ export default {
         },
         submit() {
             Object.keys(this.validates).forEach(name => this.$refs[name] && this.$refs[name].validate());
-            this.resultGroupValidates.forEach((validate, index) => this.$refs.resultForm && this.$refs.resultForm[index].validate());
+            this.$refs.resultForm && this.$refs.resultForm.forEach(resultForm => resultForm.validate());
             this.$nextTick(async () => {
                 if (this.complete) {
                     this.loading++;
                     if (this.action === 'add') this.id = Date.now().toString();
                     switch (this.type) {
                         case 'group': {
+                            let old = this.$store.getters.getGroup(this.editId);
+                            if (this.action === 'update' && old.active !== this.step1.active) {
+                                await message.sendChangeItemsActive(this.editType, this.editId, this.step1.active.toString());
+                                old.feeds.forEach(async ({ id }) => await this.$store.dispatch('updateFeedState', {
+                                    id,
+                                    unread: this.step1.active ? await message.sendGetCount('feed', id, 'unread') : 0
+                                }));
+                            }
                             await this.$store.dispatch(`${this.action}Group`, {
-                                active: this.step1.active,
                                 id: this.id,
+                                active: this.step1.active,
                                 name: this.step2.name
                             });
                             this.$router.push({ path: this.step1.active ? `/list/group/${this.id}` : '/list/group/all' });
@@ -234,6 +233,13 @@ export default {
                         }
                         case 'feed':
                         case 'custom': {
+                            if (this.action === 'update' && this.$store.getters.getFeed(this.editId).active !== this.step1.active) {
+                                await message.sendChangeItemsActive(this.editType, this.editId, this.step1.active.toString());
+                                await this.$store.dispatch('updateFeedState', {
+                                    id: this.editId,
+                                    unread: this.step1.active ? await message.sendGetCount('feed', this.editId, 'unread') : 0
+                                });
+                            }
                             await this.$store.dispatch(`${this.action}Feed`, {
                                 id: this.id,
                                 active: this.step1.active,
@@ -258,61 +264,39 @@ export default {
         },
         clear(name, index) {
             if (isNaN(index)) this.$refs[name] && this.$refs[name].reset();
-            else this.$refs[name][index].reset();
-            this.$nextTick(() => {
-                switch (name) {
-                    case 'form1': {
-                        this.step1.type = 'group';
-                        break;
-                    }
-                    case 'form2': {
-                        this.step2.name = '';
-                        this.step2.group = '';
-                        this.step2.icon = '';
-                        this.step2.home = '';
-                        break;
-                    }
-                    case 'form3': {
-                        this.step3.url = '';
-                        this.step3.method = 'get';
-                        this.step3.timeout = 30;
-                        this.step3.headers = {};
-                        this.step3.body = '';
-                        break;
-                    }
-                    default: {
-                        this.parserGroups.splice(index, 1, {
-                            id: Date.now().toString(),
-                            base: [{ source: 'origin', parserSteps: [] }],
-                            common: [{ source: '', parserSteps: [] }],
-                            title: [{ source: '', parserSteps: [] }],
-                            url: [{ source: '', parserSteps: [] }],
-                            pubDate: [{ source: '', parserSteps: [] }],
-                            author: [{ source: '', parserSteps: [] }],
-                            content: [{ source: '', parserSteps: [] }]
-                        });
-                        break;
-                    }
-                }
-            });
-        },
-        clearAll() {
-            Object.keys(this.validates).forEach(name => this.clear(name));
-            this.id = '';
-            this.step1.active = true;
-            this.parserGroups = [{
-                id: Date.now().toString(),
-                base: [{ source: 'origin', parserSteps: [] }],
-                common: [{ source: '', parserSteps: [] }],
-                title: [{ source: '', parserSteps: [] }],
-                url: [{ source: '', parserSteps: [] }],
-                pubDate: [{ source: '', parserSteps: [] }],
-                author: [{ source: '', parserSteps: [] }],
-                content: [{ source: '', parserSteps: [] }]
-            }];
-            this.resultGroupValidates = [true];
+            else this.$refs[name] && this.$refs[name][index] && this.$refs[name][index].reset();
         },
         initialize() {
+            let timestamp = Date.now().toString();
+            this.id = '';
+            this.step1 = {
+                type: 'group',
+                active: true
+            };
+            this.step2 = {
+                name: '',
+                group: '',
+                icon: '',
+                home: ''
+            };
+            this.step3 = {
+                url: '',
+                method: 'get',
+                timeout: 30,
+                headers: {},
+                body: ''
+            };
+            this.parserGroups = [{
+                id: timestamp,
+                base: [{ id: timestamp, source: 'origin', parserSteps: [] }],
+                common: [{ id: timestamp, source: '', parserSteps: [] }],
+                title: [{ id: timestamp, source: '', parserSteps: [] }],
+                url: [{ id: timestamp, source: '', parserSteps: [] }],
+                pubDate: [{ id: timestamp, source: '', parserSteps: [] }],
+                author: [{ id: timestamp, source: '', parserSteps: [] }],
+                content: [{ id: timestamp, source: '', parserSteps: [] }]
+            }];
+            this.resultGroupValidates = [true];
             if (this.action === 'update') {
                 this.step1.type = this.editType;
                 if (this.editType === 'group') {
@@ -326,8 +310,8 @@ export default {
                     }
                     ({
                         id: this.id,
-                        name: this.step2.name,
                         active: this.step1.active,
+                        name: this.step2.name,
                         groupId: this.step2.group,
                         home: this.step2.home,
                         icon: this.step2.icon,
@@ -339,9 +323,6 @@ export default {
                     this.step3.headers = JSON.parse(JSON.stringify(feed.headers));
                 }
             }
-            else {
-                this.clearAll();
-            }
         },
         async deleteItem(type, id) {
             this.loading++;
@@ -352,7 +333,17 @@ export default {
             this.$router.push({ path: '/list/group/all' }, () => this.$store.dispatch(`delete${Type}`, item));
         },
         addParserGroup() {
-            this.parserGroups.push({ id: Date.now().toString(), base: [{ parserSteps: [] }], common: [{ source: '', parserSteps: [] }], title: [{ source: '', parserSteps: [] }], url: [{ source: '', parserSteps: [] }], author: [{ source: '', parserSteps: [] }], pubDate: [{ source: '', parserSteps: [] }], content: [{ source: '', parserSteps: [] }] });
+            let timestamp = Date.now().toString();
+            this.parserGroups.push({
+                id: timestamp,
+                base: [{ id: timestamp, source: 'origin', parserSteps: [] }],
+                common: [{ id: timestamp, source: '', parserSteps: [] }],
+                title: [{ id: timestamp, source: '', parserSteps: [] }],
+                url: [{ id: timestamp, source: '', parserSteps: [] }],
+                pubDate: [{ id: timestamp, source: '', parserSteps: [] }],
+                author: [{ id: timestamp, source: '', parserSteps: [] }],
+                content: [{ id: timestamp, source: '', parserSteps: [] }]
+            });
             this.resultGroupValidates.push(true);
         },
         deleteParserGroup(index) {

@@ -22,14 +22,14 @@ const message = {
                     return;
                 }
                 case 'getItems': {
-                    let { type, id, page, amount, state } = data;
+                    let { type, id, page, amount, state, active } = data;
                     if (type === 'group') {
-                        let request = id === 'all' ? db.getAllItems(page, amount, state) : db.getItemsByGroupId(id, page, amount, state);
+                        let request = id === 'all' ? db.getAllItems(page, amount, state, active) : db.getItemsByGroupId(id, page, amount, state, active);
                         request.then(items => sendResponse({ result: 'ok', data: items }))
                             .catch(e => sendResponse({ result: 'fail', data: e.toString() }));
                     }
                     else if (type === 'feed') {
-                        db.getItemsByFeedId(id, page, amount, state)
+                        db.getItemsByFeedId(id, page, amount, state, active)
                             .then(items => sendResponse({ result: 'ok', data: items }))
                             .catch(e => sendResponse({ result: 'fail', data: e.toString() }));
                     }

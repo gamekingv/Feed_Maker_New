@@ -51,6 +51,15 @@ export default {
     methods: {
         validate() {
             return this.$refs.form.validate();
+        },
+        reset() {
+            this.step.name = '';
+            this.step.group = '';
+            this.step.icon = '';
+            this.step.home = '';
+            this.$nextTick(() => {
+                this.$refs.form.resetValidation();
+            });
         }
     }
 };

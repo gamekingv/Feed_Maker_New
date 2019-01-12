@@ -12,6 +12,7 @@ const store = new Vuex.Store({
         parsers: {},
         feedState: {},
         buttons: [],
+        collections: [],
         settings: {
             itemsPerPage: 15,
             view: 'all',

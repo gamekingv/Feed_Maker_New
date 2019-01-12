@@ -18,13 +18,12 @@ const database = {
                 db = e.target.result;
                 if (!db.objectStoreNames.contains(DB_ITEM_STORE_NAME)) {
                     let itemStore = db.createObjectStore(DB_ITEM_STORE_NAME, { keyPath: 'id', autoIncrement: true });
-                    itemStore.createIndex('pubDate', 'pubDate');
-                    itemStore.createIndex('feedId', ['feedId', 'pubDate']);
-                    itemStore.createIndex('groupId', ['groupId', 'pubDate']);
-                    itemStore.createIndex('url', ['feedId', 'url', 'pubDate']);
-                    itemStore.createIndex('pubDateWithState', ['state', 'pubDate']);
-                    itemStore.createIndex('feedIdWithState', ['feedId', 'state', 'pubDate']);
-                    itemStore.createIndex('groupIdWithState', ['groupId', 'state', 'pubDate']);
+                    itemStore.createIndex('pubDate', ['active', 'pubDate']);
+                    itemStore.createIndex('feedId', ['feedId', 'active', 'pubDate']);
+                    itemStore.createIndex('groupId', ['groupId', 'active', 'pubDate']);
+                    itemStore.createIndex('pubDateWithState', ['state', 'active', 'pubDate']);
+                    itemStore.createIndex('feedIdWithState', ['feedId', 'state', 'active', 'pubDate']);
+                    itemStore.createIndex('groupIdWithState', ['groupId', 'state', 'active', 'pubDate']);
                 }
                 if (!db.objectStoreNames.contains(DB_COLLECTION_STORE_NAME)) {
                     db.createObjectStore(DB_COLLECTION_STORE_NAME, { keyPath: 'id', autoIncrement: true });
@@ -40,9 +39,8 @@ const database = {
             resolve(transaction.objectStore(name));
         });
     },
-    makeParm(type, id, state) {
+    makeParm({ type, id, state, active = 'true' }) {
         let index = type, keyRange, upperBound = [], lowerBound = [];
-        if (!id && !state) return { index, keyRange };
         if (id) {
             upperBound.push(id);
             lowerBound.push(id);
@@ -52,6 +50,8 @@ const database = {
             upperBound.push(state);
             lowerBound.push(state);
         }
+        upperBound.push(active);
+        lowerBound.push(active);
         upperBound.push(0);
         lowerBound.push(Number.POSITIVE_INFINITY);
         keyRange = IDBKeyRange.bound(upperBound, lowerBound);
@@ -94,36 +94,44 @@ const database = {
             };
         }));
     },
-    getAllItems(page, amount, state) {
-        let { index, keyRange } = this.makeParm('pubDate', null, state);
+    getAllItems(page, amount, state, active) {
+        let { index, keyRange } = this.makeParm({ type: 'pubDate', state, active });
         return this.getItems(index, keyRange, page, amount);
     },
     getAllItemsCount(state) {
-        let { index, keyRange } = this.makeParm('pubDate', null, state);
+        let { index, keyRange } = this.makeParm({ type: 'pubDate', state });
         return this.getItemsCount(index, keyRange);
     },
-    getItemsByFeedId(feedId, page, amount, state) {
-        let { index, keyRange } = this.makeParm('feedId', feedId, state);
+    getItemsByFeedId(id, page, amount, state, active) {
+        let { index, keyRange } = this.makeParm({ type: 'feedId', id, state, active });
         return this.getItems(index, keyRange, page, amount);
     },
-    getItemsCountByFeedId(feedId, state) {
-        let { index, keyRange } = this.makeParm('feedId', feedId, state);
+    getItemsCountByFeedId(id, state) {
+        let { index, keyRange } = this.makeParm({ type: 'feedId', id, state });
         return this.getItemsCount(index, keyRange);
     },
-    getItemsByGroupId(groupId, page, amount, state) {
-        let { index, keyRange } = this.makeParm('groupId', groupId, state);
+    getItemsByGroupId(id, page, amount, state, active) {
+        let { index, keyRange } = this.makeParm({ type: 'groupId', id, state, active });
         return this.getItems(index, keyRange, page, amount);
     },
-    getItemsCountByGroupId(groupId, state) {
-        let { index, keyRange } = this.makeParm('groupId', groupId, state);
+    getItemsCountByGroupId(id, state) {
+        let { index, keyRange } = this.makeParm({ type: 'groupId', id, state });
         return this.getItemsCount(index, keyRange);
     },
     addItems(items) {
         return this.getItemsByFeedId(items[0].feedId).then(oldItems => {
             let unreadCount = 0;
             items.forEach(item => {
-                if (oldItems.findIndex(oldItem => oldItem.url === item.url && oldItem.title === item.title && oldItem.state === 'read') > -1) {
-                    item.state = 'read';
+                let index = oldItems.findIndex(oldItem => oldItem.url === item.url && oldItem.title === item.title);
+                if (index > -1) {
+                    if (oldItems[index].state === 'read') {
+                        item.state = 'read';
+                    }
+                    else {
+                        item.state = 'unread';
+                        unreadCount++;
+                    }
+                    item.collectionId = oldItems[index].collectionId;
                 }
                 else {
                     item.state = 'unread';

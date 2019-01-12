@@ -335,8 +335,8 @@ export default {
             browser.tabs.create({ url: this.$store.getters.getFeed(this.active.id).home });
         },
         async exportConfig() {
-            let { groups, parsers, buttons, settings } = await browser.storage.local.get();
-            let file = new Blob([JSON.stringify({ type: 'all', groups, parsers, buttons, settings })], { type: 'application/json' });
+            let { groups, parsers, buttons, settings, collections } = await browser.storage.local.get();
+            let file = new Blob([JSON.stringify({ type: 'all', groups, parsers, buttons, settings, collections })], { type: 'application/json' });
             browser.downloads.download({
                 url: URL.createObjectURL(file),
                 filename: 'all configs.json',
@@ -364,12 +364,13 @@ export default {
         async apply() {
             this.importAlert = false;
             if (this.importType === 'all') {
-                let { groups, parsers, buttons, settings } = this.config;
+                let { groups, parsers, buttons, settings, collections } = this.config;
                 await this.resetAllConfig();
                 groups && await browser.storage.local.set({ groups });
                 parsers && await browser.storage.local.set({ parsers });
                 buttons && await browser.storage.local.set({ buttons });
                 settings && await browser.storage.local.set({ settings });
+                collections && await browser.storage.local.set({ collections });
                 location.reload();
             }
             else if (this.importType === 'feed') {

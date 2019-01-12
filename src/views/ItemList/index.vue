@@ -67,9 +67,15 @@
                                         small
                                         text-color="white"
                                     >{{timeFormatter(item.pubDate)}}</v-chip>
+                                    <v-tooltip :open-delay="1000" lazy top>
+                                        <v-btn @click.stop="collect(item)" icon slot="activator" small>
+                                            <v-icon small v-text="item.collectionId ? 'star' :'star_border'"></v-icon>
+                                        </v-btn>
+                                        <span v-text="item.collectionId ? '取消收藏' : '收藏'"></span>
+                                    </v-tooltip>
                                 </v-list-tile>
                             </v-hover>
-                            <v-divider :key="item.id * -1" v-if="i < items.length - 1"></v-divider>
+                            <v-divider :key="item.id * -1" v-if="i < items.length - 1 || items.length === 1"></v-divider>
                         </template>
                     </v-list>
                     <v-layout align-center justify-center>
@@ -90,9 +96,6 @@
                         </v-btn>
                         <v-btn @click="markItems('unread')" color="indigo" fab small>
                             <v-icon>bookmark_border</v-icon>
-                        </v-btn>
-                        <v-btn color="red" fab small>
-                            <v-icon>star</v-icon>
                         </v-btn>
                     </v-speed-dial>
                 </v-flex>
@@ -133,6 +136,7 @@ export default {
             'active',
             'groups',
             'buttons',
+            'collections',
             'feedState'
         ]),
         ...mapGetters([
@@ -164,8 +168,7 @@ export default {
             else
                 return `${time.getFullYear()}/${time.getMonth() + 1}/${time.getDate()}`;
         },
-        async refreshList(config) {
-            if (!config) config = {};
+        async refreshList(config = {}) {
             let { type, id, isLoading = false, isChangePage = false, isUpdateComplete = false } = config;
             if (isUpdateComplete && !this.isShowing(type, id)) {
                 isLoading && this.loading--;
@@ -173,7 +176,8 @@ export default {
             }
             if (!isLoading) this.loading++;
             if (!isChangePage) {
-                this.totalItems = await message.sendGetCount(this.active.subType, this.active.id, this.settings.view);
+                if (this.active.id === 'collections') this.totalItems = this.collections.length;
+                else this.totalItems = await message.sendGetCount(this.active.subType, this.active.id, this.settings.view);
                 if (this.currentPage > this.totalPage) {
                     if (this.totalPage === 0) {
                         this.currentPage = 1;
@@ -183,7 +187,8 @@ export default {
                     }
                 }
             }
-            this.items = await message.sendGet(this.active.subType, this.active.id, this.currentPage);
+            if (this.active.id === 'collections') this.items = JSON.parse(JSON.stringify(this.collections));
+            else this.items = await message.sendGet(this.active.subType, this.active.id, this.currentPage);
             this.clearSelects();
             this.loading--;
         },
@@ -192,6 +197,9 @@ export default {
             if (activeType === 'group') {
                 if (activeId === 'all') {
                     return true;
+                }
+                else if (activeId === 'collections') {
+                    return false;
                 }
                 else if (type === 'feed') {
                     return this.groups.find(group => group.id === activeId).feeds.some(feed => feed.id === id);
@@ -272,6 +280,17 @@ export default {
                 })();
             }
             catch (e) { throw e; }
+        },
+        async collect(item) {
+            if (item.collectionId) {
+                await this.$store.dispatch('deleteCollection', item.collectionId);
+                item.collectionId = '';
+            }
+            else {
+                item.collectionId = Date.now().toString();
+                await this.$store.dispatch('addCollection', JSON.parse(JSON.stringify(item)));
+            }
+            await message.sendChangeItemCollectionId(item.id, item.collectionId);
         }
     },
     beforeRouteEnter(to, from, next) {

@@ -43,6 +43,13 @@ export default {
     methods: {
         validate() {
             return this.$refs.form.validate();
+        },
+        reset() {
+            if (this.action !== 'update') this.step.type = 'group';
+            this.step.active = true;
+            this.$nextTick(() => {
+                this.$refs.form.resetValidation();
+            });
         }
     }
 };

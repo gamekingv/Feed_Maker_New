@@ -8,7 +8,7 @@ const getters = {
             title += getters.getFeed(state.active.id).name;
         }
         else if (state.active.subType === 'group') {
-            if (state.active.id === 'collection') {
+            if (state.active.id === 'collections') {
                 title += '收藏';
             } else if (state.active.id === 'all') {
                 title += '全部';
@@ -23,7 +23,7 @@ const getters = {
     },
     getFeed: state => id => state.groups.reduce((feeds, group) => feeds.concat(group.feeds), []).find(feed => feed.id === id),
     getGroup: state => id => state.groups.find(group => group.id === id),
-    getFeedUnread: (state, getters) => ({ active, id, groupId }) => active && getters.getGroup(groupId).active ? state.feedState[id].unread : 0,
+    getFeedUnread: (state) => ({ id }) => state.feedState[id].unread,
     getGroupUnread: (state, getters) => id => state.groups.find(group => group.id === id).feeds.reduce((total, feed) => getters.getFeedUnread(feed) + total, 0),
     getAllUnread: (state, getters) => state.groups.reduce((total, group) => getters.getGroupUnread(group.id) + total, 0),
     getGroupLoading: state => id => state.groups.find(group => group.id === id).feeds.some(feed => state.feedState[feed.id].isLoading === true),

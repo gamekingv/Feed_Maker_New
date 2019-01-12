@@ -40,12 +40,11 @@ const message = {
             throw data;
         }
     },
-    async sendGet(type, id, page, state = store.state.settings.view.replace('all', '')) {
+    async sendGet(type, id, page, state = store.state.settings.view.replace('all', ''), active) {
         let { result, data } = await this.send({
             action: 'getItems', data: {
-                type, id, page,
+                type, id, page, state, active,
                 amount: page ? store.state.settings.itemsPerPage : null,
-                state: state
             }
         });
         if (result === 'ok') {
@@ -88,7 +87,15 @@ const message = {
     },
     sendClearDataBase() {
         return this.send({ action: 'clear database' });
-    }
+    },
+    async sendChangeItemsActive(type, id, active) {
+        let items = await this.sendGet(type, id, null, 'unread', (!(active === 'true')).toString());
+        return await this.sendModifyItems(items.map(item => item.id), { active });
+    },
+    sendChangeItemCollectionId(id, collectionId) {
+        return this.sendModifyItems([id], { collectionId });
+    },
+
 };
 
 export default message;

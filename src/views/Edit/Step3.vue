@@ -136,6 +136,16 @@ export default {
         },
         validate() {
             return this.$refs.form.validate();
+        },
+        reset() {
+            this.step.url = '';
+            this.step.method = 'get';
+            this.step.timeout = 30;
+            this.step.headers = {};
+            this.step.body = '';
+            this.$nextTick(() => {
+                this.$refs.form.resetValidation();
+            });
         }
     }
 };
