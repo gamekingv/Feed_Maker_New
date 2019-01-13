@@ -1,7 +1,6 @@
 const DB_NAME = 'feedMakerStorage',
     DB_VERSION = '1',
-    DB_ITEM_STORE_NAME = 'items',
-    DB_COLLECTION_STORE_NAME = 'collections';
+    DB_ITEM_STORE_NAME = 'items';
 
 let db;
 
