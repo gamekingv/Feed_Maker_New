@@ -137,6 +137,12 @@ const actions = {
     deleteCollection({ dispatch, commit }, data) {
         commit('deleteCollection', data);
         return dispatch('saveCollections');
+    },
+    addInfoText({ commit }, data) {
+        commit('addInfoText', data);
+    },
+    deleteInfoText({ commit }, data) {
+        commit('deleteInfoText', data);
     }
 };
 

@@ -24,9 +24,7 @@ const database = {
                     itemStore.createIndex('pubDateWithState', ['state', 'active', 'pubDate']);
                     itemStore.createIndex('feedIdWithState', ['feedId', 'state', 'active', 'pubDate']);
                     itemStore.createIndex('groupIdWithState', ['groupId', 'state', 'active', 'pubDate']);
-                }
-                if (!db.objectStoreNames.contains(DB_COLLECTION_STORE_NAME)) {
-                    db.createObjectStore(DB_COLLECTION_STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                    itemStore.createIndex('collectionId', 'collectionId');
                 }
                 resolve();
             };
@@ -118,6 +116,11 @@ const database = {
         let { index, keyRange } = this.makeParm({ type: 'groupId', id, state });
         return this.getItemsCount(index, keyRange);
     },
+    async getItemsByCollectionId(ids) {
+        let itemsArray = await Promise.all(ids.map(id => this.getItems('collectionId', IDBKeyRange.only(id)))),
+            items = itemsArray.reduce((items, item) => items.concat(item), []);
+        return items;
+    },
     addItems(items) {
         return this.getItemsByFeedId(items[0].feedId).then(oldItems => {
             let unreadCount = 0;
@@ -178,8 +181,7 @@ const database = {
         }));
     },
     clearDataBase() {
-        return Promise.all([this.startStore(DB_ITEM_STORE_NAME).then(objectStore => new Promise((resolve) => objectStore.clear().onsuccess = () => resolve())),
-        this.startStore(DB_COLLECTION_STORE_NAME).then(objectStore => new Promise((resolve) => objectStore.clear().onsuccess = () => resolve()))]);
+        return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => new Promise((resolve) => objectStore.clear().onsuccess = () => resolve()));
     }
 };
 

@@ -118,6 +118,7 @@ const crawler = {
     },
     async updateGroup(id) {
         let group = await this.getGroup(id);
+        if (!group.active) return;
         group.feeds.forEach(feed => feed.active && this.updateFeed(feed));
     },
     async updateAll() {
@@ -256,16 +257,18 @@ const crawler = {
         else return result;
     },
     async autoUpdate() {
-        // let { settings } = await browser.storage.local.get('settings'), autoUpdateFrequency = 15;
-        // if (settings) autoUpdateFrequency = settings.autoUpdateFrequency;
-        // timer = setInterval(() => {
-        //     message.sendBackgroundUpdate();
-        //     this.updateAll();
-        // }, autoUpdateFrequency * 60 * 1000);
+        let { settings } = await browser.storage.local.get('settings'), autoUpdateFrequency = 15, autoUpdate = true;
+        if (settings) ({ autoUpdateFrequency, autoUpdate } = settings);
+        if (autoUpdate) timer = setInterval(() => {
+            message.sendBackgroundUpdate();
+            this.updateAll();
+        }, autoUpdateFrequency * 60 * 1000);
     },
     stopUpdate() {
-        clearInterval(timer);
-        timer = null;
+        if (timer !== undefined) {
+            clearInterval(timer);
+            timer = undefined;
+        }
     }
 };
 

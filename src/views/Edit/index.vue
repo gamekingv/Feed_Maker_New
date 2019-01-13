@@ -329,7 +329,7 @@ export default {
             let Type = type.charAt(0).toUpperCase() + type.slice(1),
                 item = this.$store.getters[`get${Type}`](id);
             let { result, data } = await message[`sendDelete${Type}`](id);
-            if (result === 'fail') throw data;
+            if (result === 'fail') this.$throw(data);
             this.$router.push({ path: '/list/group/all' }, () => this.$store.dispatch(`delete${Type}`, item));
         },
         addParserGroup() {

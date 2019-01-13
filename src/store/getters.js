@@ -28,7 +28,8 @@ const getters = {
     getAllUnread: (state, getters) => state.groups.reduce((total, group) => getters.getGroupUnread(group.id) + total, 0),
     getGroupLoading: state => id => state.groups.find(group => group.id === id).feeds.some(feed => state.feedState[feed.id].isLoading === true),
     getFeedError: state => id => state.feedState[id].errorMessage,
-    getGroupError: state => id => state.groups.find(group => group.id === id).feeds.some(feed => state.feedState[feed.id].errorMessage !== '')
+    getGroupError: state => id => state.groups.find(group => group.id === id).feeds.some(feed => state.feedState[feed.id].errorMessage !== ''),
+    getCollections: (state) => (currentPage) => state.collections.slice(state.settings.itemsPerPage * (currentPage - 1), state.settings.itemsPerPage * currentPage),
 };
 
 export default getters;

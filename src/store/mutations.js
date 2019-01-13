@@ -109,10 +109,16 @@ const mutations = {
         state.collections.push(data);
     },
     deleteCollection(state, data) {
-        state.collections.splice(state.collections.findIndex(collection => collection.collectionId === data), 1);
+        state.collections.splice(state.collections.findIndex(collection => collection.id === data), 1);
     },
     updateCollections(state, data) {
         state.collections = data;
+    },
+    addInfoText(state, data) {
+        state.infoText.push(data);
+    },
+    deleteInfoText(state, data) {
+        state.infoText.splice(state.infoText.findIndex(text => text.id === data), 1);
     }
 };
 

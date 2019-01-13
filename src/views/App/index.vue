@@ -41,27 +41,27 @@
                     </v-fade-transition>
                     <v-spacer/>
                     <v-btn-toggle class="mx-3" mandatory v-model="view">
-                        <v-tooltip :disabled="active.type !== 'list'" :open-delay="1000" bottom lazy>
-                            <v-btn :disabled="active.type !== 'list'" flat slot="activator" value="unread">
+                        <v-tooltip :disabled="active.type !== 'list' || active.id === 'collections'" :open-delay="1000" bottom lazy>
+                            <v-btn :disabled="active.type !== 'list' || active.id === 'collections'" flat slot="activator" value="unread">
                                 <v-icon>bookmark_border</v-icon>
                             </v-btn>
                             <span>只显示未读</span>
                         </v-tooltip>
-                        <v-tooltip :disabled="active.type !== 'list'" :open-delay="1000" bottom lazy>
-                            <v-btn :disabled="active.type !== 'list'" flat slot="activator" value="read">
+                        <v-tooltip :disabled="active.type !== 'list' || active.id === 'collections'" :open-delay="1000" bottom lazy>
+                            <v-btn :disabled="active.type !== 'list' || active.id === 'collections'" flat slot="activator" value="read">
                                 <v-icon>bookmark</v-icon>
                             </v-btn>
                             <span>只显示已读</span>
                         </v-tooltip>
-                        <v-tooltip :disabled="active.type !== 'list'" :open-delay="1000" bottom lazy>
-                            <v-btn :disabled="active.type !== 'list'" flat slot="activator" value="all">
+                        <v-tooltip :disabled="active.type !== 'list' || active.id === 'collections'" :open-delay="1000" bottom lazy>
+                            <v-btn :disabled="active.type !== 'list' || active.id === 'collections'" flat slot="activator" value="all">
                                 <v-icon>bookmarks</v-icon>
                             </v-btn>
                             <span>显示全部</span>
                         </v-tooltip>
                     </v-btn-toggle>
-                    <v-tooltip :disabled="active.type !== 'list'" :open-delay="1000" bottom lazy>
-                        <v-btn :disabled="active.type !== 'list'" @click.stop="refresh" icon slot="activator">
+                    <v-tooltip :disabled="active.type !== 'list' || active.id === 'collections'" :open-delay="1000" bottom lazy>
+                        <v-btn :disabled="active.type !== 'list' || active.id === 'collections'" @click.stop="refresh" icon slot="activator">
                             <v-icon>refresh</v-icon>
                         </v-btn>
                         <span>刷新</span>
@@ -175,9 +175,10 @@
                             fab
                             fixed
                             right
+                            small
                             v-if="detailsOffsetTop > 100"
                         >
-                            <v-icon>keyboard_arrow_up</v-icon>
+                            <v-icon small>keyboard_arrow_up</v-icon>
                         </v-btn>
                     </v-fab-transition>
                 </v-navigation-drawer>
@@ -228,6 +229,19 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+        <v-snackbar
+            :color="info.color"
+            :key="info.id"
+            :value="true"
+            @input="v => !!v || $store.dispatch('deleteInfoText', info.id)"
+            top
+            v-for="info in infoText"
+        >
+            {{ info.text }}
+            <v-btn :color="info.color ? undefined : 'pink--text'" @click="$store.dispatch('deleteInfoText', info.id)" icon small>
+                <v-icon small>close</v-icon>
+            </v-btn>
+        </v-snackbar>
         <custom-icon-style/>
     </v-app>
 </template>
@@ -283,7 +297,8 @@ export default {
             'active',
             'settings',
             'groups',
-            'feedState'
+            'feedState',
+            'infoText'
         ])
     },
     async mounted() {
@@ -296,8 +311,8 @@ export default {
         this.loading = false;
     },
     methods: {
-        async refreshList(config) {
-            return await this.$refs.content.refreshList(config);
+        refreshList(config) {
+            return this.$refs.content.refreshList(config);
         },
         async refresh() {
             let { subType: type, id } = this.active;
@@ -352,14 +367,14 @@ export default {
                     this.config = config;
                     this.importAlert = true;
                 }
-                catch (e) { throw e; }
+                catch (e) { this.$throw(e); }
             });
             reader.readAsText(e.target.files[0]);
         },
         async resetAllConfig() {
             await browser.storage.local.clear();
             let { result, data } = await message.sendClearDataBase();
-            if (result === 'fail') throw data;
+            if (result === 'fail') this.$throw(data);
         },
         async apply() {
             this.importAlert = false;
@@ -416,8 +431,10 @@ export default {
                 document.onmouseup = undefined;
             };
         },
-        updateSetting(key) {
-            return this.$store.dispatch('updateSetting', { [key]: this[key] });
+        async updateSetting(key) {
+            await this.$store.dispatch('updateSetting', { [key]: this[key] });
+            if (key === 'autoUpdate') await message.changeAutoUpdate(this[key]);
+            if (key === 'autoUpdateFrequency') await message.changeAutoUpdateFrequency();
         },
         saveSettings() {
             return this.$store.dispatch('saveSettings');

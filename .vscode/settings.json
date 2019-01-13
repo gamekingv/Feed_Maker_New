@@ -11,6 +11,7 @@
         "readwrite",
         "scrollable",
         "scrollbar",
+        "snackbar",
         "subheader",
         "tethering",
         "v",

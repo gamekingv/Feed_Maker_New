@@ -34,7 +34,7 @@
                                     <v-btn :disabled="fetching !== ''" @click="fetchSource" icon slot="activator" v-if="parserType === 'base'">
                                         <v-icon>refresh</v-icon>
                                     </v-btn>
-                                    <span>重新抓取</span>
+                                    <span>重新抓取自定义源</span>
                                 </v-tooltip>
                                 <v-tooltip :open-delay="1000" lazy top>
                                     <v-btn

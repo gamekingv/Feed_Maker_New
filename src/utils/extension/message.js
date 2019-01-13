@@ -1,4 +1,5 @@
 import store from '~/store';
+import Vue from 'vue';
 
 const message = {
     init(app) {
@@ -37,7 +38,7 @@ const message = {
             return data;
         }
         else if (result === 'fail') {
-            throw data;
+            Vue.throw(data);
         }
     },
     async sendGet(type, id, page, state = store.state.settings.view.replace('all', ''), active) {
@@ -51,14 +52,15 @@ const message = {
             return data;
         }
         else if (result === 'fail') {
-            throw data;
+            Vue.throw(data);
+            return [];
         }
     },
     async sendUpdate(type, id) {
         try {
             return await this.send({ action: 'update', data: { type, id } });
         }
-        catch (e) { throw e; }
+        catch (e) { Vue.throw(e); }
     },
     sendModifyItems(ids, keyValues) {
         return this.send({ action: 'modify', data: { ids, keyValues } });
@@ -95,7 +97,15 @@ const message = {
     sendChangeItemCollectionId(id, collectionId) {
         return this.sendModifyItems([id], { collectionId });
     },
-
+    sendGetItemsByCollectionId(ids) {
+        return this.sendGet('collection', ids);
+    },
+    changeAutoUpdate(state) {
+        return this.send({ action: 'change autoUpdate', data: { state } });
+    },
+    changeAutoUpdateFrequency() {
+        return this.send({ action: 'change autoUpdateFrequency' });
+    }
 };
 
 export default message;

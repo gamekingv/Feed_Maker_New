@@ -1,3 +1,5 @@
+/*globals process*/
+
 import Vue from 'vue';
 import Vuex from 'vuex';
 import getters from './getters';
@@ -25,6 +27,7 @@ const store = new Vuex.Store({
             subType: 'group',
             id: 'all'
         },
+        infoText: []
     },
     getters,
     mutations,

@@ -67,8 +67,14 @@
                                         small
                                         text-color="white"
                                     >{{timeFormatter(item.pubDate)}}</v-chip>
-                                    <v-tooltip :open-delay="1000" lazy top>
-                                        <v-btn @click.stop="collect(item)" icon slot="activator" small>
+                                    <v-tooltip :open-delay="1000" lazy top v-if="active.id !== 'collections'">
+                                        <v-btn
+                                            :color="item.collectionId && 'yellow--text'"
+                                            @click.stop="collectStateChange([item])"
+                                            icon
+                                            slot="activator"
+                                            small
+                                        >
                                             <v-icon small v-text="item.collectionId ? 'star' :'star_border'"></v-icon>
                                         </v-btn>
                                         <span v-text="item.collectionId ? '取消收藏' : '收藏'"></span>
@@ -81,9 +87,25 @@
                     <v-layout align-center justify-center>
                         <v-pagination :length="totalPage" :total-visible="9" @input="changePage" circle v-if="totalPage > 1" v-model="currentPage"></v-pagination>
                     </v-layout>
-                    <v-speed-dial direction="bottom" fixed open-on-hover right style="top: 88px; z-index:0;" top v-if="items.length !== 0">
-                        <v-btn @click="markItems('all')" color="blue darken-2" fab slot="activator">
-                            <v-icon>done_all</v-icon>
+                    <v-speed-dial
+                        direction="bottom"
+                        fixed
+                        open-on-hover
+                        right
+                        style="top: 88px; z-index:0;"
+                        top
+                        v-if="items.length !== 0"
+                        v-model="floatingButton"
+                    >
+                        <v-btn
+                            @click="active.id !== 'collections' && markItems('all')"
+                            color="blue darken-2"
+                            fab
+                            slot="activator"
+                            v-model="floatingButton"
+                        >
+                            <v-icon v-text="active.id === 'collections' ? 'menu' : 'done_all'"></v-icon>
+                            <v-icon v-if="active.id === 'collections'">close</v-icon>
                         </v-btn>
                         <v-btn @click.stop="selectAll" color="pink" fab small>
                             <v-icon>select_all</v-icon>
@@ -91,11 +113,14 @@
                         <v-btn @click="clearSelects" color="green" fab small>
                             <v-icon>crop_free</v-icon>
                         </v-btn>
-                        <v-btn @click="markItems('read')" color="indigo" fab small>
+                        <v-btn @click="markItems('read')" color="indigo" fab small v-if="active.id !== 'collections'">
                             <v-icon>bookmark</v-icon>
                         </v-btn>
-                        <v-btn @click="markItems('unread')" color="indigo" fab small>
+                        <v-btn @click="markItems('unread')" color="indigo" fab small v-if="active.id !== 'collections'">
                             <v-icon>bookmark_border</v-icon>
+                        </v-btn>
+                        <v-btn @click="removeCollections(selectedItems)" color="red" fab small v-if="active.id === 'collections'">
+                            <v-icon>star_border</v-icon>
                         </v-btn>
                     </v-speed-dial>
                 </v-flex>
@@ -115,15 +140,14 @@ import message from '~/utils/extension/message';
 import { mapState, mapGetters } from 'vuex';
 
 export default {
-    data() {
-        return {
-            loading: 1,
-            items: [],
-            selectedItems: [],
-            currentPage: 1,
-            totalItems: 0
-        };
-    },
+    data: () => ({
+        loading: 1,
+        items: [],
+        selectedItems: [],
+        currentPage: 1,
+        totalItems: 0,
+        floatingButton: false
+    }),
     computed: {
         icons() {
             return this.items.map(item => this.getFeed(item.feedId).icon);
@@ -142,7 +166,8 @@ export default {
         ...mapGetters([
             'getFeed',
             'getGroup',
-            'getFeedError'
+            'getFeedError',
+            'getCollections'
         ]),
         isAlertShown: {
             get() {
@@ -187,7 +212,7 @@ export default {
                     }
                 }
             }
-            if (this.active.id === 'collections') this.items = JSON.parse(JSON.stringify(this.collections));
+            if (this.active.id === 'collections') this.items = JSON.parse(JSON.stringify(this.getCollections(this.currentPage)));
             else this.items = await message.sendGet(this.active.subType, this.active.id, this.currentPage);
             this.clearSelects();
             this.loading--;
@@ -257,7 +282,7 @@ export default {
                 await this.refreshList({ isLoading: true });
             }
             else if (result === 'fail') {
-                throw data;
+                this.$throw(data);
             }
         },
         changePage() {
@@ -271,7 +296,8 @@ export default {
                 let context = {
                     url,
                     title,
-                    fetchSource: message.sendFetchSource
+                    fetchSource: message.sendFetchSource,
+                    showInfo: this.showInfo
                 };
                 (function () {
                     let window, chrome, browser = undefined;
@@ -279,18 +305,39 @@ export default {
                     return [window, chrome, browser, context];
                 })();
             }
-            catch (e) { throw e; }
+            catch (e) { this.$throw(e); }
         },
-        async collect(item) {
-            if (item.collectionId) {
-                await this.$store.dispatch('deleteCollection', item.collectionId);
-                item.collectionId = '';
+        async collectStateChange(items) {
+            for (let item of items) {
+                if (item.collectionId) {
+                    await this.$store.dispatch('deleteCollection', item.collectionId);
+                    item.collectionId = '';
+                }
+                else {
+                    item.collectionId = Date.now().toString();
+                    let newItem = JSON.parse(JSON.stringify(item));
+                    newItem.state = 'unread';
+                    newItem.id = newItem.collectionId;
+                    delete newItem.collectionId;
+                    await this.$store.dispatch('addCollection', newItem);
+                }
+                await message.sendChangeItemCollectionId(item.id, item.collectionId);
+            }
+        },
+        async removeCollections(ids) {
+            this.loading++;
+            let items = await message.sendGetItemsByCollectionId(ids);
+            if (items.length > 0) await this.collectStateChange(items);
+            else await Promise.all(ids.map(id => this.$store.dispatch('deleteCollection', id)));
+            this.refreshList({ isLoading: true });
+        },
+        showInfo(text, color) {
+            if (typeof text === 'string' && (!color || typeof color === 'string')) {
+                this.$store.dispatch('addInfoText', { id: Date.now().toString(), text, color });
             }
             else {
-                item.collectionId = Date.now().toString();
-                await this.$store.dispatch('addCollection', JSON.parse(JSON.stringify(item)));
+                this.$store.dispatch('addInfoText', { id: Date.now().toString(), text: '参数非法！', color: 'error' });
             }
-            await message.sendChangeItemCollectionId(item.id, item.collectionId);
         }
     },
     beforeRouteEnter(to, from, next) {

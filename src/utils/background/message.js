@@ -33,6 +33,11 @@ const message = {
                             .then(items => sendResponse({ result: 'ok', data: items }))
                             .catch(e => sendResponse({ result: 'fail', data: e.toString() }));
                     }
+                    else if (type === 'collection') {
+                        db.getItemsByCollectionId(id)
+                            .then(items => sendResponse({ result: 'ok', data: items }))
+                            .catch(e => sendResponse({ result: 'fail', data: e.toString() }));
+                    }
                     break;
                 }
                 case 'getCount': {
@@ -98,6 +103,19 @@ const message = {
                 }
                 case 'clear database': {
                     db.clearDataBase().then(() => sendResponse({ result: 'ok' })).catch(e => sendResponse({ result: 'fail', data: e.toString() }));
+                    break;
+                }
+                case 'change autoUpdate': {
+                    let { state } = data;
+                    if (state) crawler.autoUpdate();
+                    else crawler.stopUpdate();
+                    sendResponse({ result: 'ok' });
+                    break;
+                }
+                case 'change autoUpdateFrequency': {
+                    crawler.stopUpdate();
+                    crawler.autoUpdate();
+                    sendResponse({ result: 'ok' });
                     break;
                 }
             }
