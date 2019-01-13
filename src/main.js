@@ -29,4 +29,4 @@ const errorHandler = (error) => {
 Vue.config.errorHandler = errorHandler;
 Vue.throw = errorHandler;
 Vue.prototype.$throw = errorHandler;
-window.onerror = errorHandler;
+onerror = errorHandler;
