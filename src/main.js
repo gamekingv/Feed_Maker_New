@@ -20,12 +20,13 @@ new Vue({
     render: h => h(App)
 });
 
-Vue.config.errorHandler = (error) => errorHandler(error);
-window.onerror = (error) => errorHandler(error);
-Vue.throw = (error) => errorHandler(error);
-Vue.prototype.$throw = (error) => errorHandler(error);
-
-function errorHandler(error) {
+const errorHandler = (error) => {
     store.dispatch('addInfoText', { id: Date.now().toString(), text: '出现未知错误，请按F12打开控制台查看。', color: 'error' });
     console.error('Feed Maker扩展未知错误：', error);
-}
+    return true;
+};
+
+Vue.config.errorHandler = errorHandler;
+Vue.throw = errorHandler;
+Vue.prototype.$throw = errorHandler;
+window.onerror = errorHandler;
