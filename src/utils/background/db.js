@@ -8,7 +8,7 @@ let db;
 const database = {
     init() {
         return new Promise((resolve, reject) => {
-            let request = window.indexedDB.open(DB_NAME, DB_VERSION);
+            let request = indexedDB.open(DB_NAME, DB_VERSION);
             request.onerror = reject;
             request.onsuccess = e => {
                 db = e.target.result;
