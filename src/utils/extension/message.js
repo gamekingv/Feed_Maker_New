@@ -3,7 +3,8 @@ import Vue from 'vue';
 
 const message = {
     init(app) {
-        browser.runtime.onMessage.addListener(async ({ action, data }) => {
+        browser.runtime.onMessage.addListener(async ({ action, data }, sender) => {
+            if (sender.url.indexOf('_generated_background_page.html') === -1) return;
             switch (action) {
                 case 'background update': {
                     Object.keys(store.state.feedState).forEach(id => store.dispatch('updateFeedState', { id, isLoading: true }));
@@ -27,34 +28,27 @@ const message = {
         return browser.runtime.sendMessage(payload);
     },
     async sendGetCount(type, id, state = store.state.settings.view) {
-        state = state.replace('all', '');
-        let { result, data } = await this.send({
-            action: 'getCount', data: {
-                type, id,
-                state: state
-            }
-        });
-        if (result === 'ok') {
-            return data;
+        try {
+            state = state.replace('all', '');
+            return await this.send({
+                action: 'getCount', data: {
+                    type, id,
+                    state: state
+                }
+            });
         }
-        else if (result === 'fail') {
-            Vue.throw(data);
-        }
+        catch (e) { Vue.throw(e); }
     },
     async sendGet(type, id, page, state = store.state.settings.view.replace('all', ''), active) {
-        let { result, data } = await this.send({
-            action: 'getItems', data: {
-                type, id, page, state, active,
-                amount: page ? store.state.settings.itemsPerPage : null,
-            }
-        });
-        if (result === 'ok') {
-            return data;
+        try {
+            return await this.send({
+                action: 'getItems', data: {
+                    type, id, page, state, active,
+                    amount: page ? store.state.settings.itemsPerPage : null,
+                }
+            });
         }
-        else if (result === 'fail') {
-            Vue.throw(data);
-            return [];
-        }
+        catch (e) { Vue.throw(e); }
     },
     async sendUpdate(type, id) {
         try {
@@ -63,7 +57,10 @@ const message = {
         catch (e) { Vue.throw(e); }
     },
     sendModifyItems(ids, keyValues) {
-        return this.send({ action: 'modify', data: { ids, keyValues } });
+        try {
+            return this.send({ action: 'modify', data: { ids, keyValues } });
+        }
+        catch (e) { Vue.throw(e); }
     },
     sendMarkItemsAsRead(ids) {
         return this.sendModifyItems(ids, { state: 'read' });
@@ -76,19 +73,34 @@ const message = {
         return this.sendModifyItems(ids, { state: 'unread' });
     },
     sendFetchSource(feed) {
-        return this.send({ action: 'fetch source', data: { feed } });
+        try {
+            return this.send({ action: 'fetch source', data: { feed } });
+        }
+        catch (e) { return e.toString(); }
     },
     sendParseSource(source, type, steps) {
-        return this.send({ action: 'parse source', data: { source, type, steps } });
+        try {
+            return this.send({ action: 'parse source', data: { source, type, steps } });
+        }
+        catch (e) { return e.toString(); }
     },
     sendDeleteFeed(id) {
-        return this.send({ action: 'delete feed', data: { id } });
+        try {
+            return this.send({ action: 'delete feed', data: { id } });
+        }
+        catch (e) { Vue.throw(e); }
     },
     sendDeleteGroup(id) {
-        return this.send({ action: 'delete group', data: { id } });
+        try {
+            return this.send({ action: 'delete group', data: { id } });
+        }
+        catch (e) { Vue.throw(e); }
     },
     sendClearDataBase() {
-        return this.send({ action: 'clear database' });
+        try {
+            return this.send({ action: 'clear database' });
+        }
+        catch (e) { Vue.throw(e); }
     },
     async sendChangeItemsActive(type, id, active) {
         let items = await this.sendGet(type, id, null, 'unread', (!(active === 'true')).toString());
@@ -101,10 +113,16 @@ const message = {
         return this.sendGet('collection', ids);
     },
     changeAutoUpdate(state) {
-        return this.send({ action: 'change autoUpdate', data: { state } });
+        try {
+            return this.send({ action: 'change autoUpdate', data: { state } });
+        }
+        catch (e) { Vue.throw(e); }
     },
     changeAutoUpdateFrequency() {
-        return this.send({ action: 'change autoUpdateFrequency' });
+        try {
+            return this.send({ action: 'change autoUpdateFrequency' });
+        }
+        catch (e) { Vue.throw(e); }
     }
 };
 

@@ -229,16 +229,9 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
-        <v-snackbar
-            :color="info.color"
-            :key="info.id"
-            :value="true"
-            @input="v => !!v || $store.dispatch('deleteInfoText', info.id)"
-            top
-            v-for="info in infoText"
-        >
+        <v-snackbar :color="info.color" :key="info.id" :value="true" @input="v => !!v || deleteInfo(info.id)" top v-for="info in infoText">
             {{ info.text }}
-            <v-btn :color="info.color ? undefined : 'pink--text'" @click="$store.dispatch('deleteInfoText', info.id)" icon small>
+            <v-btn :color="info.color ? undefined : 'pink--text'" @click="deleteInfo(info.id)" icon small>
                 <v-icon small>close</v-icon>
             </v-btn>
         </v-snackbar>
@@ -275,7 +268,8 @@ export default {
         importType: '',
         importToGroup: '',
         importFeedInfo: true,
-        importAlert: false
+        importAlert: false,
+        infoText: []
     }),
     computed: {
         view: {
@@ -297,13 +291,12 @@ export default {
             'active',
             'settings',
             'groups',
-            'feedState',
-            'infoText'
+            'feedState'
         ])
     },
     async mounted() {
-        await this.$store.dispatch('initStore');
         message.init(this);
+        await this.$store.dispatch('initStore');
         this.itemsPerPage = this.settings.itemsPerPage;
         this.autoUpdate = this.settings.autoUpdate;
         this.autoUpdateFrequency = this.settings.autoUpdateFrequency;
@@ -373,8 +366,7 @@ export default {
         },
         async resetAllConfig() {
             await browser.storage.local.clear();
-            let { result, data } = await message.sendClearDataBase();
-            if (result === 'fail') this.$throw(data);
+            await message.sendClearDataBase();
         },
         async apply() {
             this.importAlert = false;
@@ -445,6 +437,18 @@ export default {
                 this.updateSetting('itemsPerPage');
                 this.refreshList();
             }
+        },
+        addInfo(text, color) {
+            let id = Date.now().toString();
+            if (typeof text === 'string' && (!color || typeof color === 'string')) {
+                this.infoText.push({ id, text, color });
+            }
+            else {
+                this.infoText.push({ id, text: '参数非法！', color: 'error' });
+            }
+        },
+        deleteInfo(id) {
+            this.infoText.splice(this.infoText.findIndex(info => id === info.id), 1);
         }
     },
     components: {

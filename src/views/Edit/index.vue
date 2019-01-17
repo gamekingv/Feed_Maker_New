@@ -195,7 +195,7 @@ export default {
             let timestamp = Date.now().toString();
             this.fetching = timestamp;
 
-            let { data } = await message.sendFetchSource({
+            let data = await message.sendFetchSource({
                 url: this.step3.url,
                 method: this.step3.method,
                 timeout: this.step3.timeout,
@@ -328,8 +328,7 @@ export default {
             this.loading++;
             let Type = type.charAt(0).toUpperCase() + type.slice(1),
                 item = this.$store.getters[`get${Type}`](id);
-            let { result, data } = await message[`sendDelete${Type}`](id);
-            if (result === 'fail') this.$throw(data);
+            await message[`sendDelete${Type}`](id);
             this.$router.push({ path: '/list/group/all' }, () => this.$store.dispatch(`delete${Type}`, item));
         },
         addParserGroup() {

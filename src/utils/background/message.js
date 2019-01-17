@@ -4,7 +4,7 @@ import db from './db';
 const message = {
     isInitialized: false,
     init() {
-        browser.runtime.onMessage.addListener(({ action, data }, sender, sendResponse) => {
+        browser.runtime.onMessage.addListener(({ action, data }) => {
             switch (action) {
                 case 'update': {
                     let { type, id } = data;
@@ -19,51 +19,34 @@ const message = {
                     else if (type === 'feed') {
                         crawler.updateFeed({ id });
                     }
-                    return;
+                    break;
                 }
                 case 'getItems': {
                     let { type, id, page, amount, state, active } = data;
                     if (type === 'group') {
-                        let request = id === 'all' ? db.getAllItems(page, amount, state, active) : db.getItemsByGroupId(id, page, amount, state, active);
-                        request.then(items => sendResponse({ result: 'ok', data: items }))
-                            .catch(e => sendResponse({ result: 'fail', data: e.toString() }));
+                        return id === 'all' ? db.getAllItems(page, amount, state, active) : db.getItemsByGroupId(id, page, amount, state, active);
                     }
                     else if (type === 'feed') {
-                        db.getItemsByFeedId(id, page, amount, state, active)
-                            .then(items => sendResponse({ result: 'ok', data: items }))
-                            .catch(e => sendResponse({ result: 'fail', data: e.toString() }));
-                    }
-                    else if (type === 'collection') {
-                        db.getItemsByCollectionId(id)
-                            .then(items => sendResponse({ result: 'ok', data: items }))
-                            .catch(e => sendResponse({ result: 'fail', data: e.toString() }));
+                        return db.getItemsByFeedId(id, page, amount, state, active);
                     }
                     break;
                 }
                 case 'getCount': {
                     let { type, id, state } = data;
                     if (type === 'group') {
-                        let request = data.id === 'all' ? db.getAllItemsCount(state) : db.getItemsCountByGroupId(id, state);
-                        request.then(count => sendResponse({ result: 'ok', data: count }))
-                            .catch(e => sendResponse({ result: 'fail', data: e.toString() }));
+                        return data.id === 'all' ? db.getAllItemsCount(state) : db.getItemsCountByGroupId(id, state);
                     }
                     else if (type === 'feed') {
-                        db.getItemsCountByFeedId(id, state)
-                            .then(count => sendResponse({ result: 'ok', data: count }))
-                            .catch(e => sendResponse({ result: 'fail', data: e.toString() }));
+                        return db.getItemsCountByFeedId(id, state);
                     }
                     break;
                 }
                 case 'modify': {
                     let { ids, keyValues } = data;
-                    db.updateItems(ids, keyValues)
-                        .then(() => sendResponse({ result: 'ok' }))
-                        .catch(e => sendResponse({ result: 'fail', data: e.toString() }));
-                    break;
+                    return db.updateItems(ids, keyValues);
                 }
                 case 'fetch source': {
-                    crawler.fetchSource(data.feed).then(response => sendResponse(response));
-                    break;
+                    return crawler.fetchSource(data.feed);
                 }
                 case 'parse source': {
                     let { source, type, steps } = data, result;
@@ -75,7 +58,7 @@ const message = {
                             else if (type !== 'base') result = result.map(item => item.outerHTML);
                             else result = result.outerHTML;
                         }
-                        sendResponse({ result: 'ok', data: result });
+                        return result;
                     }
                     catch (e) {
                         let { type, id, message } = e, errorMessage;
@@ -85,41 +68,31 @@ const message = {
                             }
                         }
                         else errorMessage = e.toString();
-                        sendResponse({ result: 'fail', data: errorMessage });
+                        return errorMessage;
                     }
-                    break;
                 }
                 case 'delete feed': {
-                    db.getItemsByFeedId(data.id).then(items => Promise.resolve(items.map(item => item.id)))
-                        .then(keys => db.deleteItems(keys)).then(() => sendResponse({ result: 'ok' }))
-                        .catch(e => sendResponse({ result: 'fail', data: e.toString() }));
-                    break;
+                    return db.getItemsByFeedId(data.id).then(items => Promise.resolve(items.map(item => item.id))).then(keys => db.deleteItems(keys));
                 }
                 case 'delete group': {
-                    db.getItemsByGroupId(data.id).then(items => Promise.resolve(items.map(item => item.id)))
-                        .then(keys => db.deleteItems(keys)).then(() => sendResponse({ result: 'ok' }))
-                        .catch(e => sendResponse({ result: 'fail', data: e.toString() }));
-                    break;
+                    return db.getItemsByGroupId(data.id).then(items => Promise.resolve(items.map(item => item.id))).then(keys => db.deleteItems(keys));
                 }
                 case 'clear database': {
-                    db.clearDataBase().then(() => sendResponse({ result: 'ok' })).catch(e => sendResponse({ result: 'fail', data: e.toString() }));
-                    break;
+                    return db.clearDataBase();
                 }
                 case 'change autoUpdate': {
                     let { state } = data;
                     if (state) crawler.autoUpdate();
                     else crawler.stopUpdate();
-                    sendResponse({ result: 'ok' });
                     break;
                 }
                 case 'change autoUpdateFrequency': {
                     crawler.stopUpdate();
                     crawler.autoUpdate();
-                    sendResponse({ result: 'ok' });
                     break;
                 }
             }
-            return true;
+            return;
         });
     },
     send(payload) {

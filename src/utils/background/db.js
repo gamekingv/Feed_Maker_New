@@ -146,7 +146,12 @@ const database = {
                     for (let item of items) {
                         let request = objectStore.add(item);
                         request.onerror = reject;
-                        request.onsuccess = () => ++count === items.length && resolve(unreadCount);
+                        request.onsuccess = () => {
+                            if (++count === items.length) {
+                                this.updateBadgeText();
+                                resolve(unreadCount);
+                            }
+                        };
                     }
                 }));
             }
@@ -163,7 +168,10 @@ const database = {
                 Object.entries(keyValues).map(([key, value]) => item[key] = value);
                 let request = objectStore.put(item);
                 request.onerror = reject;
-                request.onsuccess = () => resolve();
+                request.onsuccess = () => {
+                    this.updateBadgeText();
+                    resolve();
+                };
             }
             catch (e) { reject(e); }
         })));
@@ -175,12 +183,20 @@ const database = {
             for (let key of keys) {
                 let request = objectStore.delete(key);
                 request.onerror = reject;
-                request.onsuccess = () => ++count === keys.length && resolve();
+                request.onsuccess = () => {
+                    if (++count === keys.length) {
+                        this.updateBadgeText();
+                        resolve();
+                    }
+                };
             }
         }));
     },
     clearDataBase() {
-        return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => new Promise((resolve) => objectStore.clear().onsuccess = () => resolve()));
+        return this.startStore(DB_ITEM_STORE_NAME).then(objectStore => new Promise((resolve) => objectStore.clear().onsuccess = () => resolve())).then(() => this.updateBadgeText());
+    },
+    updateBadgeText() {
+        return this.getAllItemsCount('unread').then(count => browser.browserAction.setBadgeText({ text: count === 0 ? '' : count < 100 ? count.toString() : '99+' }));
     }
 };
 

@@ -249,21 +249,20 @@ export default {
         },
         async markItems(type) {
             this.loading++;
-            let request;
             switch (type) {
                 case 'read': {
-                    request = await message.sendMarkItemsAsRead(this.selectedItems);
+                    await message.sendMarkItemsAsRead(this.selectedItems);
                     await this.modifyUnreadCount();
                     break;
                 }
                 case 'unread': {
-                    request = await message.sendMarkItemsAsUnread(this.selectedItems);
+                    await message.sendMarkItemsAsUnread(this.selectedItems);
                     await this.modifyUnreadCount();
                     break;
                 }
                 case 'all': {
                     let { subType: type, id } = this.active;
-                    request = await message.sendMarkAllItemsAsRead(type, id);
+                    await message.sendMarkAllItemsAsRead(type, id);
                     if (type === 'group') {
                         if (id === 'all') {
                             Object.keys(this.feedState).forEach(id => this.$store.dispatch('updateFeedState', { id, unread: 0 }));
@@ -277,13 +276,7 @@ export default {
                     }
                 }
             }
-            let { result, data } = request;
-            if (result === 'ok') {
-                await this.refreshList({ isLoading: true });
-            }
-            else if (result === 'fail') {
-                this.$throw(data);
-            }
+            await this.refreshList({ isLoading: true });
         },
         changePage() {
             this.refreshList({ isChangePage: true });
@@ -297,7 +290,7 @@ export default {
                     url,
                     title,
                     fetchSource: message.sendFetchSource,
-                    showInfo: this.showInfo
+                    showInfo: this.$addInfo
                 };
                 (function () {
                     let window, chrome, browser = undefined;
@@ -330,14 +323,6 @@ export default {
             if (items.length > 0) await this.collectStateChange(items);
             else await Promise.all(ids.map(id => this.$store.dispatch('deleteCollection', id)));
             this.refreshList({ isLoading: true });
-        },
-        showInfo(text, color) {
-            if (typeof text === 'string' && (!color || typeof color === 'string')) {
-                this.$store.dispatch('addInfoText', { id: Date.now().toString(), text, color });
-            }
-            else {
-                this.$store.dispatch('addInfoText', { id: Date.now().toString(), text: '参数非法！', color: 'error' });
-            }
         }
     },
     beforeRouteEnter(to, from, next) {
