@@ -8,7 +8,6 @@ const actions = {
             for (let group of groups) {
                 for (let feed of group.feeds) {
                     let unread = await message.sendGetCount('feed', feed.id, 'unread');
-                    console.log(unread);
                     commit('updateFeedState', { id: feed.id, unread });
                 }
             }

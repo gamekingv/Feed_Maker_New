@@ -6,7 +6,7 @@ browser.browserAction.disable();
 
 message.init();
 db.init().then(() => db.updateBadgeText()).then(() => crawler.autoUpdate())
-    .then(() => message.isInitialized = true).then(() => browser.browserAction.enable());
+    .then(() => message.Initialized()).then(() => browser.browserAction.enable());
 
 browser.browserAction.onClicked.addListener(() => browser.tabs.create({
     url: browser.extension.getURL('build/index.html')

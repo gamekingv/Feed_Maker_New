@@ -229,7 +229,15 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
-        <v-snackbar :color="info.color" :key="info.id" :value="true" @input="v => !!v || deleteInfo(info.id)" top v-for="info in infoText">
+        <v-snackbar
+            :color="info.color"
+            :key="info.id"
+            :value="true"
+            @input="v => !!v || deleteInfo(info.id)"
+            auto-height
+            top
+            v-for="info in infoText"
+        >
             {{ info.text }}
             <v-btn :color="info.color ? undefined : 'pink--text'" @click="deleteInfo(info.id)" icon small>
                 <v-icon small>close</v-icon>
@@ -295,7 +303,8 @@ export default {
         ])
     },
     async mounted() {
-        message.init(this);
+        let state = await message.init(this);
+        if (!state) return this.addInfo('请等待初始化完成', 'warning');
         await this.$store.dispatch('initStore');
         this.itemsPerPage = this.settings.itemsPerPage;
         this.autoUpdate = this.settings.autoUpdate;

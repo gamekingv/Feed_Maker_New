@@ -1,33 +1,55 @@
-import store from '~/store';
-import Vue from 'vue';
+let port, app, isInitialized = true, messageQueue = {};
 
 const message = {
-    init(app) {
-        browser.runtime.onMessage.addListener(async ({ action, data }, sender) => {
-            if (sender.url.indexOf('_generated_background_page.html') === -1) return;
-            switch (action) {
-                case 'background update': {
-                    Object.keys(store.state.feedState).forEach(id => store.dispatch('updateFeedState', { id, isLoading: true }));
-                    break;
-                }
-                case 'background update complete': {
-                    let { id, result: unread } = data;
-                    await store.dispatch('updateFeedState', { id, unread, errorMessage: '', isLoading: false });
-                    if (store.state.active.type === 'list') app.refreshList({ type: 'feed', id, isUpdateComplete: true });
-                    break;
-                }
-                case 'background update fail': {
-                    let { id, errorMessage } = data;
-                    await store.dispatch('updateFeedState', { id, errorMessage, isLoading: false });
-                    break;
-                }
+    async init(vm) {
+        port = browser.runtime.connect({ name: Date.now().toString() });
+        port.onMessage.addListener(this.messageListener.bind(this));
+        app = vm;
+        let isInitialized = await this.send({ action: 'get initialize state' });
+        return isInitialized;
+    },
+    async messageListener({ mid, action, data, state }) {
+        switch (action) {
+            case 'initialize complete': {
+                if (!isInitialized) location.reload();
+                break;
             }
-        });
+            case 'background update': {
+                Object.keys(app.$store.state.feedState).forEach(id => app.$store.dispatch('updateFeedState', { id, isLoading: true }));
+                break;
+            }
+            case 'background update complete': {
+                let { id, result: unread } = data;
+                await app.$store.dispatch('updateFeedState', { id, unread, errorMessage: '', isLoading: false });
+                if (app.$store.state.active.type === 'list') app.refreshList({ type: 'feed', id, isUpdateComplete: true });
+                break;
+            }
+            case 'background update fail': {
+                let { id, errorMessage } = data;
+                await app.$store.dispatch('updateFeedState', { id, errorMessage, isLoading: false });
+                break;
+            }
+            case 'response': {
+                if (state === 'ok') messageQueue[mid].resolve(data);
+                else if (state === 'fail') {
+                    messageQueue[mid].reject(data);
+                }
+                delete messageQueue[mid];
+                break;
+            }
+            case 'alert': {
+                let { message } = data;
+                app.$addInfo(message, 'warning');
+                break;
+            }
+        }
     },
-    send(payload) {
-        return browser.runtime.sendMessage(payload);
+    send(request) {
+        request.mid = Date.now().toString();
+        port.postMessage(request);
+        return new Promise((resolve, reject) => messageQueue[request.mid] = { resolve, reject });
     },
-    async sendGetCount(type, id, state = store.state.settings.view) {
+    async sendGetCount(type, id, state = app.$store.state.settings.view) {
         try {
             state = state.replace('all', '');
             return await this.send({
@@ -37,30 +59,30 @@ const message = {
                 }
             });
         }
-        catch (e) { Vue.throw(e); }
+        catch (e) { app.$throw(e); }
     },
-    async sendGet(type, id, page, state = store.state.settings.view.replace('all', ''), active) {
+    async sendGet(type, id, page, state = app.$store.state.settings.view.replace('all', ''), active) {
         try {
             return await this.send({
                 action: 'getItems', data: {
                     type, id, page, state, active,
-                    amount: page ? store.state.settings.itemsPerPage : null,
+                    amount: page ? app.$store.state.settings.itemsPerPage : null,
                 }
             });
         }
-        catch (e) { Vue.throw(e); }
+        catch (e) { app.$throw(e); }
     },
     async sendUpdate(type, id) {
         try {
             return await this.send({ action: 'update', data: { type, id } });
         }
-        catch (e) { Vue.throw(e); }
+        catch (e) { app.$throw(e); }
     },
     sendModifyItems(ids, keyValues) {
         try {
             return this.send({ action: 'modify', data: { ids, keyValues } });
         }
-        catch (e) { Vue.throw(e); }
+        catch (e) { app.$throw(e); }
     },
     sendMarkItemsAsRead(ids) {
         return this.sendModifyItems(ids, { state: 'read' });
@@ -88,19 +110,19 @@ const message = {
         try {
             return this.send({ action: 'delete feed', data: { id } });
         }
-        catch (e) { Vue.throw(e); }
+        catch (e) { app.$throw(e); }
     },
     sendDeleteGroup(id) {
         try {
             return this.send({ action: 'delete group', data: { id } });
         }
-        catch (e) { Vue.throw(e); }
+        catch (e) { app.$throw(e); }
     },
     sendClearDataBase() {
         try {
             return this.send({ action: 'clear database' });
         }
-        catch (e) { Vue.throw(e); }
+        catch (e) { app.$throw(e); }
     },
     async sendChangeItemsActive(type, id, active) {
         let items = await this.sendGet(type, id, null, 'unread', (!(active === 'true')).toString());
@@ -116,13 +138,13 @@ const message = {
         try {
             return this.send({ action: 'change autoUpdate', data: { state } });
         }
-        catch (e) { Vue.throw(e); }
+        catch (e) { app.$throw(e); }
     },
     changeAutoUpdateFrequency() {
         try {
             return this.send({ action: 'change autoUpdateFrequency' });
         }
-        catch (e) { Vue.throw(e); }
+        catch (e) { app.$throw(e); }
     }
 };
 

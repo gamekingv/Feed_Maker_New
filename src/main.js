@@ -29,6 +29,5 @@ const errorHandler = error => {
 };
 
 Vue.config.errorHandler = error => console.error('Feed Maker扩展未知错误：', error);
-Vue.throw = errorHandler;
 Vue.prototype.$throw = errorHandler;
 onerror = errorHandler;
