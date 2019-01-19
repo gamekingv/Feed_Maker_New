@@ -3,7 +3,7 @@
         <v-flex :key="parserType" v-for="(parsers, parserType, count) in parserGroup" v-if="parserType !== 'id'">
             <lazy-render :time="500 * (count + 1)">
                 <v-layout align-center justify-center slot="tip">
-                    <v-progress-circular :size="50" color="blue" indeterminate></v-progress-circular>
+                    <v-progress-circular :size="50" class="my-5" color="blue" indeterminate></v-progress-circular>
                 </v-layout>
                 <v-card :key="parser.id" color="#303030" disabled flat hide-actions v-for="(parser, i) in parsers">
                     <v-card-title class="pb-0">
