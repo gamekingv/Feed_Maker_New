@@ -387,6 +387,7 @@ export default {
                 buttons && await browser.storage.local.set({ buttons });
                 settings && await browser.storage.local.set({ settings });
                 collections && await browser.storage.local.set({ collections });
+                this.$router.push('/list/group/all');
                 location.reload();
             }
             else if (this.importType === 'feed') {
@@ -399,6 +400,7 @@ export default {
             }
             else {
                 await this.resetAllConfig();
+                this.$router.push('/list/group/all');
                 location.reload();
             }
             this.close();

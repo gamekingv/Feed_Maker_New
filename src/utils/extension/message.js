@@ -94,9 +94,10 @@ const message = {
     sendMarkItemsAsUnread(ids) {
         return this.sendModifyItems(ids, { state: 'unread' });
     },
-    sendFetchSource(feed) {
+    async sendFetchSource(feed) {
         try {
-            return this.send({ action: 'fetch source', data: { feed } });
+            let { data } = await this.send({ action: 'fetch source', data: { feed } });
+            return data;
         }
         catch (e) { return e.toString(); }
     },

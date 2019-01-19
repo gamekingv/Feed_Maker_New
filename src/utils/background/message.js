@@ -82,8 +82,7 @@ const message = {
                         if (type === 'base') result = crawler.baseStepsParser(source, steps);
                         else result = crawler.stepGroupParser(source, steps);
                         if (steps[steps.length - 1].method === 'selector') {
-                            if (steps[steps.length - 1].flags.some(flag => flag === 'g')) result = Array.from(result).map(item => item.outerHTML);
-                            else if (type !== 'base') result = result.map(item => item.outerHTML);
+                            if (Array.isArray(result)) result = result.map(item => item.outerHTML);
                             else result = result.outerHTML;
                         }
                         sendResponse(result);

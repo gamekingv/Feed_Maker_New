@@ -161,23 +161,26 @@ const crawler = {
         }));
     },
     getBufferIndex(parserGroup) {
-        return Object.values(parserGroup).reduce((result, parsers) => Object.assign(result, parsers.reduce((result, parser) => {
+        return Object.values(parserGroup).reduce((result, parsers) => Array.isArray(parsers) ? Object.assign(result, parsers.reduce((result, parser) => {
             if (parser.source && parser.source !== 'base' && parser.source !== 'origin') result[parser.source] = true;
             return result;
-        }, {})), {});
+        }, {})) : result, {});
     },
     baseStepsParser(source, steps) {
-        return steps.reduce((result, step, index) => this.stepParser(result, step, steps[index - 1] && steps[index - 1].method), source);
+        return steps.reduce((result, step) => this.stepParser(result, step), source);
     },
     commonStepsParser(baseResults, parsers, bufferResultIndex) {
         let results = { base: baseResults };
         parsers.forEach((parser, parserIndex) => {
-            let { source, parserSteps } = parser, sources = results[source];
-            parserSteps.forEach((step, index) => {
-                let stepName = `common${parserIndex + 1}Step${index + 1}`;
-                if (bufferResultIndex[stepName])
-                    results[stepName] = sources.map(source => this.stepParser(source, step, parserSteps[index - 1] && parserSteps[index - 1].method));
-            });
+            let { source, parserSteps } = parser;
+            parserSteps.reduce((sources, step, index) => {
+                let stepName = `common${parserIndex + 1}Step${index + 1}`,
+                    result = sources.map(source => this.stepParser(source, step));
+                if (bufferResultIndex[stepName]) {
+                    results[stepName] = result;
+                }
+                return result;
+            }, results[source]);
         }
         );
         return results;
@@ -193,7 +196,7 @@ const crawler = {
     stepGroupParser(sources, steps) {
         return sources.map(source => this.baseStepsParser(source, steps));
     },
-    stepParser(source, step, lastMethod) {
+    stepParser(source, step) {
         if (!source) return '';
         try {
             let result = '',
@@ -229,7 +232,7 @@ const crawler = {
                 }
                 case 'selector': {
                     let dom;
-                    if (lastMethod == 'selector') dom = source;
+                    if (source instanceof HTMLElement) dom = source;
                     else {
                         if (typeof source === 'string') result = source;
                         else if (typeof source === 'object') result = JSON.stringify(source);
@@ -237,7 +240,7 @@ const crawler = {
                         dom = document.createElement('body');
                         dom.innerHTML = result;
                     }
-                    if (isGlobal) result = dom.querySelectorAll(regexp);
+                    if (isGlobal) result = Array.from(dom.querySelectorAll(regexp));
                     else result = dom.querySelector(regexp);
                     break;
                 }

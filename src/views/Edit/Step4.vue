@@ -83,7 +83,7 @@
             <v-divider class="mt-3" v-if="count < Object.keys(parserGroup).length - 1"></v-divider>
         </v-flex>
         <v-dialog @input="e => e || (result = '')" class="d-flex" scrollable v-model="stepResult">
-            <v-card class="grey darken-4">
+            <v-card class="grey darken-4" style="overflow-x: hidden;">
                 <v-card-title class="font-weight-bold py-0 pr-0">测试结果
                     <v-spacer></v-spacer>
                     <v-btn @click="stepResult = false" icon>
@@ -183,7 +183,7 @@ export default {
                 let sourceInfo = this.parserGroups[parserGroupIndex][sourceType][sourceIndex - 1];
                 source = await this.runSteps(parserGroupIndex, sourceInfo.source, sourceType, sourceInfo.parserSteps.slice(0, sourceStep));
             }
-            let { data } = await message.sendParseSource(source, type, steps);
+            let data = await message.sendParseSource(source, type, steps);
             return data;
         },
         parseSourceFilter(type, value, i) {

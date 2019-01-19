@@ -25,7 +25,7 @@ const database = {
                     itemStore.createIndex('groupIdWithState', ['groupId', 'state', 'active', 'pubDate']);
                     itemStore.createIndex('collectionId', 'collectionId');
                 }
-                resolve();
+                e.target.transaction.oncomplete = resolve;
             };
         });
     },

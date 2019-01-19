@@ -18,18 +18,18 @@
                                         color="grey darken-2"
                                         disabled
                                         small
-                                        style="margin-left: 7px;"
+                                        style="margin-left: 8px;"
                                         text-color="white"
                                         v-if="item.author"
                                     >
-                                        <v-avatar class="small" color="blue">
+                                        <v-avatar class="small">
                                             <img :class="`custom-feed-icon-${item.feedId}`" v-if="isUrl(icons[i])">
                                             <v-icon :size="20" v-else v-text="icons[i] ? icons[i] : 'insert_drive_file'"></v-icon>
                                         </v-avatar>
                                         {{item.author}}
                                     </v-chip>
                                     <v-list-tile-avatar v-else>
-                                        <v-avatar class="small" color="blue">
+                                        <v-avatar class="small">
                                             <img :class="`custom-feed-icon-${item.feedId}`" v-if="isUrl(icons[i])">
                                             <v-icon :size="20" v-else v-text="icons[i] ? icons[i] : 'insert_drive_file'"></v-icon>
                                         </v-avatar>
@@ -37,7 +37,7 @@
                                     <v-list-tile-content>
                                         <v-list-tile-title
                                             :class="item.state === 'unread' ? 'font-weight-bold' : 'grey--text text--lighten-1'"
-                                            v-text="item.title"
+                                            v-html="item.title"
                                         ></v-list-tile-title>
                                     </v-list-tile-content>
                                     <v-tooltip :open-delay="1000" lazy top v-if="isHover">
