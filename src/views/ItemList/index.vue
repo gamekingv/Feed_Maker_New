@@ -215,6 +215,7 @@ export default {
             if (this.active.id === 'collections') this.items = JSON.parse(JSON.stringify(this.getCollections(this.currentPage)));
             else this.items = await message.sendGet(this.active.subType, this.active.id, this.currentPage);
             this.clearSelects();
+            this.floatingButton = false;
             this.loading--;
         },
         isShowing(type, id) {
