@@ -2,7 +2,7 @@
     <v-container class="px-5" fill-height fluid>
         <v-fade-transition :duration="40" mode="out-in">
             <v-flex fill-height key="steps" v-if="loading === 0">
-                <v-stepper style="box-shadow: unset;" non-linear v-model="step" vertical>
+                <v-stepper non-linear style="box-shadow: unset;" v-model="step" vertical>
                     <v-stepper-step :rules="[() => validates.form1]" editable step="1">基本信息</v-stepper-step>
                     <v-stepper-content step="1">
                         <step-1
@@ -307,6 +307,7 @@ export default {
                     if (feed.custom) {
                         this.step1.type = 'custom';
                         this.parserGroups = JSON.parse(JSON.stringify(this.$store.state.parsers[this.editId]));
+                        this.resultGroupValidates = Array(this.parserGroups.length).fill(true);
                     }
                     ({
                         id: this.id,
