@@ -75,7 +75,7 @@
                         <parser-step
                             :steps="parser.parserSteps"
                             @modify="parserSteps => parser.parserSteps = parserSteps"
-                            @test="parserSteps => testSteps(index, parser.source, parserType, parserSteps)"
+                            @test="parserSteps => testSteps(index, parser.source, parserSteps)"
                         ></parser-step>
                     </v-card-text>
                 </v-card>
@@ -159,15 +159,34 @@ export default {
         }
     },
     methods: {
-        async testSteps(parserGroupIndex, parserSource, parserType, parserSteps) {
+        async testSteps(parserGroupIndex, parserSource, parserSteps) {
             this.stepResult = true;
-            let timestamp = Date.now().toString();
+            let timestamp = Date.now().toString(), baseSteps, steps = parserSteps;
             this.parsing = timestamp;
             if (this.fetchResult === '') await this.fetchSource();
-            let result = await this.runSteps(parserGroupIndex, parserSource, parserType, parserSteps);
+            if (parserSource !== 'origin') {
+                baseSteps = this.parserGroups[parserGroupIndex].base[0].parserSteps;
+                steps = this.combineSteps(parserGroupIndex, parserSource, parserSteps);
+            }
+            let result = await message.sendParseSource(this.fetchResult, steps, baseSteps);
             if (this.parsing !== timestamp) return;
             this.result = result;
             this.parsing = '';
+        },
+        combineSteps(parserGroupIndex, parserSource, parserSteps) {
+            if (parserSource === 'base') {
+                return parserSteps;
+            }
+            else if (parserSource) {
+                let [, sourceType, sourceIndex, sourceStep] = parserSource.match(/(.+?)(\d+)Step(\d+)/);
+                let sourceInfo = this.parserGroups[parserGroupIndex][sourceType][sourceIndex - 1];
+                return this.combineSteps(parserGroupIndex, sourceInfo.source, sourceInfo.parserSteps.slice(0, sourceStep)).concat(parserSteps);
+            }
+            else {
+                this.result = '无效输入源';
+                this.parsing = '';
+                throw '';
+            }
         },
         async runSteps(parserGroupIndex, parserSource, parserType, parserSteps) {
             let source, [type, steps] = [parserType, parserSteps];
@@ -178,11 +197,12 @@ export default {
                 let sourceInfo = this.parserGroups[parserGroupIndex].base[0];
                 source = await this.runSteps(parserGroupIndex, sourceInfo.source, parserSource, sourceInfo.parserSteps);
             }
-            else {
+            else if (parserSource) {
                 let [, sourceType, sourceIndex, sourceStep] = parserSource.match(/(.+?)(\d+)Step(\d+)/);
                 let sourceInfo = this.parserGroups[parserGroupIndex][sourceType][sourceIndex - 1];
                 source = await this.runSteps(parserGroupIndex, sourceInfo.source, sourceType, sourceInfo.parserSteps.slice(0, sourceStep));
             }
+            else return '输入源为空';
             let data = await message.sendParseSource(source, type, steps);
             return data;
         },

@@ -43,7 +43,8 @@ const crawler = {
         let config = {
             method: feed.method,
             url: feed.url,
-            timeout: feed.timeout * 1000
+            timeout: feed.timeout * 1000,
+            transformResponse: res => res
         };
         if (feed.method === 'post' && feed.body) {
             config.data = feed.body;
@@ -219,7 +220,7 @@ const crawler = {
                         while ((subs = pattern.exec(result)) !== null) {
                             matches.push(subs);
                         }
-                        result = matches;
+                        return subPattern ? matches.map(match => match[subPattern]) : matches;
                     }
                     break;
                 }

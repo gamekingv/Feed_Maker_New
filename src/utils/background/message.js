@@ -43,6 +43,7 @@ const message = {
                     else if (type === 'feed') {
                         await crawler.updateFeed({ id });
                     }
+                    sendResponse();
                     break;
                 }
                 case 'getItems': {
@@ -77,12 +78,16 @@ const message = {
                     break;
                 }
                 case 'parse source': {
-                    let { source, type, steps } = data, result;
+                    let { source, steps, baseSteps } = data, result;
+                    console.log(source, steps, baseSteps);
                     try {
-                        if (type === 'base') result = crawler.baseStepsParser(source, steps);
-                        else result = crawler.stepGroupParser(source, steps);
+                        if (baseSteps) {
+                            let baseResult = crawler.baseStepsParser(source, baseSteps);
+                            result = crawler.stepGroupParser(baseResult, steps);
+                        }
+                        else result = crawler.baseStepsParser(source, steps);
                         if (steps[steps.length - 1].method === 'selector') {
-                            if (Array.isArray(result)) result = result.map(item => item.outerHTML);
+                            if (Array.isArray(result)) result = result.map(item => item && item.outerHTML);
                             else result = result.outerHTML;
                         }
                         sendResponse(result);
@@ -95,7 +100,7 @@ const message = {
                             }
                         }
                         else errorMessage = e.toString();
-                        sendResponse(errorMessage);
+                        sendResponse(errorMessage, 'fail');
                     }
                     break;
                 }
@@ -115,11 +120,13 @@ const message = {
                     let { state } = data;
                     if (state) crawler.autoUpdate();
                     else crawler.stopUpdate();
+                    sendResponse();
                     break;
                 }
                 case 'change autoUpdateFrequency': {
                     crawler.stopUpdate();
                     crawler.autoUpdate();
+                    sendResponse();
                     break;
                 }
             }

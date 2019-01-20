@@ -101,9 +101,9 @@ const message = {
         }
         catch (e) { return e.toString(); }
     },
-    sendParseSource(source, type, steps) {
+    async sendParseSource(source, steps, baseSteps) {
         try {
-            return this.send({ action: 'parse source', data: { source, type, steps } });
+            return await this.send({ action: 'parse source', data: { source, steps, baseSteps } });
         }
         catch (e) { return e.toString(); }
     },

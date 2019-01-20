@@ -11,7 +11,7 @@
                             <v-hover :key="item.id">
                                 <v-list-tile @click="showDetails(item.title, item.author, item.content)" slot-scope="{ hover: isHover }">
                                     <v-list-tile-action style="min-width: unset;">
-                                        <v-checkbox :ripple="false" :value="item.id" @click.stop hide-details v-model="selectedItems"></v-checkbox>
+                                        <v-checkbox :ripple="false" :value="item.id" @click.stop color="blue" hide-details v-model="selectedItems"></v-checkbox>
                                     </v-list-tile-action>
                                     <v-chip
                                         @click.stop

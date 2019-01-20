@@ -339,7 +339,7 @@ export default {
             this.details = true;
             this.detailsTitle = title;
             this.detailsAuthor = author;
-            this.detailsContent = content;
+            this.detailsContent = content ? content : '';
             this.$nextTick(() => {
                 let images = this.$refs.detailsContent.querySelectorAll('.image-box');
                 images.forEach(image => image.addEventListener('click', () => {
@@ -382,6 +382,8 @@ export default {
             if (this.importType === 'all') {
                 let { groups, parsers, buttons, settings, collections } = this.config;
                 await this.resetAllConfig();
+                console.log(1);
+                await message.changeAutoUpdate(false);
                 groups && await browser.storage.local.set({ groups });
                 parsers && await browser.storage.local.set({ parsers });
                 buttons && await browser.storage.local.set({ buttons });
@@ -400,6 +402,7 @@ export default {
             }
             else {
                 await this.resetAllConfig();
+                await message.changeAutoUpdate(false);
                 this.$router.push('/list/group/all');
                 location.reload();
             }

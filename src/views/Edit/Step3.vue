@@ -89,7 +89,7 @@
                     <v-textarea
                         :loading="fetching !== ''"
                         :value="typeof fetchResult === 'object' ? JSON.stringify(fetchResult) : fetchResult"
-                        class="scrollbar-thin"
+                        class="scrollbar-thin-textarea"
                         hide-details
                         readonly
                         rows="10"
@@ -170,7 +170,7 @@ export default {
         width: calc(100% - 83px);
     }
 }
-.scrollbar-thin /deep/ textarea {
+.scrollbar-thin-textarea /deep/ textarea {
     scrollbar-width: thin;
     scrollbar-color: rgb(94, 94, 94) transparent;
 }
