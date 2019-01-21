@@ -153,6 +153,9 @@ export default {
             return Object.values(this.validations).reduce((result, validation) => result && validation, true);
         }
     },
+    mounted() {
+        this.$emit('modifyValidation', true);
+    },
     watch: {
         validation(val) {
             this.$emit('modifyValidation', val);
