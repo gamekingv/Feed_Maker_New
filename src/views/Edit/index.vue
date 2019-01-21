@@ -143,7 +143,7 @@ export default {
             form2: true,
             form3: true
         },
-        resultGroupValidates: [true],
+        resultGroupValidates: [],
         id: '',
         step1: {
             active: true,
@@ -172,7 +172,7 @@ export default {
     },
     computed: {
         complete() {
-            return this.validates.form1 && this.validates.form2 && (this.validates.form3 || this.type === 'group')  && (this.type !== 'custom' || this.resultGroupValidates.every(validate => validate === true));
+            return this.validates.form1 && this.validates.form2 && (this.validates.form3 || this.type === 'group') && (this.type !== 'custom' || this.resultGroupValidates.every(validate => validate === true));
         },
         groups() {
             return this.$store.state.groups.map(({ id, name }) => ({ text: name, value: id }));

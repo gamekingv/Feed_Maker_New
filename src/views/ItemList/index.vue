@@ -146,7 +146,10 @@ export default {
         selectedItems: [],
         currentPage: 1,
         totalItems: 0,
-        floatingButton: false
+        floatingButton: false,
+        refreshing: false,
+        refreshQueue: [],
+        refreshMaxInterval: 500
     }),
     computed: {
         icons() {
@@ -277,10 +280,10 @@ export default {
                     }
                 }
             }
-            await this.refreshList({ isLoading: true });
+            await this.addToRefreshQueue({ isLoading: true });
         },
         changePage() {
-            this.refreshList({ isChangePage: true });
+            this.addToRefreshQueue({ isChangePage: true });
         },
         showDetails(title, author, content) {
             this.$emit('showDetails', { title, author, content });
@@ -323,18 +326,34 @@ export default {
             let items = await message.sendGetItemsByCollectionId(ids);
             if (items.length > 0) await this.collectStateChange(items);
             else await Promise.all(ids.map(id => this.$store.dispatch('deleteCollection', id)));
-            this.refreshList({ isLoading: true });
-        }
+            this.addToRefreshQueue({ isLoading: true });
+        },
+        async addToRefreshQueue(info) {
+            if (!this.refreshing) {
+                this.refreshing = true;
+                await this.refreshList(info);
+                setTimeout(() => this.leaveRefreshQueue(), this.refreshMaxInterval);
+            }
+            else this.refreshQueue.push(info);
+        },
+        async leaveRefreshQueue() {
+            if (this.refreshQueue.length > 0) {
+                await this.refreshList(this.refreshQueue.pop());
+                this.refreshQueue = [];
+                setTimeout(() => this.leaveRefreshQueue(), this.refreshMaxInterval);
+            }
+            else if (this.refreshing) this.refreshing = false;
+        },
     },
     beforeRouteEnter(to, from, next) {
         next(async vm => {
             let [, subType, id] = to.path.substr(1).split('/');
-            vm.refreshList({ subType, id, isLoading: true });
+            vm.addToRefreshQueue({ subType, id, isLoading: true });
         });
     },
     async beforeRouteUpdate(to, from, next) {
         let [, subType, id] = to.path.substr(1).split('/');
-        this.refreshList({ subType, id });
+        this.addToRefreshQueue({ subType, id });
         next();
     }
 };

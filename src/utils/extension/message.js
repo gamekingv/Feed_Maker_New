@@ -1,4 +1,4 @@
-let port, app, isInitialized = true, messageQueue = {};
+let port, app, isInitialized = true, messageQueue = {}, midCount = 0;
 
 const message = {
     async init(vm) {
@@ -45,7 +45,7 @@ const message = {
         }
     },
     send(request) {
-        request.mid = Date.now().toString();
+        request.mid = (midCount++).toString();
         port.postMessage(request);
         return new Promise((resolve, reject) => messageQueue[request.mid] = { resolve, reject });
     },
@@ -144,6 +144,12 @@ const message = {
     changeAutoUpdateFrequency() {
         try {
             return this.send({ action: 'change autoUpdateFrequency' });
+        }
+        catch (e) { app.$throw(e); }
+    },
+    changeMaxThread() {
+        try {
+            return this.send({ action: 'change maxThread' });
         }
         catch (e) { app.$throw(e); }
     }

@@ -5,7 +5,7 @@ import crawler from './utils/background/crawler';
 browser.browserAction.disable();
 
 message.init();
-db.init().then(() => db.updateBadgeText()).then(() => crawler.autoUpdate())
+db.init().then(() => db.updateBadgeText()).then(() => crawler.init())
     .then(() => message.Initialized()).then(() => browser.browserAction.enable());
 
 browser.browserAction.onClicked.addListener(() => browser.tabs.create({

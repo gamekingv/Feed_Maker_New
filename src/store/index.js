@@ -20,7 +20,8 @@ const store = new Vuex.Store({
             view: 'all',
             autoUpdate: true,
             autoUpdateFrequency: 15,
-            detailsWidth: 900
+            detailsWidth: 900,
+            maxThread: 5
         },
         active: {
             type: 'list',

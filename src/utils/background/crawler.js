@@ -3,9 +3,13 @@ import RSSParser from './rss-parser';
 import db from './db';
 import message from './message';
 
-let timer, queue = [];
+let timer, autoUpdateFrequency = 15, autoUpdate = true, queue = [], running = 0, maxThread = 5;
 
 const crawler = {
+    async init() {
+        await this.updateMaxThread();
+        await this.autoUpdate();
+    },
     async getFeed(id) {
         let { groups } = await browser.storage.local.get('groups');
         for (let group of groups) {
@@ -59,22 +63,48 @@ const crawler = {
     },
     async updateFeed({ id, feed }) {
         if (!feed) feed = await this.getFeed(id);
-        if (!feed.active) return;
+        if (!id) id = feed.id;
+        if (!feed.active) return this.leaveQueue();
         let { result, data } = await this.fetchSource(feed), unread, newItems;
         if (result === 'fail') {
             message.sendBackgroundUpdateFail(id, data);
-            return;
+            return this.leaveQueue();
         }
         try {
             if (feed.custom) {
                 let parserGroups = await this.getParser(id);
-                newItems = this.customParser(data, parserGroups).map(item => {
-                    item.feedId = id;
-                    item.groupId = feed.groupId;
-                    item.active = 'true';
-                    item.collectionId = '';
-                    return item;
-                });
+                try {
+                    newItems = this.customParser(data, parserGroups).map(item => {
+                        item.feedId = id;
+                        item.groupId = feed.groupId;
+                        item.active = 'true';
+                        item.collectionId = '';
+                        return item;
+                    });
+                }
+                catch (e) {
+                    let { type, id, message } = e, errorMessage = '', parserName = {
+                        base: '基础数组',
+                        common: '通用',
+                        title: '标题',
+                        url: '链接',
+                        pubDate: '时间',
+                        author: '作者',
+                        content: '内容',
+                    };
+                    if (type === 'step') {
+                        parserGroups.forEach((group, gi) =>
+                            Object.entries(group).forEach(([key, value]) =>
+                                key !== 'id' && value.forEach(({ parserSteps }, si) => {
+                                    let i = parserSteps.findIndex(step => step.id === id);
+                                    if (i > -1) errorMessage = `处理结果组 [${gi + 1}] ${parserName[key]} (${si + 1}) 步骤 ${i + 1} 出错：\n${message}`;
+                                })
+                            )
+                        );
+                    }
+                    else errorMessage = e.toString();
+                    throw errorMessage;
+                }
             }
             else {
                 let { items } = await this.normalParser(data);
@@ -112,19 +142,21 @@ const crawler = {
             }
             unread = await db.addItems(newItems);
             message.sendBackgroundUpdateComplete(id, unread);
+            this.leaveQueue();
         }
         catch (e) {
             message.sendBackgroundUpdateFail(id, e.toString());
+            this.leaveQueue();
         }
     },
     async updateGroup(id) {
         let group = await this.getGroup(id);
         if (!group.active) return;
-        group.feeds.forEach(feed => feed.active && this.updateFeed(feed));
+        group.feeds.forEach(feed => feed.active && this.addToQueue({ feed }));
     },
     async updateAll() {
         let { groups } = await browser.storage.local.get('groups');
-        groups.reduce((total, group) => group.active ? total.concat(group.feeds) : total, []).forEach(feed => this.updateFeed(feed));
+        groups.reduce((total, group) => group.active ? total.concat(group.feeds) : total, []).forEach(feed => this.addToQueue({ feed }));
     },
     async normalParser(data) {
         let parser = new RSSParser();
@@ -206,7 +238,7 @@ const crawler = {
             switch (method) {
                 case 'match':
                 case 'replace': {
-                    if (typeof source === 'string') result = source;
+                    if (typeof source === 'string' && source) result = source;
                     else if (source instanceof HTMLElement) result = source.outerHTML;
                     else if (Number(source)) result = source.toString();
                     else if (typeof source === 'object') result = JSON.stringify(source);
@@ -246,7 +278,7 @@ const crawler = {
                     break;
                 }
             }
-            if (subPattern) return result[subPattern];
+            if (result && subPattern) return result[subPattern];
             else return result;
         }
         catch (e) {
@@ -261,7 +293,7 @@ const crawler = {
         else return result;
     },
     async autoUpdate() {
-        let { settings } = await browser.storage.local.get('settings'), autoUpdateFrequency = 15, autoUpdate = true;
+        let { settings } = await browser.storage.local.get('settings');
         if (settings) ({ autoUpdateFrequency, autoUpdate } = settings);
         if (autoUpdate) timer = setInterval(() => {
             message.sendBackgroundUpdate();
@@ -273,6 +305,21 @@ const crawler = {
             clearInterval(timer);
             timer = undefined;
         }
+    },
+    addToQueue(info) {
+        if (running < maxThread) {
+            running++;
+            this.updateFeed(info);
+        }
+        else queue.push(info);
+    },
+    leaveQueue() {
+        if (queue.length > 0) this.updateFeed(queue.shift());
+        else if (running > 0) running--;
+    },
+    async updateMaxThread() {
+        let { settings } = await browser.storage.local.get('settings');
+        if (settings) ({ maxThread } = settings);
     }
 };
 

@@ -103,7 +103,7 @@ const mutations = {
         state.settings[key] = value;
     },
     updateSettings(state, data) {
-        state.settings = data;
+        Object.keys(data).forEach(key => state.settings[key] = data[key]);
     },
     addCollection(state, data) {
         state.collections.push(data);

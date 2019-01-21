@@ -41,7 +41,7 @@ const message = {
                         }
                     }
                     else if (type === 'feed') {
-                        await crawler.updateFeed({ id });
+                        await crawler.addToQueue({ id });
                     }
                     sendResponse();
                     break;
@@ -79,7 +79,6 @@ const message = {
                 }
                 case 'parse source': {
                     let { source, steps, baseSteps } = data, result;
-                    console.log(source, steps, baseSteps);
                     try {
                         if (baseSteps) {
                             let baseResult = crawler.baseStepsParser(source, baseSteps);
@@ -96,7 +95,7 @@ const message = {
                         let { type, id, message } = e, errorMessage;
                         if (type) {
                             if (type === 'step') {
-                                errorMessage = `处理步骤${steps.findIndex(step => id === step.id) + 1}出错：\n${message}`;
+                                errorMessage = `处理第 ${(baseSteps ? baseSteps.concat(steps) : steps).findIndex(step => id === step.id) + 1} 个步骤出错：\n${message}`;
                             }
                         }
                         else errorMessage = e.toString();
@@ -126,6 +125,11 @@ const message = {
                 case 'change autoUpdateFrequency': {
                     crawler.stopUpdate();
                     crawler.autoUpdate();
+                    sendResponse();
+                    break;
+                }
+                case 'change maxThread': {
+                    crawler.updateMaxThread();
                     sendResponse();
                     break;
                 }

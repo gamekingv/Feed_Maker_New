@@ -99,7 +99,7 @@
                         <v-subheader>常规</v-subheader>
                         <v-list class="pt-0">
                             <v-list-tile class="mt-2">
-                                <v-list-tile-action>列表每页显示条目数量</v-list-tile-action>
+                                <v-list-tile-action>每页显示消息数量</v-list-tile-action>
                                 <v-list-tile-action class="ml-5">
                                     <v-slider
                                         :thumb-size="24"
@@ -129,6 +129,20 @@
                                         min="1"
                                         thumb-label="always"
                                         v-model="autoUpdateFrequency"
+                                    ></v-slider>
+                                </v-list-tile-action>
+                            </v-list-tile>
+                            <v-list-tile class="mt-2">
+                                <v-list-tile-action>最大同时处理数</v-list-tile-action>
+                                <v-list-tile-action class="ml-5">
+                                    <v-slider
+                                        :thumb-size="24"
+                                        @end="updateSetting('maxThread')"
+                                        always-dirty
+                                        max="20"
+                                        min="1"
+                                        thumb-label="always"
+                                        v-model="maxThread"
                                     ></v-slider>
                                 </v-list-tile-action>
                             </v-list-tile>
@@ -272,6 +286,7 @@ export default {
         itemsPerPageChanged: false,
         autoUpdate: true,
         autoUpdateFrequency: 0,
+        maxThread: 5,
         config: '',
         importType: '',
         importToGroup: '',
@@ -282,7 +297,7 @@ export default {
     computed: {
         view: {
             get() {
-                return this.settings.view;
+                return this.settings ? this.settings.view : 'all';
             },
             async set(value) {
                 this.$refs.content.loading++;
@@ -309,12 +324,13 @@ export default {
         this.itemsPerPage = this.settings.itemsPerPage;
         this.autoUpdate = this.settings.autoUpdate;
         this.autoUpdateFrequency = this.settings.autoUpdateFrequency;
+        this.maxThread = this.settings.maxThread;
         this.detailsWidth = this.settings.detailsWidth;
         this.loading = false;
     },
     methods: {
         refreshList(config) {
-            return this.$refs.content.refreshList(config);
+            return this.$refs.content.addToRefreshQueue(config);
         },
         async refresh() {
             let { subType: type, id } = this.active;
@@ -382,7 +398,6 @@ export default {
             if (this.importType === 'all') {
                 let { groups, parsers, buttons, settings, collections } = this.config;
                 await this.resetAllConfig();
-                console.log(1);
                 await message.changeAutoUpdate(false);
                 groups && await browser.storage.local.set({ groups });
                 parsers && await browser.storage.local.set({ parsers });
@@ -441,6 +456,7 @@ export default {
             await this.$store.dispatch('updateSetting', { [key]: this[key] });
             if (key === 'autoUpdate') await message.changeAutoUpdate(this[key]);
             if (key === 'autoUpdateFrequency') await message.changeAutoUpdateFrequency();
+            if (key === 'maxThread') await message.changeMaxThread();
         },
         saveSettings() {
             return this.$store.dispatch('saveSettings');
