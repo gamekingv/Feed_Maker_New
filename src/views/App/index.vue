@@ -111,6 +111,7 @@
                                         :thumb-size="24"
                                         @end="updateSetting('autoUpdateFrequency')"
                                         always-dirty
+                                        hide-details
                                         max="60"
                                         min="1"
                                         thumb-label="always"
@@ -125,6 +126,7 @@
                                         :thumb-size="24"
                                         @end="itemsPerPageChanged = true"
                                         always-dirty
+                                        hide-details
                                         max="100"
                                         min="1"
                                         thumb-label="always"
@@ -139,6 +141,7 @@
                                         :thumb-size="24"
                                         @end="updateSetting('maxThread')"
                                         always-dirty
+                                        hide-details
                                         max="20"
                                         min="1"
                                         thumb-label="always"
