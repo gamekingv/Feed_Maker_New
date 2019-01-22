@@ -2,7 +2,9 @@
     <v-form lazy-validation ref="form" v-model="formValidation">
         <v-layout justify-center v-if="type === 'feed' || type === 'custom'">
             <v-flex lg1>
-                <v-subheader>分组*</v-subheader>
+                <v-subheader>分组
+                    <span class="error--text">*</span>
+                </v-subheader>
             </v-flex>
             <v-flex lg4>
                 <v-select :items="groups" :rules="[requireRule]" no-data-text="无任何分组" placeholder="请选择所属分组" required solo v-model="step.group"></v-select>
@@ -10,7 +12,9 @@
         </v-layout>
         <v-layout justify-center>
             <v-flex lg1>
-                <v-subheader>名称*</v-subheader>
+                <v-subheader>名称
+                    <span class="error--text">*</span>
+                </v-subheader>
             </v-flex>
             <v-flex lg4>
                 <v-text-field :rules="[requireRule]" clearable placeholder="请输入名称" required solo v-model="step.name"></v-text-field>

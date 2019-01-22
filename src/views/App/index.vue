@@ -98,29 +98,15 @@
                         </v-list>
                         <v-subheader>常规</v-subheader>
                         <v-list class="pt-0">
-                            <v-list-tile class="mt-2">
-                                <v-list-tile-action>每页显示消息数量</v-list-tile-action>
-                                <v-list-tile-action class="ml-5">
-                                    <v-slider
-                                        :thumb-size="24"
-                                        @end="itemsPerPageChanged = true"
-                                        always-dirty
-                                        max="100"
-                                        min="1"
-                                        thumb-label="always"
-                                        v-model="itemsPerPage"
-                                    ></v-slider>
-                                </v-list-tile-action>
-                            </v-list-tile>
-                            <v-list-tile class="mt-2">
-                                <v-list-tile-action>自动更新</v-list-tile-action>
-                                <v-list-tile-action class="ml-5">
+                            <v-list-tile>
+                                <v-flex lg6>自动更新</v-flex>
+                                <v-flex lg6>
                                     <v-switch @change="updateSetting('autoUpdate')" class="mt-0 pt-0" color="blue" hide-details v-model="autoUpdate"></v-switch>
-                                </v-list-tile-action>
+                                </v-flex>
                             </v-list-tile>
-                            <v-list-tile class="mt-2">
-                                <v-list-tile-action>自动更新频率（分钟）</v-list-tile-action>
-                                <v-list-tile-action class="ml-5">
+                            <v-list-tile class="mt-3">
+                                <v-flex lg6>自动更新频率（分钟）</v-flex>
+                                <v-flex lg6>
                                     <v-slider
                                         :thumb-size="24"
                                         @end="updateSetting('autoUpdateFrequency')"
@@ -130,11 +116,25 @@
                                         thumb-label="always"
                                         v-model="autoUpdateFrequency"
                                     ></v-slider>
-                                </v-list-tile-action>
+                                </v-flex>
                             </v-list-tile>
-                            <v-list-tile class="mt-2">
-                                <v-list-tile-action>最大同时处理数</v-list-tile-action>
-                                <v-list-tile-action class="ml-5">
+                            <v-list-tile class="mt-3">
+                                <v-flex lg6>每页显示消息数量</v-flex>
+                                <v-flex lg6>
+                                    <v-slider
+                                        :thumb-size="24"
+                                        @end="itemsPerPageChanged = true"
+                                        always-dirty
+                                        max="100"
+                                        min="1"
+                                        thumb-label="always"
+                                        v-model="itemsPerPage"
+                                    ></v-slider>
+                                </v-flex>
+                            </v-list-tile>
+                            <v-list-tile class="mt-3">
+                                <v-flex lg6>最大并发处理数</v-flex>
+                                <v-flex lg6>
                                     <v-slider
                                         :thumb-size="24"
                                         @end="updateSetting('maxThread')"
@@ -144,7 +144,7 @@
                                         thumb-label="always"
                                         v-model="maxThread"
                                     ></v-slider>
-                                </v-list-tile-action>
+                                </v-flex>
                             </v-list-tile>
                         </v-list>
                         <v-spacer></v-spacer>
@@ -166,6 +166,7 @@
                     @input="e => e || (detailsContent = detailsTitle = detailsAuthor = '')"
                     fixed
                     right
+                    style="-moz-user-select: element;"
                     v-model="details"
                 >
                     <div @mousedown="onResizing" style="height: 100%; cursor: e-resize; max-width: 5px; min-width: 5px;"></div>
@@ -495,7 +496,7 @@ export default {
 }
 .resizing {
     transition: none !important;
-    -moz-user-select: none;
+    -moz-user-select: none !important;
 }
 .details-content /deep/ .image-box {
     max-width: calc(100% - 16px);

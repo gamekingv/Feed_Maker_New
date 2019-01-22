@@ -23,7 +23,9 @@
                             </v-layout>
                             <v-layout>
                                 <v-flex lg2>
-                                    <v-subheader>名称</v-subheader>
+                                    <v-subheader>名称
+                                        <span class="error--text">*</span>
+                                    </v-subheader>
                                 </v-flex>
                                 <v-flex lg10>
                                     <v-text-field :rules="[requireRules]" placeholder="请输入名称" solo v-model="editedItem.name"></v-text-field>
@@ -31,7 +33,9 @@
                             </v-layout>
                             <v-layout>
                                 <v-flex lg2>
-                                    <v-subheader>图标</v-subheader>
+                                    <v-subheader>图标
+                                        <span class="error--text">*</span>
+                                    </v-subheader>
                                 </v-flex>
                                 <v-flex lg10>
                                     <v-text-field

@@ -2,7 +2,9 @@
     <v-form lazy-validation ref="form" v-model="formValidation">
         <v-layout justify-center>
             <v-flex lg1>
-                <v-subheader>类型*</v-subheader>
+                <v-subheader>类型
+                    <span class="error--text">*</span>
+                </v-subheader>
             </v-flex>
             <v-flex lg4>
                 <v-select

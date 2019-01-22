@@ -2,7 +2,9 @@
     <v-form lazy-validation ref="form" v-model="formValidation">
         <v-layout justify-center>
             <v-flex lg1>
-                <v-subheader>链接*</v-subheader>
+                <v-subheader>链接
+                    <span class="error--text">*</span>
+                </v-subheader>
             </v-flex>
             <v-flex lg11>
                 <v-text-field :rules="[requireRule, urlRule]" clearable placeholder="请输入链接" required solo v-model="step.url"></v-text-field>

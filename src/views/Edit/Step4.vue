@@ -10,9 +10,14 @@
                         <v-container fluid>
                             <v-layout>
                                 <v-flex lg1 style="min-width: 100px;">
-                                    <v-subheader
-                                        v-text="parserType !== 'base' ? `${parserName[parserType]}${parserType === 'title' || parserType === 'url' || parserType === 'pubDate' ? '*': ''} (${i + 1})` : `${parserName[parserType]}*`"
-                                    ></v-subheader>
+                                    <v-subheader>
+                                        {{parserName[parserType]}}
+                                        <span
+                                            class="error--text"
+                                            v-if="parserType !== 'common' && parserType !== 'author' && parserType !== 'content'"
+                                        >*</span>
+                                        {{parserType === 'base' ? '' :` (${i + 1})`}}
+                                    </v-subheader>
                                 </v-flex>
                                 <v-flex lg3 v-if="parserType !== 'base'">
                                     <v-select
