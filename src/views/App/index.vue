@@ -209,19 +209,35 @@
                 </v-card-text>
             </v-card>
         </v-dialog>
-        <v-dialog @input="e => e || (detailsImage = '')" scrollable v-model="showDetailsImage" width="unset">
-            <v-card class="grey darken-4">
-                <v-card-title class="font-weight-bold py-0 pr-0">查看图片
-                    <v-spacer></v-spacer>
-                    <v-btn @click="showDetailsImage = false" icon>
-                        <v-icon>close</v-icon>
-                    </v-btn>
-                </v-card-title>
-                <v-divider></v-divider>
-                <v-card-text class="text-md-center scrollbar-thin">
-                    <img :src="detailsImage">
-                </v-card-text>
-            </v-card>
+        <v-dialog @input="e => e || (detailsImage = '')" fullscreen v-model="showDetailsImage">
+            <v-btn @click="showDetailsImage = false" icon style="position: fixed; right: 10px; top: 10px; z-index: 999;">
+                <v-icon>close</v-icon>
+            </v-btn>
+            <v-layout column fill-height style="overflow: hidden;">
+                <v-tabs-items
+                    style="overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgb(94, 94, 94) rgb(66, 66, 66)"
+                    v-model="detailsImageIndex"
+                >
+                    <v-tab-item :href="`${i}`" :key="i" v-for="(detailsImage, i) in detailsImages">
+                        <v-card>
+                            <v-layout justify-center>
+                                <img :src="detailsImage">
+                            </v-layout>
+                        </v-card>
+                    </v-tab-item>
+                </v-tabs-items>
+                <v-spacer></v-spacer>
+                <v-tabs :height="100" centered fixed-tabs show-arrows v-model="detailsImageIndex">
+                    <v-tabs-slider color="blue"></v-tabs-slider>
+                    <v-tab :key="i" :value="`${i}`" class="mb-1" v-for="(detailsImage, i) in detailsImages">
+                        <v-img :max-height="96" :src="detailsImage">
+                            <v-layout align-center fill-height justify-center ma-0 slot="placeholder">
+                                <v-progress-circular color="grey lighten-5" indeterminate></v-progress-circular>
+                            </v-layout>
+                        </v-img>
+                    </v-tab>
+                </v-tabs>
+            </v-layout>
         </v-dialog>
         <v-dialog :width="300" content-class="grey darken-4" v-model="importAlert">
             <v-card class="grey darken-4">
@@ -282,7 +298,8 @@ export default {
         detailsTitle: '',
         detailsAuthor: '',
         detailsContent: '',
-        detailsImage: '',
+        detailsImages: [],
+        detailsImageIndex: 0,
         detailsOffsetTop: 0,
         detailsWidth: 900,
         isResizing: false,
@@ -362,9 +379,11 @@ export default {
             this.detailsContent = content ? content : '';
             this.$nextTick(() => {
                 let images = this.$refs.detailsContent.querySelectorAll('.image-box');
-                images.forEach(image => image.addEventListener('click', () => {
+                this.detailsImages = images ? [...images].map(image => image.src) : [];
+                images.forEach((image, i) => image.addEventListener('click', () => {
                     this.showDetailsImage = true;
-                    this.detailsImage = image.src;
+                    this.detailsImageIndex = i;
+                    // this.detailsImage = image.src;
                 }));
             });
         },
