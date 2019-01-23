@@ -217,7 +217,7 @@
                 <v-layout fill-height>
                     <v-tabs-items v-model="detailsImageIndex">
                         <v-tab-item :key="i" :value="`tab-${i}`" v-for="(detailsImage, i) in detailsImages">
-                            <v-layout class="details-image-container">
+                            <v-layout class="details-image-container scrollbar-thin">
                                 <img
                                     :class="['details-image', {'zoomed-image': detailsImage.zoomed}]"
                                     :src="detailsImage.src"
@@ -529,9 +529,7 @@ export default {
     cursor: pointer;
 }
 .details-image-container {
-    overflow: auto;
-    scrollbar-width: thin;
-    scrollbar-color: rgb(94, 94, 94) rgb(66, 66, 66);
+    overflow-x: scroll;
     height: calc(100vh - 108px);
     width: 100vw;
 
