@@ -209,27 +209,27 @@
                 </v-card-text>
             </v-card>
         </v-dialog>
-        <v-dialog @input="e => e || (detailsImage = '')" fullscreen v-model="showDetailsImage">
+        <v-dialog @input="e => e || (detailsImages = [])" fullscreen v-model="showDetailsImage">
             <v-btn @click="showDetailsImage = false" icon style="position: fixed; right: 10px; top: 10px; z-index: 999;">
                 <v-icon>close</v-icon>
             </v-btn>
-            <v-layout column fill-height style="overflow: hidden;">
-                <v-tabs-items
-                    style="overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgb(94, 94, 94) rgb(66, 66, 66)"
-                    v-model="detailsImageIndex"
-                >
-                    <v-tab-item :href="`${i}`" :key="i" v-for="(detailsImage, i) in detailsImages">
-                        <v-card>
-                            <v-layout justify-center>
-                                <img :src="detailsImage">
+            <v-layout class="grey darken-3" column fill-height style="overflow: hidden;">
+                <v-layout fill-height>
+                    <v-tabs-items v-model="detailsImageIndex">
+                        <v-tab-item :key="i" :value="`tab-${i}`" v-for="(detailsImage, i) in detailsImages">
+                            <v-layout class="details-image-container">
+                                <img
+                                    :class="['details-image', {'zoomed-image': detailsImage.zoomed}]"
+                                    :src="detailsImage.src"
+                                    @click="detailsImage.zoomed = !detailsImage.zoomed"
+                                >
                             </v-layout>
-                        </v-card>
-                    </v-tab-item>
-                </v-tabs-items>
-                <v-spacer></v-spacer>
+                        </v-tab-item>
+                    </v-tabs-items>
+                </v-layout>
                 <v-tabs :height="100" centered fixed-tabs show-arrows v-model="detailsImageIndex">
                     <v-tabs-slider color="blue"></v-tabs-slider>
-                    <v-tab :key="i" :value="`${i}`" class="mb-1" v-for="(detailsImage, i) in detailsImages">
+                    <v-tab :href="`#tab-${i}`" :key="i" class="mb-1" v-for="(detailsImage, i) in detailsImages">
                         <v-img :max-height="96" :src="detailsImage">
                             <v-layout align-center fill-height justify-center ma-0 slot="placeholder">
                                 <v-progress-circular color="grey lighten-5" indeterminate></v-progress-circular>
@@ -299,7 +299,7 @@ export default {
         detailsAuthor: '',
         detailsContent: '',
         detailsImages: [],
-        detailsImageIndex: 0,
+        detailsImageIndex: 'tab-0',
         detailsOffsetTop: 0,
         detailsWidth: 900,
         isResizing: false,
@@ -350,6 +350,9 @@ export default {
         this.loading = false;
     },
     methods: {
+        test(e) {
+            console.log(e);
+        },
         refreshList(config) {
             return this.$refs.content.addToRefreshQueue(config);
         },
@@ -379,11 +382,10 @@ export default {
             this.detailsContent = content ? content : '';
             this.$nextTick(() => {
                 let images = this.$refs.detailsContent.querySelectorAll('.image-box');
-                this.detailsImages = images ? [...images].map(image => image.src) : [];
                 images.forEach((image, i) => image.addEventListener('click', () => {
+                    this.detailsImages = images ? [...images].map(image => ({ zoomed: true, src: image.src })) : [];
+                    this.detailsImageIndex = `tab-${i}`;
                     this.showDetailsImage = true;
-                    this.detailsImageIndex = i;
-                    // this.detailsImage = image.src;
                 }));
             });
         },
@@ -404,6 +406,7 @@ export default {
             reader.addEventListener('loadend', async event => {
                 try {
                     let config = JSON.parse(event.target.result);
+                    if (!config.type) return this.$throw('导入文件解析错误');
                     this.importType = config.type;
                     this.config = config;
                     this.importAlert = true;
@@ -438,7 +441,7 @@ export default {
                 feed.custom && parser && await this.$store.dispatch('addParser', { id: feed.id, parser });
                 this.setting = false;
             }
-            else {
+            else if (this.importType === '') {
                 await this.resetAllConfig();
                 await message.changeAutoUpdate(false);
                 this.$router.push('/list/group/all');
@@ -524,5 +527,22 @@ export default {
     max-width: calc(100% - 16px);
     max-height: 500px;
     cursor: pointer;
+}
+.details-image-container {
+    overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(94, 94, 94) rgb(66, 66, 66);
+    height: calc(100vh - 108px);
+    width: 100vw;
+
+    .details-image {
+        margin: auto;
+        flex-shrink: 0;
+        cursor: pointer;
+        &.zoomed-image {
+            max-height: 100%;
+            flex-shrink: 1;
+        }
+    }
 }
 </style>
