@@ -210,11 +210,27 @@
             </v-card>
         </v-dialog>
         <v-dialog @input="e => e || (detailsImages = [])" fullscreen v-model="showDetailsImage">
-            <v-btn @click="showDetailsImage = false" icon style="position: fixed; right: 10px; top: 10px; z-index: 999;">
-                <v-icon>close</v-icon>
-            </v-btn>
             <v-layout class="grey darken-3" column fill-height style="overflow: hidden;">
-                <v-layout fill-height>
+                <v-layout fill-height style="position: relative;">
+                    <v-btn @click="showDetailsImage = false" icon style="position: absolute; right: 10px; top: 10px; z-index: 999;">
+                        <v-icon>close</v-icon>
+                    </v-btn>
+                    <v-btn
+                        @click="detailsImageIndex = `tab-${parseInt(detailsImageIndex.replace('tab-', '')) + 1}`"
+                        icon
+                        style="position: absolute; margin: auto; right: 10px; top: 0; bottom: 0; z-index: 999;"
+                        v-if="parseInt(detailsImageIndex.replace('tab-', '')) < detailsImages.length - 1"
+                    >
+                        <v-icon>arrow_forward</v-icon>
+                    </v-btn>
+                    <v-btn
+                        @click="detailsImageIndex = `tab-${parseInt(detailsImageIndex.replace('tab-', '')) - 1}`"
+                        icon
+                        style="position: absolute; margin: auto; left: 10px; top: 0; bottom: 0; z-index: 999;"
+                        v-if="parseInt(detailsImageIndex.replace('tab-', '')) > 0"
+                    >
+                        <v-icon>arrow_back</v-icon>
+                    </v-btn>
                     <v-tabs-items v-model="detailsImageIndex">
                         <v-tab-item :key="i" :value="`tab-${i}`" v-for="(detailsImage, i) in detailsImages">
                             <v-layout class="details-image-container scrollbar-thin">
@@ -227,6 +243,7 @@
                         </v-tab-item>
                     </v-tabs-items>
                 </v-layout>
+                <v-divider></v-divider>
                 <v-tabs :height="100" centered fixed-tabs show-arrows v-model="detailsImageIndex">
                     <v-tabs-slider color="blue"></v-tabs-slider>
                     <v-tab :href="`#tab-${i}`" :key="i" class="mb-1" v-for="(detailsImage, i) in detailsImages">
