@@ -55,6 +55,9 @@ const message = {
                     else if (type === 'feed') {
                         sendResponse(await db.getItemsByFeedId(id, page, amount, state, active));
                     }
+                    else if (type === 'collection') {
+                        sendResponse(await db.getItemsByCollectionId(id));
+                    }
                     break;
                 }
                 case 'getCount': {
