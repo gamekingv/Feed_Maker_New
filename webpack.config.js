@@ -43,6 +43,7 @@ module.exports = {
         exclude: /node_modules/
       },
       {
+
         test: /\.(png|jpg|jpeg|gif|eot|ttf|woff|woff2|svg|svgz)(\?.+)?$/,
         use: [{
           loader: 'url-loader',
@@ -81,7 +82,7 @@ if (process.env.NODE_ENV === 'production') {
       }
     }),
     new webpack.optimize.UglifyJsPlugin({
-      sourceMap: true,
+      sourceMap: process.env.NODE_ENV !== 'production',
       compress: {
         warnings: false
       }

@@ -47,7 +47,7 @@ const crawler = {
         let config = {
             method: feed.method,
             url: feed.url,
-            timeout: feed.timeout * 1000,
+            timeout: (feed.timeout ? feed.timeout : 30) * 1000,
             transformResponse: res => res
         };
         if (feed.method === 'post' && feed.body) {

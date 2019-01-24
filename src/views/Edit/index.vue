@@ -195,7 +195,7 @@ export default {
             let timestamp = Date.now().toString();
             this.fetching = timestamp;
 
-            let data = await message.sendFetchSource({
+            let { data } = await message.sendFetchSource({
                 url: this.step3.url,
                 method: this.step3.method,
                 timeout: this.step3.timeout,

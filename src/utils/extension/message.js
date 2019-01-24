@@ -96,10 +96,10 @@ const message = {
     },
     async sendFetchSource(feed) {
         try {
-            let { data } = await this.send({ action: 'fetch source', data: { feed } });
-            return data;
+            let { result, data } = await this.send({ action: 'fetch source', data: { feed } });
+            return { result, data };
         }
-        catch (e) { return e.toString(); }
+        catch (e) { return { result: 'fail', data: e.toString() }; }
     },
     async sendParseSource(source, steps, baseSteps) {
         try {

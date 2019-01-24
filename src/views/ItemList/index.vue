@@ -6,7 +6,7 @@
                     <v-alert class="py-1" dismissible type="warning" v-if="isAlertShown" v-model="isAlertShown">
                         <div v-html="`上一次更新失败，错误信息为：<br>${getFeedError(active.id)}`"></div>
                     </v-alert>
-                    <v-list class="transparent" dense>
+                    <v-list class="transparent" dense v-if="items.length !== 0">
                         <template v-for="(item, i) in items">
                             <v-hover :key="item.id">
                                 <v-list-tile @click="showDetails(item.title, item.author, item.content)" slot-scope="{ hover: isHover }">
@@ -41,7 +41,7 @@
                                         ></v-list-tile-title>
                                     </v-list-tile-content>
                                     <v-tooltip :open-delay="1000" lazy top v-if="isHover">
-                                        <v-btn @click.stop icon slot="activator" small>
+                                        <v-btn @click.stop="openInNewTab(item.url)" icon slot="activator" small>
                                             <v-icon small>arrow_forward</v-icon>
                                         </v-btn>
                                         <span>在新标签页打开</span>
@@ -84,6 +84,12 @@
                             <v-divider :key="item.id * -1" v-if="i < items.length - 1 || items.length === 1"></v-divider>
                         </template>
                     </v-list>
+                    <v-layout align-center fill-height justify-center v-else>
+                        <v-card class="title pl-3 pr-5 py-3" flat>
+                            <v-icon left>info</v-icon>
+                            {{`暂无${emptyText}消息`}}
+                        </v-card>
+                    </v-layout>
                     <v-layout align-center justify-center>
                         <v-pagination :length="totalPage" :total-visible="9" @input="changePage" circle v-if="totalPage > 1" v-model="currentPage"></v-pagination>
                     </v-layout>
@@ -157,6 +163,12 @@ export default {
         },
         totalPage() {
             return Math.ceil(this.totalItems / this.settings.itemsPerPage);
+        },
+        emptyText() {
+            if (this.active.id === 'collections') return '收藏的';
+            else if (this.settings.view === 'unread') return '未读的';
+            else if (this.settings.view === 'read') return '已读的';
+            else if (this.settings.view === 'all') return '任何';
         },
         ...mapState([
             'settings',
@@ -282,6 +294,9 @@ export default {
             }
             await this.addToRefreshQueue({ isLoading: true });
         },
+        openInNewTab(url) {
+            browser.tabs.create({ url, active: false });
+        },
         changePage() {
             this.addToRefreshQueue({ isChangePage: true });
         },
@@ -293,8 +308,9 @@ export default {
                 let context = {
                     url,
                     title,
-                    fetchSource: message.sendFetchSource,
-                    showInfo: this.$addInfo
+                    fetchSource: message.sendFetchSource.bind(message),
+                    showInfo: this.$addInfo,
+                    tabs: browser.tabs
                 };
                 (function () {
                     let window, chrome, browser = undefined;
