@@ -443,7 +443,7 @@ export default {
             if (this.importType === 'all') {
                 let { groups, parsers, buttons, settings, collections } = this.config;
                 await this.resetAllConfig();
-                await message.changeAutoUpdate(false);
+                await message.changeAutoUpdate(true);
                 groups && await browser.storage.local.set({ groups });
                 parsers && await browser.storage.local.set({ parsers });
                 buttons && await browser.storage.local.set({ buttons });
@@ -462,7 +462,7 @@ export default {
             }
             else if (this.importType === '') {
                 await this.resetAllConfig();
-                await message.changeAutoUpdate(false);
+                await message.changeAutoUpdate(true);
                 this.$router.push('/list/group/all');
                 location.reload();
             }
