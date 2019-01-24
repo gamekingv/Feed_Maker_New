@@ -448,7 +448,7 @@ export default {
                 buttons && await browser.storage.local.set({ buttons });
                 settings && await browser.storage.local.set({ settings });
                 collections && await browser.storage.local.set({ collections });
-                await message.changeAutoUpdate(true);
+                await message.changeAutoUpdateFrequency();
                 this.$router.push('/list/group/all');
                 location.reload();
             }
@@ -462,7 +462,7 @@ export default {
             }
             else if (this.importType === '') {
                 await this.resetAllConfig();
-                await message.changeAutoUpdate(true);
+                await message.changeAutoUpdateFrequency();
                 this.$router.push('/list/group/all');
                 location.reload();
             }
