@@ -117,14 +117,14 @@ const message = {
                 }
                 case 'change autoUpdate': {
                     let { state } = data;
-                    if (state) crawler.autoUpdate();
+                    if (state) await crawler.autoUpdate();
                     else crawler.stopUpdate();
                     sendResponse();
                     break;
                 }
                 case 'change autoUpdateFrequency': {
                     crawler.stopUpdate();
-                    crawler.autoUpdate();
+                    await crawler.autoUpdate();
                     sendResponse();
                     break;
                 }
