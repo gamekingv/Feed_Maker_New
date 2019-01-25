@@ -21,7 +21,7 @@ const message = {
             case 'background update complete': {
                 let { id, result: unread } = data;
                 await app.$store.dispatch('updateFeedState', { id, unread, errorMessage: '', isLoading: false });
-                if (app.$store.state.active.type === 'list') app.refreshList({ type: 'feed', id, isUpdateComplete: true });
+                if (app.$store.state.active.type === 'list' && unread > 0) app.refreshList({ type: 'feed', id, isUpdateComplete: true });
                 break;
             }
             case 'background update fail': {
