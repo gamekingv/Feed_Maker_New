@@ -86,7 +86,7 @@
                     </v-list>
                     <v-layout align-center fill-height justify-center v-else>
                         <v-card class="title pl-3 pr-5 py-3" flat>
-                            <v-icon left>info</v-icon>
+                            <v-icon left>error_outline</v-icon>
                             {{`暂无${emptyText}消息`}}
                         </v-card>
                     </v-layout>
