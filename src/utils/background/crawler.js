@@ -203,6 +203,7 @@ const crawler = {
         return steps.reduce((result, step) => this.stepParser(result, step), source);
     },
     commonStepsParser(baseResults, parsers, bufferResultIndex) {
+        if (!Array.isArray(baseResults)) throw '基础数组处理出错';
         let results = { base: baseResults };
         parsers.forEach((parser, parserIndex) => {
             let { source, parserSteps } = parser;
