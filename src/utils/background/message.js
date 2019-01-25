@@ -85,6 +85,7 @@ const message = {
                     try {
                         if (baseSteps) {
                             let baseResult = crawler.baseStepsParser(source, baseSteps);
+                            if (!Array.isArray(baseResult)) throw '基础数组处理出错';
                             result = crawler.stepGroupParser(baseResult, steps);
                         }
                         else result = crawler.baseStepsParser(source, steps);
