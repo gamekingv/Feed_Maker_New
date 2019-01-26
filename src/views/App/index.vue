@@ -480,9 +480,9 @@ export default {
         },
         onResizing(e) {
             this.isResizing = true;
-            let offset = e.clientX;
-            let originWidth = this.detailsWidth;
-            let newWidth = 0;
+            let offset = e.clientX,
+                originWidth = Math.min(this.detailsWidth, document.body.offsetWidth),
+                newWidth = originWidth;
             document.onmousemove = (e) => {
                 newWidth = offset - e.clientX + originWidth;
                 if (newWidth < 300) {
