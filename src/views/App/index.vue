@@ -369,9 +369,6 @@ export default {
         this.loading = false;
     },
     methods: {
-        test(e) {
-            console.log(e);
-        },
         refreshList(config) {
             return this.$refs.content.addToRefreshQueue(config);
         },
