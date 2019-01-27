@@ -164,16 +164,22 @@
                 </v-navigation-drawer>
                 <v-navigation-drawer
                     :class="['d-flex',{resizing: isResizing}]"
-                    :temporary="!showDetailsImage"
+                    :stateless="showDetailsImage"
                     :width="detailsWidth"
                     @input="e => e || (detailsContent = detailsTitle = detailsAuthor = '')"
                     fixed
                     right
                     style="-moz-user-select: element;"
+                    temporary
                     v-model="details"
                 >
                     <div @mousedown="onResizing" style="height: 100%; cursor: e-resize; max-width: 5px; min-width: 5px;"></div>
-                    <v-card class="scrollbar-thin" flat id="scroll-target" v-scroll:#scroll-target="onDetailsScroll">
+                    <v-card
+                        :class="['scrollbar-thin', {'details-image-showing': showDetailsImage}]"
+                        flat
+                        id="scroll-target"
+                        v-scroll:#scroll-target="onDetailsScroll"
+                    >
                         <v-card-title class="headline font-weight-bold pb-1" id="scroll-top" v-html="detailsTitle"></v-card-title>
                         <v-card-title class="py-1">
                             <v-chip class="ml-0" color="primary" selected small text-color="white" v-if="detailsAuthor">
@@ -210,15 +216,24 @@
             </v-card>
         </v-dialog>
         <v-dialog @input="e => e || (detailsImages = [])" fullscreen v-model="showDetailsImage">
-            <v-layout class="grey darken-3" column fill-height style="overflow: hidden;">
+            <v-layout column fill-height style="overflow: hidden; background-color: rgba(33, 33, 33, 0.8)">
                 <v-layout fill-height style="position: relative;">
-                    <v-btn @click="showDetailsImage = false" class="overflow-button" icon style="right: 10px; top: 10px;">
+                    <v-btn
+                        @click="showDetailsImage = false"
+                        class="overflow-button"
+                        color="rgba(33, 33, 33, 0.46)"
+                        icon
+                        large
+                        style="right: 10px; top: 10px;"
+                    >
                         <v-icon>close</v-icon>
                     </v-btn>
                     <v-btn
                         @click="detailsImageIndex = `tab-${parseInt(detailsImageIndex.replace('tab-', '')) + 1}`"
                         class="overflow-button"
+                        color="rgba(33, 33, 33, 0.46)"
                         icon
+                        large
                         style="right: 10px; top: 0; bottom: 0;"
                         v-if="parseInt(detailsImageIndex.replace('tab-', '')) < detailsImages.length - 1"
                     >
@@ -227,7 +242,9 @@
                     <v-btn
                         @click="detailsImageIndex = `tab-${parseInt(detailsImageIndex.replace('tab-', '')) - 1}`"
                         class="overflow-button"
+                        color="rgba(33, 33, 33, 0.46)"
                         icon
+                        large
                         style="left: 10px; top: 0; bottom: 0; "
                         v-if="parseInt(detailsImageIndex.replace('tab-', '')) > 0"
                     >
@@ -246,7 +263,7 @@
                     </v-tabs-items>
                 </v-layout>
                 <v-divider class="mb-1"></v-divider>
-                <v-tabs :height="100" centered fixed-tabs show-arrows v-model="detailsImageIndex">
+                <v-tabs :height="100" centered color="transparent" fixed-tabs show-arrows v-model="detailsImageIndex">
                     <v-tabs-slider color="blue"></v-tabs-slider>
                     <v-tab :href="`#tab-${i}`" :key="i" class="mb-1" v-for="(detailsImage, i) in detailsImages">
                         <v-img :max-height="96" :src="detailsImage">
@@ -538,6 +555,9 @@ export default {
 .resizing {
     transition: none !important;
     -moz-user-select: none !important;
+}
+.scrollbar-thin.details-image-showing {
+    overflow: hidden;
 }
 .details-content /deep/ .image-box {
     max-width: calc(100% - 16px);
