@@ -19,7 +19,7 @@ const message = {
     },
     Initialized() {
         isInitialized = true;
-        this.send({ action: 'initialize complete' });
+        browser.runtime.sendMessage({ action: 'initialize complete' });
     },
     async messageListener({ mid, action, data }, { name }) {
         const sendResponse = this.sendResponse.bind(this, name, mid);

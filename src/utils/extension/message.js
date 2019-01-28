@@ -2,18 +2,22 @@ let port, app, isInitialized = true, messageQueue = {}, midCount = 0;
 
 const message = {
     async init(vm) {
+        const handler = this.handlesInitializedMessage.bind(this);
+        browser.runtime.onMessage.addListener(handler);
         port = browser.runtime.connect({ name: Date.now().toString() });
         port.onMessage.addListener(this.messageListener.bind(this));
         app = vm;
-        let isInitialized = await this.send({ action: 'get initialize state' });
+        isInitialized = await this.send({ action: 'get initialize state' });
+        if (isInitialized) browser.runtime.onMessage.removeListener(handler);
         return isInitialized;
+    },
+    handlesInitializedMessage(request) {
+        if (request && request.action === 'initialize complete' && !isInitialized) {
+            location.reload();
+        }
     },
     async messageListener({ mid, action, data, state }) {
         switch (action) {
-            case 'initialize complete': {
-                if (!isInitialized) location.reload();
-                break;
-            }
             case 'background update': {
                 Object.keys(app.$store.state.feedState).forEach(id => app.$store.dispatch('updateFeedState', { id, isLoading: true }));
                 break;
