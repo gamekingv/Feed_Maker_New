@@ -169,7 +169,6 @@
                     @input="e => e || (detailsContent = detailsTitle = detailsAuthor = '')"
                     fixed
                     right
-                    style="-moz-user-select: element;"
                     temporary
                     v-model="details"
                 >
@@ -583,5 +582,8 @@ export default {
     position: absolute;
     margin: auto;
     z-index: 999;
+}
+#scroll-target {
+    -moz-user-select: text;
 }
 </style>
