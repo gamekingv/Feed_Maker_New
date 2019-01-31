@@ -23,14 +23,14 @@
                                         v-if="item.author"
                                     >
                                         <v-avatar class="small">
-                                            <img :class="`custom-feed-icon-${item.feedId}`" v-if="isUrl(icons[i])">
+                                            <img :class="`custom-feed-icon-${item.feedId}`" src v-if="isUrl(icons[i])">
                                             <v-icon :size="20" v-else v-text="icons[i] ? icons[i] : 'insert_drive_file'"></v-icon>
                                         </v-avatar>
                                         {{item.author}}
                                     </v-chip>
                                     <v-list-tile-avatar v-else>
                                         <v-avatar class="small">
-                                            <img :class="`custom-feed-icon-${item.feedId}`" v-if="isUrl(icons[i])">
+                                            <img :class="`custom-feed-icon-${item.feedId}`" src v-if="isUrl(icons[i])">
                                             <v-icon :size="20" v-else v-text="icons[i] ? icons[i] : 'insert_drive_file'"></v-icon>
                                         </v-avatar>
                                     </v-list-tile-avatar>
