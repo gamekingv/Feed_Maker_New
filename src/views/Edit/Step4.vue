@@ -100,12 +100,12 @@
                     <v-card-text class="scrollbar-thin" style="overflow-x: hidden; min-height: 300px;" v-if="Array.isArray(result)">
                         <template v-for="(item, i) in result">
                             <v-chip :key="i" color="primary" selected small text-color="white">{{`第 ${i} 项`}}</v-chip>
-                            <p :key="'i' + i">{{typeof item === 'object' ? JSON.stringify(item) : item}}</p>
+                            <p :key="'i' + i" style="-moz-user-select: text;">{{typeof item === 'object' ? JSON.stringify(item) : item}}</p>
                         </template>
                     </v-card-text>
                     <v-card-text
                         class="scrollbar-thin"
-                        style="overflow-x: hidden; min-height: 300px;"
+                        style="overflow-x: hidden; min-height: 300px; -moz-user-select: text;"
                         v-else
                     >{{typeof result === 'object' ? JSON.stringify(result) : result}}</v-card-text>
                 </template>

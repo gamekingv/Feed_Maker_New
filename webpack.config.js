@@ -69,7 +69,15 @@ module.exports = {
   performance: {
     hints: false
   },
-  devtool: '#eval-source-map'
+  devtool: '#eval-source-map',
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: 'index.html',
+      filename: 'index.html',
+      favicon: 'public/favicon.png',
+      chunks: ['main']
+    })
+  ]
 }
 
 if (process.env.NODE_ENV === 'production') {
@@ -82,19 +90,12 @@ if (process.env.NODE_ENV === 'production') {
       }
     }),
     new webpack.optimize.UglifyJsPlugin({
-      sourceMap: process.env.NODE_ENV !== 'production',
       compress: {
         warnings: false
       }
     }),
     new webpack.LoaderOptionsPlugin({
       minimize: true
-    }),
-    new HtmlWebpackPlugin({
-      template: 'index.html',
-      filename: 'index.html',
-      favicon: 'public/favicon.png',
-      chunks: ['main']
     })
   ])
 }
