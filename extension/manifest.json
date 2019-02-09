@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Feed Maker",
-    "version": "0.1.17",
+    "version": "0.1.18",
     "description": "自定义Feed订阅。",
     "icons": {
         "64": "build/favicon.png"

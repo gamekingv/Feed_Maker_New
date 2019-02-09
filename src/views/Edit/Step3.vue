@@ -2,7 +2,8 @@
     <v-form lazy-validation ref="form" v-model="formValidation">
         <v-layout justify-center>
             <v-flex lg1>
-                <v-subheader>链接
+                <v-subheader>
+                    链接
                     <span class="error--text">*</span>
                 </v-subheader>
             </v-flex>
@@ -91,7 +92,6 @@
                     <v-textarea
                         :loading="fetching !== ''"
                         :value="typeof fetchResult === 'object' ? JSON.stringify(fetchResult) : fetchResult"
-                        class="scrollbar-thin-textarea"
                         hide-details
                         readonly
                         rows="10"
@@ -171,9 +171,5 @@ export default {
         transition: all 0.2s;
         width: calc(100% - 83px);
     }
-}
-.scrollbar-thin-textarea /deep/ textarea {
-    scrollbar-width: thin;
-    scrollbar-color: rgb(94, 94, 94) transparent;
 }
 </style>

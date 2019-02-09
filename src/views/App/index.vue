@@ -21,13 +21,13 @@
                         <span>收起/显示侧边栏</span>
                     </v-tooltip>
                     <v-tooltip
-                        :disabled="active.type !== 'list' || active.subType !== 'feed' || $store.getters.getFeed(active.id).home === ''"
+                        :disabled="active.type !== 'list' || active.subType !== 'feed' || getFeed(active.id).home === ''"
                         :open-delay="1000"
                         bottom
                         lazy
                     >
                         <v-btn
-                            :disabled="active.type !== 'list' || active.subType !== 'feed' || $store.getters.getFeed(active.id).home === ''"
+                            :disabled="active.type !== 'list' || active.subType !== 'feed' || getFeed(active.id).home === ''"
                             @click="openHomePage"
                             icon
                             slot="activator"
@@ -37,7 +37,14 @@
                         <span>打开主页</span>
                     </v-tooltip>
                     <v-fade-transition :duration="40" mode="out-in">
-                        <v-toolbar-title :key="$store.getters.activeTitle" v-text="$store.getters.activeTitle"/>
+                        <v-toolbar-title :key="activeTitle.action + activeTitle.name">
+                            {{activeTitle.action}}
+                            <span
+                                :class="{'blue--text': !!activeTitle.action}"
+                                v-if="!!activeTitle.name"
+                                v-text="activeTitle.name"
+                            ></span>
+                        </v-toolbar-title>
                     </v-fade-transition>
                     <v-spacer/>
                     <v-btn-toggle class="mx-3" mandatory v-model="view">
@@ -78,15 +85,7 @@
                         <router-view @showDetails="showDetails" ref="content"/>
                     </v-fade-transition>
                 </v-content>
-                <v-navigation-drawer
-                    :temporary="!importAlert"
-                    :width="500"
-                    @input="settingClose"
-                    class="scrollbar-thin"
-                    fixed
-                    right
-                    v-model="setting"
-                >
+                <v-navigation-drawer :temporary="!importAlert" :width="500" @input="settingClose" fixed right v-model="setting">
                     <v-layout column fill-height>
                         <v-subheader>自定义按钮</v-subheader>
                         <v-list class="pt-0">
@@ -173,12 +172,7 @@
                     v-model="details"
                 >
                     <div @mousedown="onResizing" style="height: 100%; cursor: e-resize; max-width: 5px; min-width: 5px;"></div>
-                    <v-card
-                        :class="['scrollbar-thin', {'details-image-showing': showDetailsImage}]"
-                        flat
-                        id="scroll-target"
-                        v-scroll:#scroll-target="onDetailsScroll"
-                    >
+                    <v-card :class="{'details-image-showing': showDetailsImage}" flat id="scroll-target" v-scroll:#scroll-target="onDetailsScroll">
                         <v-card-title class="headline font-weight-bold pb-1" id="scroll-top" v-html="detailsTitle"></v-card-title>
                         <v-card-title class="py-1">
                             <v-chip class="ml-0" color="primary" selected small text-color="white" v-if="detailsAuthor">
@@ -251,7 +245,7 @@
                     </v-btn>
                     <v-tabs-items v-model="detailsImageIndex">
                         <v-tab-item :key="i" :value="`tab-${i}`" v-for="(detailsImage, i) in detailsImages">
-                            <v-layout class="details-image-container scrollbar-thin">
+                            <v-layout class="details-image-container">
                                 <img
                                     :class="['details-image', {'zoomed-image': detailsImage.zoomed}]"
                                     :src="detailsImage.src"
@@ -320,7 +314,7 @@
 import GroupList from './GroupList';
 import CustomIconStyle from './CustomIconStyle';
 import message from '~/utils/extension/message';
-import { mapState } from 'vuex';
+import { mapState, mapGetters } from 'vuex';
 
 export default {
     data: () => ({
@@ -371,6 +365,11 @@ export default {
             'settings',
             'groups',
             'feedState'
+        ]),
+        ...mapGetters([
+            'getGroup',
+            'getFeed',
+            'activeTitle'
         ])
     },
     async mounted() {
@@ -396,7 +395,7 @@ export default {
                         this.groups.reduce((total, group) => group.active ? total.concat(group.feeds) : total, []).forEach(feed => feed.active && this.$store.dispatch('updateFeedState', { id: feed.id, isLoading: true }));
                     }
                     else {
-                        this.$store.getters.getGroup(id).feeds.forEach(feed => feed.active && this.$store.dispatch('updateFeedState', { id: feed.id, isLoading: true }));
+                        this.getGroup(id).feeds.forEach(feed => feed.active && this.$store.dispatch('updateFeedState', { id: feed.id, isLoading: true }));
                     }
                     break;
                 }
@@ -422,7 +421,7 @@ export default {
             });
         },
         openHomePage() {
-            browser.tabs.create({ url: this.$store.getters.getFeed(this.active.id).home });
+            browser.tabs.create({ url: this.getFeed(this.active.id).home });
         },
         async exportConfig() {
             let { groups, parsers, buttons, settings, collections } = await browser.storage.local.get();
@@ -555,7 +554,7 @@ export default {
     transition: none !important;
     -moz-user-select: none !important;
 }
-.scrollbar-thin.details-image-showing {
+.details-image-showing {
     overflow: hidden;
 }
 .details-content /deep/ .image-box {
@@ -564,7 +563,7 @@ export default {
     cursor: pointer;
 }
 .details-image-container {
-    overflow-x: scroll;
+    overflow: scroll;
     height: calc(100vh - 108px);
     width: 100vw;
 

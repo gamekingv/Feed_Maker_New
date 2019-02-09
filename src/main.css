@@ -4,13 +4,7 @@ html {
     -moz-user-select: none;
 }
 
-.scrollbar-thin {
-    overflow-y: scroll;
+* {
     scrollbar-width: thin;
     scrollbar-color: rgb(94, 94, 94) transparent;
-}
-
-.CodeMirror-overlayscroll-vertical div {
-    background: rgb(94, 94, 94) !important;
-    border-radius: 0 !important;
 }

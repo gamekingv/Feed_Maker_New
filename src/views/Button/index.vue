@@ -3,17 +3,20 @@
         <v-toolbar flat>
             <v-toolbar-title>自定义按钮</v-toolbar-title>
             <v-spacer></v-spacer>
-            <v-dialog :width="isDeleted ? 300 : 'auto'" content-class="grey darken-4 scrollbar-thin" v-model="dialog">
+            <v-dialog :width="isDeleted ? 300 : 'auto'" content-class="grey darken-4" v-model="dialog">
                 <v-btn class="mb-2" color="primary" dark slot="activator">
                     <v-icon left>add</v-icon>添加
                 </v-btn>
                 <v-card class="grey darken-4">
                     <v-card-title v-if="!isDeleted">
-                        <span class="headline">{{ formTitle }}</span>
+                        <span class="headline">
+                            {{editedId === '' ? '添加' : '编辑'}}
+                            <span class="blue--text" v-text="editedItem.name"></span>
+                        </span>
                     </v-card-title>
                     <v-card-text v-if="!isDeleted">
                         <v-form lazy-validation ref="form" v-model="isCompleted">
-                            <v-layout class="mb-4" v-if="this.editedId !== ''">
+                            <v-layout class="mb-4" v-if="editedId !== ''">
                                 <v-flex align-self-center lg2>
                                     <v-subheader>启用</v-subheader>
                                 </v-flex>
@@ -23,7 +26,8 @@
                             </v-layout>
                             <v-layout>
                                 <v-flex lg2>
-                                    <v-subheader>名称
+                                    <v-subheader>
+                                        名称
                                         <span class="error--text">*</span>
                                     </v-subheader>
                                 </v-flex>
@@ -33,7 +37,8 @@
                             </v-layout>
                             <v-layout>
                                 <v-flex lg2>
-                                    <v-subheader>图标
+                                    <v-subheader>
+                                        图标
                                         <span class="error--text">*</span>
                                     </v-subheader>
                                 </v-flex>
@@ -70,7 +75,11 @@
                             </v-layout>
                         </v-form>
                     </v-card-text>
-                    <v-card-text class="my-4" v-else>{{`是否删除自定义按钮${editedItem.name}？`}}</v-card-text>
+                    <v-card-text class="my-4" v-else>
+                        是否删除自定义按钮
+                        <span class="blue--text" v-text="editedItem.name"></span>
+                        ？
+                    </v-card-text>
                     <v-card-actions>
                         <v-spacer></v-spacer>
                         <v-btn :disabled="!isCompleted" @click="save" color="blue">保存</v-btn>
@@ -118,8 +127,6 @@ import 'codemirror/mode/javascript/javascript';
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/theme/darcula.css';
 import 'codemirror/addon/selection/active-line';
-import 'codemirror/addon/scroll/simplescrollbars';
-import 'codemirror/addon/scroll/simplescrollbars.css';
 import iconList from '~/utils/extension/icon-list';
 
 export default {
@@ -150,15 +157,14 @@ export default {
             theme: 'darcula',
             indentUnit: 4,
             lineWrapping: true,
-            styleActiveLine: true,
-            scrollbarStyle: 'overlay'
+            styleActiveLine: true
         },
         requireRules: v => !!v || '必填',
         isMDIcon: v => iconList.indexOf(v) > -1 || '非正确的 Material Icons 字符串'
     }),
     computed: {
         formTitle() {
-            return this.editedId === '' ? '添加' : `${this.isDeleted ? '删除' : '编辑'}按钮${this.editedItem.name}`;
+            return this.editedId === '' ? '添加' : `${this.isDeleted ? '删除' : '编辑'}<span class="blue--text">${this.editedItem.name}</span>`;
         },
         feeds() {
             return this.$store.state.groups.reduce((feeds, group) => feeds.concat(group.feeds), []).map(feed => ({ text: feed.name, value: feed.id }));
