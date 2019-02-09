@@ -164,6 +164,9 @@ export default {
     watch: {
         validation(val) {
             this.$emit('modifyValidation', val);
+        },
+        stepResult(val) {
+            val || setTimeout(() => this.result = '', 300);
         }
     },
     methods: {

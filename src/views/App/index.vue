@@ -208,7 +208,7 @@
                 </v-card-text>
             </v-card>
         </v-dialog>
-        <v-dialog @input="e => e || (detailsImages = [])" fullscreen v-model="showDetailsImage">
+        <v-dialog fullscreen v-model="showDetailsImage">
             <v-layout column fill-height style="overflow: hidden; background-color: rgba(33, 33, 33, 0.8)">
                 <v-layout fill-height style="position: relative;">
                     <v-btn
@@ -243,7 +243,7 @@
                     >
                         <v-icon>arrow_back</v-icon>
                     </v-btn>
-                    <v-tabs-items v-model="detailsImageIndex">
+                    <v-tabs-items v-if="detailsImages.length > 0" v-model="detailsImageIndex">
                         <v-tab-item :key="i" :value="`tab-${i}`" v-for="(detailsImage, i) in detailsImages">
                             <v-layout class="details-image-container">
                                 <img
@@ -256,7 +256,7 @@
                     </v-tabs-items>
                 </v-layout>
                 <v-divider class="mb-1"></v-divider>
-                <v-tabs :height="100" centered color="transparent" fixed-tabs show-arrows v-model="detailsImageIndex">
+                <v-tabs :height="100" centered color="transparent" fixed-tabs show-arrows v-if="detailsImages.length > 0" v-model="detailsImageIndex">
                     <v-tabs-slider color="blue"></v-tabs-slider>
                     <v-tab :href="`#tab-${i}`" :key="i" class="mb-1" v-for="(detailsImage, i) in detailsImages">
                         <v-img :max-height="96" :src="detailsImage">
@@ -371,6 +371,14 @@ export default {
             'getFeed',
             'activeTitle'
         ])
+    },
+    watch: {
+        showDetailsImage(val) {
+            val || setTimeout(() => {
+                this.detailsImages = [];
+                this.detailsImageIndex = 'tab-0';
+            }, 300);
+        }
     },
     async mounted() {
         let state = await message.init(this);
