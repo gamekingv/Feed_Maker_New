@@ -592,5 +592,6 @@ export default {
 }
 #scroll-target {
     -moz-user-select: text;
+    overflow-y: auto;
 }
 </style>
