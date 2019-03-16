@@ -134,6 +134,7 @@ const database = {
                         unreadCount++;
                     }
                     item.collectionId = oldItems[index].collectionId;
+                    item.pubDate = oldItems[index].pubDate;
                 }
                 else {
                     item.state = 'unread';
