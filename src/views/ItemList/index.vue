@@ -209,7 +209,7 @@ export default {
                 return `${time.getFullYear()}/${time.getMonth() + 1}/${time.getDate()}`;
         },
         async refreshList(config = {}) {
-            let { type, id, isLoading = false, isChangePage = false, isUpdateComplete = false } = config;
+            let { type, id, isLoading = false, isChangePage = false, isUpdateComplete = false, isRouteChange = false } = config;
             if (isUpdateComplete && !this.isShowing(type, id)) {
                 isLoading && this.loading--;
                 return;
@@ -218,6 +218,7 @@ export default {
             if (!isChangePage) {
                 if (this.active.id === 'collections') this.totalItems = this.collections.length;
                 else this.totalItems = await message.sendGetCount(this.active.subType, this.active.id, this.settings.view);
+                if (isRouteChange) this.currentPage = 1;
                 if (this.currentPage > this.totalPage) {
                     if (this.totalPage === 0) {
                         this.currentPage = 1;
@@ -364,12 +365,12 @@ export default {
     beforeRouteEnter(to, from, next) {
         next(async vm => {
             let [, subType, id] = to.path.substr(1).split('/');
-            vm.addToRefreshQueue({ subType, id, isLoading: true });
+            vm.addToRefreshQueue({ subType, id, isLoading: true, isRouteChange: true });
         });
     },
     async beforeRouteUpdate(to, from, next) {
         let [, subType, id] = to.path.substr(1).split('/');
-        this.addToRefreshQueue({ subType, id });
+        this.addToRefreshQueue({ subType, id, isRouteChange: true });
         next();
     }
 };
