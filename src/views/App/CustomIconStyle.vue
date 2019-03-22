@@ -22,5 +22,7 @@ export default {
     background-repeat: no-repeat;
     background-size: 22px;
     background-position: center center;
+    width: 100%;
+    height: 100%;
 }
 </style>

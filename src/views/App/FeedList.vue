@@ -36,8 +36,12 @@
                                         indeterminate
                                         v-if="$store.state.feedState[feed.id].isLoading === true"
                                     ></v-progress-circular>
-                                    <v-avatar :size="22" v-else-if="/http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)?/.test(feed.icon)">
-                                        <img :class="`custom-feed-icon-${feed.id}`" src>
+                                    <v-avatar
+                                        :size="22"
+                                        style="overflow: hidden;"
+                                        v-else-if="/http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)?/.test(feed.icon)"
+                                    >
+                                        <div :class="`custom-feed-icon-${feed.id}`"></div>
                                     </v-avatar>
                                     <v-avatar :size="22" tile v-else>
                                         <v-icon v-text="feed.icon ? feed.icon : 'insert_drive_file'"/>

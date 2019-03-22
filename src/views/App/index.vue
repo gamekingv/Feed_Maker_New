@@ -461,7 +461,7 @@ export default {
         async apply() {
             this.importAlert = false;
             if (this.importType === 'all') {
-                let { groups, parsers, buttons, settings, collections } = this.config;
+                let { groups, parsers, buttons, settings, collections } = JSON.parse(JSON.stringify(this.config));
                 await this.resetAllConfig();
                 groups && await browser.storage.local.set({ groups });
                 parsers && await browser.storage.local.set({ parsers });
