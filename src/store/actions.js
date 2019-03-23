@@ -22,19 +22,24 @@ const actions = {
         if (collections) commit('updateCollections', collections);
     },
     saveGroups({ state }) {
-        return browser.storage.local.set({ groups: state.groups });
+        let groups = JSON.parse(JSON.stringify(state.groups));
+        return browser.storage.local.set({ groups });
     },
     saveParsers({ state }) {
-        return browser.storage.local.set({ parsers: state.parsers });
+        let parsers = JSON.parse(JSON.stringify(state.parsers));
+        return browser.storage.local.set({ parsers });
     },
     saveButtons({ state }) {
-        return browser.storage.local.set({ buttons: state.buttons });
+        let buttons = JSON.parse(JSON.stringify(state.buttons));
+        return browser.storage.local.set({ buttons });
     },
     saveSettings({ state }) {
-        return browser.storage.local.set({ settings: state.settings });
+        let settings = JSON.parse(JSON.stringify(state.settings));
+        return browser.storage.local.set({ settings });
     },
     saveCollections({ state }) {
-        return browser.storage.local.set({ collections: state.collections });
+        let collections = JSON.parse(JSON.stringify(state.collections));
+        return browser.storage.local.set({ collections });
     },
     addGroup({ dispatch, commit }, group) {
         group.feeds = [];
