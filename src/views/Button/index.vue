@@ -182,8 +182,9 @@ export default {
     methods: {
         editItem(item) {
             this.editedId = item.id;
-            this.editedItem = JSON.parse(JSON.stringify(item));
             this.dialog = true;
+            this.$refs.form && this.$refs.form.reset();
+            this.editedItem = JSON.parse(JSON.stringify(item));
         },
         deleteItem(item) {
             this.isDeleted = true;
