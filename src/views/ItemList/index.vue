@@ -311,7 +311,8 @@ export default {
                     title,
                     fetchSource: message.sendFetchSource.bind(message),
                     showInfo: this.$addInfo,
-                    tabs: browser.tabs
+                    tabs: browser.tabs,
+                    downloads: browser.downloads
                 };
                 (function () {
                     let window, chrome, browser = undefined;
