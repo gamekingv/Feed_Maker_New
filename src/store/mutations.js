@@ -119,7 +119,10 @@ const mutations = {
     },
     deleteInfoText(state, data) {
         state.infoText.splice(state.infoText.findIndex(text => text.id === data), 1);
-    }
+    },
+    updateLast(state, data) {
+        state.last = data;
+    },
 };
 
 export default mutations;

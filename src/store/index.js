@@ -28,7 +28,13 @@ const store = new Vuex.Store({
             subType: 'group',
             id: 'all'
         },
-        infoText: []
+        infoText: [],
+        last: {
+            time: -1,
+            successTime: -1,
+            success: true,
+            message: ''
+        },
     },
     getters,
     mutations,

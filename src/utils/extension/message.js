@@ -1,4 +1,4 @@
-let port, app, isInitialized = true, messageQueue = {}, midCount = 0;
+let port, app, store, isInitialized = true, messageQueue = {}, midCount = 0;
 
 const message = {
     async init(vm) {
@@ -7,6 +7,7 @@ const message = {
         port = browser.runtime.connect({ name: Date.now().toString() });
         port.onMessage.addListener(this.messageListener.bind(this));
         app = vm;
+        store = vm.$store;
         isInitialized = await this.send({ action: 'get initialize state' });
         if (isInitialized) browser.runtime.onMessage.removeListener(handler);
         return isInitialized;
@@ -19,18 +20,26 @@ const message = {
     async messageListener({ mid, action, data, state }) {
         switch (action) {
             case 'background update': {
-                Object.keys(app.$store.state.feedState).forEach(id => app.$store.dispatch('updateFeedState', { id, isLoading: true }));
+                Object.keys(store.state.feedState).forEach(id => store.dispatch('updateFeedState', { id, isLoading: true }));
                 break;
             }
             case 'background update complete': {
                 let { id, result: unread } = data;
-                await app.$store.dispatch('updateFeedState', { id, unread, errorMessage: '', isLoading: false });
-                if (app.$store.state.active.type === 'list' && unread > 0) app.refreshList({ type: 'feed', id, isUpdateComplete: true });
+                await store.dispatch('updateFeedState', { id, unread, errorMessage: '', isLoading: false });
+                if (store.state.active.type === 'list' && unread > 0) app.refreshList({ type: 'feed', id, isUpdateComplete: true });
                 break;
             }
             case 'background update fail': {
                 let { id, errorMessage } = data;
-                await app.$store.dispatch('updateFeedState', { id, errorMessage, isLoading: false });
+                await store.dispatch('updateFeedState', { id, errorMessage, isLoading: false });
+                break;
+            }
+            case 'background synchronization complete': {
+                store.dispatch('updateLast');
+                break;
+            }
+            case 'background detect new config': {
+                app.newConfigDetected(data.config);
                 break;
             }
             case 'response': {
@@ -53,7 +62,7 @@ const message = {
         port.postMessage(request);
         return new Promise((resolve, reject) => messageQueue[request.mid] = { resolve, reject });
     },
-    async sendGetCount(type, id, state = app.$store.state.settings.view) {
+    async sendGetCount(type, id, state = store.state.settings.view) {
         try {
             state = state.replace('all', '');
             return await this.send({
@@ -65,12 +74,12 @@ const message = {
         }
         catch (e) { app.$throw(e); }
     },
-    async sendGet(type, id, page, state = app.$store.state.settings.view.replace('all', ''), active) {
+    async sendGet(type, id, page, state = store.state.settings.view.replace('all', ''), active) {
         try {
             return await this.send({
                 action: 'getItems', data: {
                     type, id, page, state, active,
-                    amount: page ? app.$store.state.settings.itemsPerPage : null,
+                    amount: page ? store.state.settings.itemsPerPage : null,
                 }
             });
         }
@@ -154,6 +163,24 @@ const message = {
     changeMaxThread() {
         try {
             return this.send({ action: 'change maxThread' });
+        }
+        catch (e) { app.$throw(e); }
+    },
+    synchronize(isForced = false) {
+        try {
+            return this.send({ action: 'synchronize', data: { isForced } });
+        }
+        catch (e) { app.$throw(e); }
+    },
+    changeAutoSync(state) {
+        try {
+            return this.send({ action: 'change autoSync', data: { state } });
+        }
+        catch (e) { app.$throw(e); }
+    },
+    changeAutoSyncFrequency() {
+        try {
+            return this.send({ action: 'change autoSyncFrequency' });
         }
         catch (e) { app.$throw(e); }
     }

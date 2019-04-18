@@ -19,6 +19,9 @@ const getters = {
         if (state.active.type === 'add') {
             action = '添加';
         }
+        if (state.active.type === 'sync') {
+            action = '自动同步配置';
+        }
         return { action, name };
     },
     getFeed: state => id => state.groups.reduce((feeds, group) => feeds.concat(group.feeds), []).find(feed => feed.id === id),

@@ -137,6 +137,23 @@ const message = {
                     sendResponse();
                     break;
                 }
+                case 'synchronize': {
+                    sendResponse(await crawler.synchronize(data.isForced));
+                    break;
+                }
+                case 'change autoSync': {
+                    let { state } = data;
+                    if (state) await crawler.autoSync();
+                    else crawler.stopSync();
+                    sendResponse();
+                    break;
+                }
+                case 'change autoSyncFrequency': {
+                    crawler.stopSync();
+                    await crawler.autoSync();
+                    sendResponse();
+                    break;
+                }
             }
         }
         catch (e) {
@@ -157,6 +174,12 @@ const message = {
     },
     sendBackgroundUpdateFail(id, errorMessage) {
         this.send({ action: 'background update fail', data: { id, errorMessage } });
+    },
+    sendBackgroundSynchronizationComplete() {
+        this.send({ action: 'background synchronization complete' });
+    },
+    sendBackgroundDetectNewConfig(config) {
+        this.send({ action: 'background detect new config', data: { config } });
     }
 };
 

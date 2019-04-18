@@ -1,7 +1,7 @@
 import message from '../utils/extension/message';
 
 const actions = {
-    async initStore({ commit }) {
+    async initStore({ commit, state }) {
         let { groups } = await browser.storage.local.get('groups');
         if (groups) {
             commit('updateGroups', groups);
@@ -20,6 +20,8 @@ const actions = {
         if (settings) commit('updateSettings', settings);
         let { collections } = await browser.storage.local.get('collections');
         if (collections) commit('updateCollections', collections);
+        let { last } = await browser.storage.local.get('last');
+        if (last) commit('updateLast', last);
     },
     saveGroups({ state }) {
         let groups = JSON.parse(JSON.stringify(state.groups));
@@ -40,6 +42,10 @@ const actions = {
     saveCollections({ state }) {
         let collections = JSON.parse(JSON.stringify(state.collections));
         return browser.storage.local.set({ collections });
+    },
+    saveLast({ state }) {
+        let last = JSON.parse(JSON.stringify(state.last));
+        return browser.storage.local.set({ last });
     },
     addGroup({ dispatch, commit }, group) {
         group.feeds = [];
@@ -148,6 +154,10 @@ const actions = {
     },
     deleteInfoText({ commit }, data) {
         commit('deleteInfoText', data);
+    },
+    async updateLast({ commit }) {
+        let { last } = await browser.storage.local.get('last');
+        if (last) commit('updateLast', last);
     }
 };
 

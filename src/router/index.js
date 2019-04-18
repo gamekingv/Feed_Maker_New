@@ -33,6 +33,11 @@ const router = new Router({
             name: 'buttonList'
         },
         {
+            path: '/sync',
+            component: () => import('views/Sync'),
+            name: 'Sync'
+        },
+        {
             path: '*',
             redirect: '/list/group/all'
         }

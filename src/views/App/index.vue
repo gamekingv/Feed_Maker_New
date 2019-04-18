@@ -95,6 +95,14 @@
                                 </v-list-tile-content>
                             </v-list-tile>
                         </v-list>
+                        <v-subheader>自动同步配置</v-subheader>
+                        <v-list class="pt-0">
+                            <v-list-tile>
+                                <v-list-tile-content>
+                                    <v-btn @click="setting = false" class="mr-0" color="blue" to="/sync">管理自动同步配置</v-btn>
+                                </v-list-tile-content>
+                            </v-list-tile>
+                        </v-list>
                         <v-subheader>常规</v-subheader>
                         <v-list class="pt-0">
                             <v-list-tile>
@@ -203,7 +211,8 @@
         </v-fade-transition>
         <v-dialog persistent v-model="loading" width="300">
             <v-card color="primary">
-                <v-card-text>正在加载数据
+                <v-card-text>
+                    正在加载数据
                     <v-progress-linear class="mb-0" color="white" indeterminate></v-progress-linear>
                 </v-card-text>
             </v-card>
@@ -292,6 +301,17 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+        <v-dialog :width="500" content-class="grey darken-4" v-model="newConfigAlert">
+            <v-card class="grey darken-4">
+                <v-card-text class="my-4">{{'检测到github有更新的配置，是否替换本地配置？（选择“否”将强制同步配置到github，如果不想这样做请选择“取消”）'}}</v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn @click="replaceLocalConfig" color="blue">是</v-btn>
+                    <v-btn @click="forceSynchronizing" color="secondary">否</v-btn>
+                    <v-btn @click="cancelSynchronizing" color="blue" outline>取消</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
         <v-snackbar
             :color="info.color"
             :key="info.id"
@@ -342,7 +362,8 @@ export default {
         importToGroup: '',
         importFeedInfo: true,
         importAlert: false,
-        infoText: []
+        infoText: [],
+        newConfigAlert: false
     }),
     computed: {
         view: {
@@ -544,6 +565,30 @@ export default {
         },
         deleteInfo(id) {
             this.infoText.splice(this.infoText.findIndex(info => id === info.id), 1);
+        },
+        newConfigDetected(config) {
+            this.newConfigAlert = true;
+            this.config = config;
+            if (this.config.last) {
+                [this.config.last.time, this.config.last.successTime] = Array(2).fill(Date.now());
+            }
+        },
+        async replaceLocalConfig() {
+            this.newConfigAlert = false;
+            this.importType = 'all';
+            this.importAlert = true;
+        },
+        async forceSynchronizing() {
+            this.newConfigAlert = false;
+            this.loading = true;
+            this.config = '';
+            await message.synchronize(true);
+            await this.$store.dispatch('updateLast');
+            this.loading = false;
+        },
+        cancelSynchronizing() {
+            this.newConfigAlert = false;
+            this.config = '';
         }
     },
     components: {
