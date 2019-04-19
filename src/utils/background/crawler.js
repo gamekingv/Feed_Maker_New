@@ -451,11 +451,21 @@ const crawler = {
             if (!last || last && (Date.now() - last.time > interval)) {
                 await this.synchronize();
                 message.sendBackgroundSynchronizationComplete();
+                syncTimer = setInterval(async () => {
+                    await this.synchronize();
+                    message.sendBackgroundSynchronizationComplete();
+                }, interval);
             }
-            syncTimer = setInterval(async () => {
-                await this.synchronize();
-                message.sendBackgroundSynchronizationComplete();
-            }, interval);
+            else {
+                setTimeout(async () => {
+                    await this.synchronize();
+                    message.sendBackgroundSynchronizationComplete();
+                    syncTimer = setInterval(async () => {
+                        await this.synchronize();
+                        message.sendBackgroundSynchronizationComplete();
+                    }, interval);
+                }, interval - (Date.now() - last.time));
+            }
         }
     },
     stopSync() {
