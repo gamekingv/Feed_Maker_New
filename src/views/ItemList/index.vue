@@ -9,7 +9,7 @@
                     <v-list class="transparent" dense v-if="items.length !== 0">
                         <template v-for="(item, i) in items">
                             <v-hover :key="item.id">
-                                <v-list-tile @click="showDetails(item.title, item.author, item.content)" slot-scope="{ hover: isHover }">
+                                <v-list-tile @click="showDetails(item.title, item.content, item.author)" slot-scope="{ hover: isHover }">
                                     <v-list-tile-action style="min-width: unset;">
                                         <v-checkbox :ripple="false" :value="item.id" @click.stop color="blue" hide-details v-model="selectedItems"></v-checkbox>
                                     </v-list-tile-action>
@@ -132,12 +132,119 @@
                 </v-flex>
                 <v-layout align-center fill-height justify-center key="loading" v-else>
                     <v-card color="primary" width="300">
-                        <v-card-text>正在加载数据
+                        <v-card-text>
+                            正在加载数据
                             <v-progress-linear class="mb-0" color="white" indeterminate></v-progress-linear>
                         </v-card-text>
                     </v-card>
                 </v-layout>
             </v-fade-transition>
+            <v-navigation-drawer
+                :class="['d-flex',{resizing: isResizing}]"
+                :stateless="showingDetailsImage"
+                :width="detailsWidth"
+                @input="e => e || (detailsContent = detailsTitle = detailsAuthor = '')"
+                fixed
+                right
+                temporary
+                v-model="showingDetails"
+            >
+                <div @mousedown="onResizing" style="height: 100%; cursor: e-resize; max-width: 5px; min-width: 5px;"></div>
+                <v-card :class="{'details-image-showing': showingDetailsImage}" flat id="scroll-target" v-scroll:#scroll-target="onDetailsScroll">
+                    <v-card-title class="headline font-weight-bold pb-1" id="scroll-top" v-html="detailsTitle"></v-card-title>
+                    <v-card-title class="py-1">
+                        <v-chip class="ml-0" color="primary" selected small text-color="white" v-if="detailsAuthor">
+                            <v-avatar class="small">
+                                <v-icon>account_circle</v-icon>
+                            </v-avatar>
+                            {{detailsAuthor}}
+                        </v-chip>
+                    </v-card-title>
+                    <v-card-text class="details-content" ref="detailsContent" v-html="parsedDetailsContent"></v-card-text>
+                </v-card>
+                <v-fab-transition>
+                    <v-btn
+                        @click="$scrollTo('#scroll-top', 300, { container: '#scroll-target'})"
+                        bottom
+                        color="green"
+                        fab
+                        fixed
+                        right
+                        small
+                        v-if="detailsOffsetTop > 100"
+                    >
+                        <v-icon small>keyboard_arrow_up</v-icon>
+                    </v-btn>
+                </v-fab-transition>
+            </v-navigation-drawer>
+            <v-dialog fullscreen v-model="showingDetailsImage">
+                <v-layout column fill-height style="overflow: hidden; background-color: rgba(33, 33, 33, 0.8)">
+                    <v-layout fill-height style="position: relative;">
+                        <v-btn
+                            @click="showingDetailsImage = false"
+                            class="overflow-button"
+                            color="rgba(33, 33, 33, 0.46)"
+                            icon
+                            large
+                            style="right: 10px; top: 10px;"
+                        >
+                            <v-icon>close</v-icon>
+                        </v-btn>
+                        <v-btn
+                            @click="detailsImageIndex = `tab-${parseInt(detailsImageIndex.replace('tab-', '')) + 1}`"
+                            class="overflow-button"
+                            color="rgba(33, 33, 33, 0.46)"
+                            icon
+                            large
+                            style="right: 10px; top: 0; bottom: 0;"
+                            v-if="parseInt(detailsImageIndex.replace('tab-', '')) < detailsImages.length - 1"
+                        >
+                            <v-icon>arrow_forward</v-icon>
+                        </v-btn>
+                        <v-btn
+                            @click="detailsImageIndex = `tab-${parseInt(detailsImageIndex.replace('tab-', '')) - 1}`"
+                            class="overflow-button"
+                            color="rgba(33, 33, 33, 0.46)"
+                            icon
+                            large
+                            style="left: 10px; top: 0; bottom: 0; "
+                            v-if="parseInt(detailsImageIndex.replace('tab-', '')) > 0"
+                        >
+                            <v-icon>arrow_back</v-icon>
+                        </v-btn>
+                        <v-tabs-items v-if="detailsImages.length > 0" v-model="detailsImageIndex">
+                            <v-tab-item :key="i" :value="`tab-${i}`" v-for="(detailsImage, i) in detailsImages">
+                                <v-layout class="details-image-container">
+                                    <img
+                                        :class="['details-image', {'zoomed-image': detailsImage.zoomed}]"
+                                        :src="detailsImage.src"
+                                        @click="detailsImage.zoomed = !detailsImage.zoomed"
+                                    >
+                                </v-layout>
+                            </v-tab-item>
+                        </v-tabs-items>
+                    </v-layout>
+                    <v-divider class="mb-1"></v-divider>
+                    <v-tabs
+                        :height="100"
+                        centered
+                        color="transparent"
+                        fixed-tabs
+                        show-arrows
+                        v-if="detailsImages.length > 0"
+                        v-model="detailsImageIndex"
+                    >
+                        <v-tabs-slider color="blue"></v-tabs-slider>
+                        <v-tab :href="`#tab-${i}`" :key="i" class="mb-1" v-for="(detailsImage, i) in detailsImages">
+                            <v-img :max-height="96" :src="detailsImage">
+                                <v-layout align-center fill-height justify-center ma-0 slot="placeholder">
+                                    <v-progress-circular color="grey lighten-5" indeterminate></v-progress-circular>
+                                </v-layout>
+                            </v-img>
+                        </v-tab>
+                    </v-tabs>
+                </v-layout>
+            </v-dialog>
         </v-layout>
     </v-container>
 </template>
@@ -147,6 +254,8 @@ import { mapState, mapGetters } from 'vuex';
 
 export default {
     data: () => ({
+        showingDetails: false,
+        showingDetailsImage: false,
         loading: 1,
         items: [],
         selectedItems: [],
@@ -155,7 +264,15 @@ export default {
         floatingButton: false,
         refreshing: false,
         refreshQueue: [],
-        refreshMaxInterval: 500
+        refreshMaxInterval: 500,
+        detailsTitle: '',
+        detailsAuthor: '',
+        detailsContent: '',
+        detailsImages: [],
+        detailsImageIndex: 'tab-0',
+        detailsOffsetTop: 0,
+        detailsWidth: 900,
+        isResizing: false,
     }),
     computed: {
         icons() {
@@ -163,6 +280,10 @@ export default {
         },
         totalPage() {
             return Math.ceil(this.totalItems / this.settings.itemsPerPage);
+        },
+        parsedDetailsContent() {
+            return this.detailsContent.replace(/<(a[^>]*)>/g, '<$1 target="_blank">')
+                .replace(/<img[^>]*src=["']([^"']*)["'][^>]*?>/g, '<span><img class="image-box" src="$1"/></span>');
         },
         emptyText() {
             if (this.active.id === 'collections') return '收藏的';
@@ -192,6 +313,14 @@ export default {
             set(value) {
                 if (!value) this.$store.dispatch('updateFeedState', { id: this.active.id, errorMessage: '' });
             }
+        }
+    },
+    watch: {
+        showingDetailsImage(val) {
+            val || setTimeout(() => {
+                this.detailsImages = [];
+                this.detailsImageIndex = 'tab-0';
+            }, 300);
         }
     },
     methods: {
@@ -301,9 +430,6 @@ export default {
         changePage() {
             this.addToRefreshQueue({ isChangePage: true });
         },
-        showDetails(title, author, content) {
-            this.$emit('showDetails', { title, author, content });
-        },
         customAction(script, { url, title }) {
             try {
                 let context = {
@@ -362,6 +488,42 @@ export default {
             }
             else if (this.refreshing) this.refreshing = false;
         },
+        showDetails(title, content, author) {
+            this.showingDetails = true;
+            this.detailsTitle = title;
+            this.detailsAuthor = author;
+            this.detailsContent = content ? content : '';
+            this.$nextTick(() => {
+                let images = this.$refs.detailsContent.querySelectorAll('.image-box');
+                images.forEach((image, i) => image.addEventListener('click', () => {
+                    this.detailsImages = images ? [...images].map(image => ({ zoomed: true, src: image.src })) : [];
+                    this.detailsImageIndex = `tab-${i}`;
+                    this.showingDetailsImage = true;
+                }));
+            });
+        },
+        onDetailsScroll(e) {
+            this.detailsOffsetTop = e.target.scrollTop;
+        },
+        onResizing(e) {
+            this.isResizing = true;
+            let offset = e.clientX,
+                originWidth = Math.min(this.detailsWidth, document.body.offsetWidth),
+                newWidth = originWidth;
+            document.onmousemove = (e) => {
+                newWidth = offset - e.clientX + originWidth;
+                if (newWidth < 300) {
+                    newWidth = 300;
+                }
+                this.detailsWidth = newWidth;
+            };
+            document.onmouseup = () => {
+                this.$store.dispatch('updateSetting', { detailsWidth: newWidth });
+                this.isResizing = false;
+                document.onmousemove = undefined;
+                document.onmouseup = undefined;
+            };
+        },
     },
     beforeRouteEnter(to, from, next) {
         next(async vm => {
@@ -384,5 +546,41 @@ export default {
 }
 .small > [class^="custom-feed-icon"] {
     background-size: 24px;
+}
+.resizing {
+    transition: none !important;
+    -moz-user-select: none !important;
+}
+.details-image-showing {
+    overflow: hidden;
+}
+.details-content /deep/ .image-box {
+    max-width: calc(100% - 16px);
+    max-height: 500px;
+    cursor: pointer;
+}
+.details-image-container {
+    overflow: scroll;
+    height: calc(100vh - 108px);
+    width: 100vw;
+
+    .details-image {
+        margin: auto;
+        flex-shrink: 0;
+        cursor: pointer;
+        &.zoomed-image {
+            max-height: 100%;
+            flex-shrink: 1;
+        }
+    }
+}
+.overflow-button {
+    position: absolute;
+    margin: auto;
+    z-index: 999;
+}
+#scroll-target {
+    -moz-user-select: text;
+    overflow-y: auto;
 }
 </style>
