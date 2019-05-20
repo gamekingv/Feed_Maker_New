@@ -56,15 +56,16 @@
 </template>
 
 <script>
-import message from '~/utils/extension/message';
-
 export default {
+    props: {
+        last: Object,
+        synchronizing: Boolean
+    },
     data: () => ({
         link: '',
         token: '',
         isAutoSync: false,
-        frequency: 'daily',
-        synchronizing: false
+        frequency: 'daily'
     }),
     async created() {
         let { synchronization } = await browser.storage.local.get('synchronization');
@@ -75,30 +76,24 @@ export default {
             this.frequency = synchronization.frequency;
         }
     },
-    computed: {
-        last() {
-            return this.$store.state.last;
-        }
-    },
     methods: {
         timeFormatter(timeString) {
             let time = new Date(timeString);
             return `${time.getFullYear()}/${time.getMonth() + 1}/${time.getDate()} ${('0' + time.getHours()).substr(-2)}:${('0' + time.getMinutes()).substr(-2)}`;
         },
         async synchronize() {
-            this.synchronizing = true;
             await this.updateSetting();
-            await message.synchronize();
-            await this.$store.dispatch('updateLast');
-            this.synchronizing = false;
+            this.$emit('synchronize');
         },
         async toggleAutoSync() {
             await this.updateSetting();
-            message.changeAutoSync(this.isAutoSync);
+            if (this.isAutoSync) await this.$emit('autoSync');
+            else this.$emit('stopSync');
         },
         async changeAutoSyncFrequency() {
             await this.updateSetting();
-            message.changeAutoSyncFrequency();
+            this.$emit('stopSync');
+            await this.$emit('autoSync');
         },
         async updateSetting() {
             let synchronization = {
@@ -108,7 +103,31 @@ export default {
                 token: this.token,
             };
             await browser.storage.local.set({ synchronization });
-        }
+        },
+        async exportConfig() {
+            let a = document.createElement('a');
+            a.download = 'memo.json';
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            let file = new Blob([JSON.stringify(await browser.storage.local.get())], { type: 'application/json' });
+            a.href = URL.createObjectURL(file);
+            a.click();
+            document.body.removeChild(a);
+        },
+        importConfig(e) {
+            let reader = new FileReader();
+            reader.addEventListener('loadend', async event => {
+                try {
+                    let configs = JSON.parse(event.target.result);
+                    for (let key in configs) {
+                        await browser.storage.local.set({ [key]: configs[key] });
+                    }
+                    window.location.reload();
+                }
+                catch (e) { throw e; }
+            });
+            reader.readAsText(e.target.files[0]);
+        },
     }
 };
 </script>
