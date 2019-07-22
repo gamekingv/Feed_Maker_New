@@ -219,7 +219,7 @@
                                         :class="['details-image', {'zoomed-image': detailsImage.zoomed}]"
                                         :src="detailsImage.src"
                                         @click="detailsImage.zoomed = !detailsImage.zoomed"
-                                    >
+                                    />
                                 </v-layout>
                             </v-tab-item>
                         </v-tabs-items>
@@ -538,7 +538,8 @@ export default {
     }
 };
 </script>
-<style lang="scss" scoped>
+
+<style scoped>
 .small {
     width: 24px !important;
     height: 24px !important;
@@ -554,7 +555,7 @@ export default {
 .details-image-showing {
     overflow: hidden;
 }
-.details-content /deep/ .image-box {
+.details-content >>> .image-box {
     max-width: calc(100% - 16px);
     max-height: 500px;
     cursor: pointer;
@@ -563,16 +564,16 @@ export default {
     overflow: scroll;
     height: calc(100vh - 108px);
     width: 100vw;
+}
+.details-image-container .details-image {
+    margin: auto;
+    flex-shrink: 0;
+    cursor: pointer;
+}
 
-    .details-image {
-        margin: auto;
-        flex-shrink: 0;
-        cursor: pointer;
-        &.zoomed-image {
-            max-height: 100%;
-            flex-shrink: 1;
-        }
-    }
+.details-image-container .details-image.zoomed-image {
+    max-height: 100%;
+    flex-shrink: 1;
 }
 .overflow-button {
     position: absolute;

@@ -74,19 +74,19 @@
                                                 v-if="$store.getters.getGroupLoading(group.id)"
                                             ></v-progress-circular>
                                             <v-avatar :size="22" tile v-else>
-                                                <v-icon v-text="'folder'"/>
+                                                <v-icon v-text="'folder'" />
                                             </v-avatar>
                                         </v-badge>
                                     </v-badge>
                                 </v-fade-transition>
                             </v-list-tile-action>
                             <v-list-tile-content>
-                                <v-list-tile-title :class="{'grey--text': !group.active}" v-text="group.name"/>
+                                <v-list-tile-title :class="{'grey--text': !group.active}" v-text="group.name" />
                             </v-list-tile-content>
                         </v-list-tile>
                     </v-hover>
                 </div>
-                <feed-list :group="group" @groupEmpty="collapseGroup"/>
+                <feed-list :group="group" @groupEmpty="collapseGroup" />
             </v-list-group>
         </draggable>
     </v-list>
@@ -131,14 +131,14 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
-.small-badge /deep/ .v-badge__badge {
+<style scoped>
+.small-badge >>> .v-badge__badge {
     height: 18px;
     width: 18px;
     font-size: 10px;
     top: -6px;
 }
-.small-badge /deep/ .v-badge__badge .v-icon {
+.small-badge >>> .v-badge__badge .v-icon {
     font-size: 18px;
 }
 </style>

@@ -102,14 +102,14 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
-.small-badge /deep/ .v-badge__badge {
+<style scoped>
+.small-badge >>> .v-badge__badge {
     height: 18px;
     width: 18px;
     font-size: 10px;
     top: -6px;
 }
-.small-badge /deep/ .v-badge__badge .v-icon {
+.small-badge >>> .v-badge__badge .v-icon {
     font-size: 18px;
 }
 </style>

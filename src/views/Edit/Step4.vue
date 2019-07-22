@@ -89,7 +89,8 @@
         </v-flex>
         <v-dialog @input="e => e || (result = '')" class="d-flex" scrollable v-model="stepResult">
             <v-card class="grey darken-4" style="overflow-x: hidden;">
-                <v-card-title class="font-weight-bold py-0 pr-0">测试结果
+                <v-card-title class="font-weight-bold py-0 pr-0">
+                    测试结果
                     <v-spacer></v-spacer>
                     <v-btn @click="stepResult = false" icon>
                         <v-icon>close</v-icon>
@@ -111,7 +112,8 @@
                 </template>
                 <v-layout align-center fill-height justify-center key="parsing" style="min-height: 300px;" v-else>
                     <v-card color="primary" width="300">
-                        <v-card-text>正在运行步骤
+                        <v-card-text>
+                            正在运行步骤
                             <v-progress-linear class="mb-0" color="white" indeterminate></v-progress-linear>
                         </v-card-text>
                     </v-card>
@@ -264,7 +266,7 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .parsed-result {
     overflow-y: scroll;
     overflow-x: hidden;

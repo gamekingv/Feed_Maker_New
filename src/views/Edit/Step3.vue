@@ -153,23 +153,21 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
-.source-forms {
-    &-move {
-        transition: all 0.2s;
-    }
-    &-enter {
-        opacity: 0;
-        transform: translateX(-100px) !important;
-    }
-    &-leave-to {
-        opacity: 0;
-        transform: translateX(100px) !important;
-    }
-    &-leave-active {
-        position: absolute;
-        transition: all 0.2s;
-        width: calc(100% - 83px);
-    }
+<style scoped>
+.source-forms-move {
+    transition: all 0.2s;
+}
+.source-forms-enter {
+    opacity: 0;
+    transform: translateX(-100px) !important;
+}
+.source-forms-leave-to {
+    opacity: 0;
+    transform: translateX(100px) !important;
+}
+.source-forms-leave-active {
+    position: absolute;
+    transition: all 0.2s;
+    width: calc(100% - 83px);
 }
 </style>

@@ -95,11 +95,11 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .drag-handler {
     cursor: pointer;
 }
-.input-align-center /deep/ input {
+.input-align-center >>> input {
     text-align: center;
 }
 </style>

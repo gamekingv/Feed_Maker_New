@@ -11,13 +11,13 @@
                             <v-toolbar-title>Feed Maker</v-toolbar-title>
                         </v-toolbar>
                         <v-flex style="scrollbar-width: none; overflow-y: scroll;">
-                            <group-list/>
+                            <group-list />
                         </v-flex>
                     </v-layout>
                 </v-navigation-drawer>
                 <v-toolbar app fixed>
                     <v-tooltip :open-delay="1000" bottom lazy>
-                        <v-toolbar-side-icon @click="drawer = !drawer" slot="activator"/>
+                        <v-toolbar-side-icon @click="drawer = !drawer" slot="activator" />
                         <span>收起/显示侧边栏</span>
                     </v-tooltip>
                     <v-tooltip
@@ -32,7 +32,7 @@
                             icon
                             slot="activator"
                         >
-                            <v-icon v-text="'home'"/>
+                            <v-icon v-text="'home'" />
                         </v-btn>
                         <span>打开主页</span>
                     </v-tooltip>
@@ -46,7 +46,7 @@
                             ></span>
                         </v-toolbar-title>
                     </v-fade-transition>
-                    <v-spacer/>
+                    <v-spacer />
                     <v-btn-toggle class="mx-3" mandatory v-model="view">
                         <v-tooltip :disabled="active.type !== 'list' || active.id === 'collections'" :open-delay="1000" bottom lazy>
                             <v-btn :disabled="active.type !== 'list' || active.id === 'collections'" flat slot="activator" value="unread">
@@ -92,7 +92,7 @@
                         />
                     </v-fade-transition>
                 </v-content>
-                <setting @refreshList="refreshList" ref="setting"/>
+                <setting @refreshList="refreshList" ref="setting" />
             </v-container>
         </v-fade-transition>
         <v-dialog persistent v-model="loading" width="300">
@@ -128,7 +128,7 @@
                 <v-icon small>close</v-icon>
             </v-btn>
         </v-snackbar>
-        <custom-icon-style/>
+        <custom-icon-style />
     </v-app>
 </template>
 
@@ -279,7 +279,7 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .small {
     width: 24px !important;
     height: 24px !important;

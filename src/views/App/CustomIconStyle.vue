@@ -17,7 +17,7 @@ export default {
 };
 </script>
 
-<style lang="scss">
+<style>
 [class^="custom-feed-icon"] {
     background-repeat: no-repeat;
     background-size: 22px;

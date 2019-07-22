@@ -75,7 +75,7 @@
             <v-list>
                 <v-layout align-end>
                     <v-btn @click.native="$refs.selectFile.click()" color="blue">导入配置</v-btn>
-                    <input @change="importConfig" accept="application/json" ref="selectFile" type="file" v-show="false">
+                    <input @change="importConfig" accept="application/json" ref="selectFile" type="file" v-show="false" />
                     <v-btn @click="exportConfig">导出配置</v-btn>
                     <v-spacer></v-spacer>
                     <v-btn @click="importAlert = true" color="error">恢复默认配置</v-btn>
@@ -148,8 +148,8 @@ export default {
             if (key === 'maxThread') await message.changeMaxThread();
         },
         async exportConfig() {
-            let { groups, parsers, buttons, settings, collections } = await browser.storage.local.get();
-            let file = new Blob([JSON.stringify({ type: 'all', groups, parsers, buttons, settings, collections })], { type: 'application/json' });
+            let { groups, parsers, buttons, settings, collections, synchronization, last } = await browser.storage.local.get();
+            let file = new Blob([JSON.stringify({ type: 'all', groups, parsers, buttons, settings, collections, synchronization, last })], { type: 'application/json' });
             browser.downloads.download({
                 url: URL.createObjectURL(file),
                 filename: 'all configs.json',

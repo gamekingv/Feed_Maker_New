@@ -235,8 +235,8 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
-.layout-fixed /deep/ table {
+<style scoped>
+.layout-fixed >>> table {
     table-layout: fixed;
 }
 </style>
