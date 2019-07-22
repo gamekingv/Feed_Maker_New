@@ -2,6 +2,7 @@
 node_modules/
 dist/
 extension/build
+extension/*.zip
 npm-debug.log
 yarn-error.log
 
