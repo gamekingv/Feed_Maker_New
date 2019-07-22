@@ -117,11 +117,11 @@
         <v-snackbar
             :color="info.color"
             :key="info.id"
-            :value="true"
             @input="v => !!v || deleteInfo(info.id)"
             auto-height
             top
             v-for="info in infoText"
+            v-model="info.show"
         >
             {{ info.text }}
             <v-btn :color="info.color ? undefined : 'pink--text'" @click="deleteInfo(info.id)" icon small>
@@ -221,11 +221,12 @@ export default {
         addInfo(text, color) {
             let id = Date.now().toString();
             if (typeof text === 'string' && (!color || typeof color === 'string')) {
-                this.infoText.push({ id, text, color });
+                this.infoText.push({ show: false, id, text, color });
             }
             else {
-                this.infoText.push({ id, text: '参数非法！', color: 'error' });
+                this.infoText.push({ show: false, id, text: '参数非法！', color: 'error' });
             }
+            this.$nextTick(() => this.infoText[this.infoText.findIndex(info => id === info.id)].show = true);
         },
         deleteInfo(id) {
             this.infoText.splice(this.infoText.findIndex(info => id === info.id), 1);
