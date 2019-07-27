@@ -20,7 +20,7 @@ const message = {
     async messageListener({ mid, action, data, state }) {
         switch (action) {
             case 'background update': {
-                Object.keys(store.state.feedState).forEach(id => store.dispatch('updateFeedState', { id, isLoading: true }));
+                store.state.groups.reduce((total, group) => group.active ? total.concat(group.feeds) : total, []).forEach(feed => feed.active && store.dispatch('updateFeedState', { id: feed.id, isLoading: true }));
                 break;
             }
             case 'background update complete': {
