@@ -12,6 +12,9 @@ async function fetchSource(feed) {
     if ((feed.method === 'post' || feed.method === 'put') && feed.body) {
         config.data = feed.body;
     }
+    if (feed.headers) {
+        config.headers = feed.headers;
+    }
     try {
         let response = await axios(config);
         return { result: 'ok', data: response.data };
@@ -33,21 +36,26 @@ const sync = {
             token = config.synchronization.token,
             lastSuccessTime = config.last ? config.last.successTime : -1,
             timeStamp = Date.now(),
-            configLink = `https://api.github.com/repos/${link}/contents/config.json?access_token=${token}`,
-            repositoryLink = `https://api.github.com/repos/${link}?access_token=${token}`,
-            commitsLink = `https://api.github.com/repos/${link}/commits/master?access_token=${token}`,
+            configLink = `https://api.github.com/repos/${link}/contents/config.json`,
+            repositoryLink = `https://api.github.com/repos/${link}`,
+            commitsLink = `https://api.github.com/repos/${link}/commits/master`,
             body = {
                 message: `${new Date(timeStamp).toLocaleString()}(${timeStamp})`,
                 content
+            },
+            headers = {
+                'Authorization': `token ${token}`
             };
         let { result, data } = await fetchSource({
             method: 'get',
-            url: configLink
+            url: configLink,
+            headers
         });
         if (result === 'fail' && data.indexOf('404') > 0) {
             let response = await fetchSource({
                 method: 'get',
-                url: repositoryLink
+                url: repositoryLink,
+                headers
             });
             if (response.result === 'fail' && response.data.indexOf('404') > 0) {
                 return await storage.set({
@@ -63,7 +71,8 @@ const sync = {
         else if (result === 'ok') {
             let response = await fetchSource({
                 method: 'get',
-                url: commitsLink
+                url: commitsLink,
+                headers
             });
             if (response.result === 'ok') {
                 let dateString = JSON.parse(response.data).commit.message,
@@ -119,7 +128,7 @@ const sync = {
         let response = await fetchSource({
             method: 'put',
             url: configLink,
-            headers: { 'Content-Type': 'application/json' },
+            headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
             body: JSON.stringify(body)
         });
         if (response.result === 'ok') {
