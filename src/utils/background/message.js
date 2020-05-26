@@ -19,7 +19,7 @@ const message = {
     },
     Initialized() {
         isInitialized = true;
-        browser.runtime.sendMessage({ action: 'initialize complete' });
+        if (Object.keys(ports).length > 0) browser.runtime.sendMessage({ action: 'initialize complete' });
     },
     async messageListener({ mid, action, data }, { name }) {
         const sendResponse = this.sendResponse.bind(this, name, mid);

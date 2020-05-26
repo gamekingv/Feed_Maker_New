@@ -1,5 +1,5 @@
 <template>
-    <draggable :options="{ animation: 100, handle: '.drag-handler' }" v-model="parserSteps">
+    <draggable :animation="100" handle=".drag-handler" v-model="parserSteps">
         <v-toolbar :key="parserStep.id" class="mb-2" dense v-for="(parserStep, i) in parserSteps">
             <v-toolbar-items>
                 <v-subheader class="pl-0" v-text="i + 1"></v-subheader>

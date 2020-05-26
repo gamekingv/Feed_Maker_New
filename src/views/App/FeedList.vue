@@ -1,5 +1,5 @@
 <template>
-    <draggable :options="{ animation: 100 }" v-model="feeds">
+    <draggable :animation="100" v-model="feeds">
         <template v-for="feed in group.feeds">
             <v-hover :key="feed.id">
                 <v-list-tile
@@ -44,14 +44,14 @@
                                         <div :class="`custom-feed-icon-${feed.id}`"></div>
                                     </v-avatar>
                                     <v-avatar :size="22" tile v-else>
-                                        <v-icon v-text="feed.icon ? feed.icon : 'insert_drive_file'"/>
+                                        <v-icon v-text="feed.icon ? feed.icon : 'insert_drive_file'" />
                                     </v-avatar>
                                 </v-badge>
                             </v-badge>
                         </v-fade-transition>
                     </v-list-tile-action>
                     <v-list-tile-content>
-                        <v-list-tile-title :class="{'grey--text': !feed.active || !group.active}" v-text="feed.name"/>
+                        <v-list-tile-title :class="{'grey--text': !feed.active || !group.active}" v-text="feed.name" />
                     </v-list-tile-content>
                 </v-list-tile>
             </v-hover>

@@ -84,7 +84,8 @@ const sync = {
                 else {
                     let newConfigResponse = await fetchSource({
                         method: 'get',
-                        url: JSON.parse(data).download_url
+                        url: JSON.parse(data).download_url,
+                        headers
                     });
                     if (newConfigResponse.result === 'ok') {
                         let newConfig = JSON.parse(decodeURIComponent(newConfigResponse.data));

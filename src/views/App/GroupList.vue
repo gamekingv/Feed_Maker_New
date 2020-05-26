@@ -27,7 +27,7 @@
                 </v-tooltip>
             </v-list-tile-action>
         </v-list-tile>
-        <draggable :options="{ animation: 100 }" v-model="groups">
+        <draggable :animation="100" v-model="groups">
             <v-list-group :append-icon="group.feeds.length > 0 ? $vuetify.icons.expand : ''" :key="group.id" :ref="group.id" v-for="group in groups">
                 <div slot="activator">
                     <v-hover>

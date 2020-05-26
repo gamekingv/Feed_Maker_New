@@ -10,7 +10,7 @@
                             </v-toolbar-items>
                             <v-toolbar-title>Feed Maker</v-toolbar-title>
                         </v-toolbar>
-                        <v-flex style="scrollbar-width: none; overflow-y: scroll;">
+                        <v-flex class="no-scrollbar" style="scrollbar-width: none; overflow-y: scroll;">
                             <group-list />
                         </v-flex>
                     </v-layout>

@@ -76,6 +76,12 @@ module.exports = {
       filename: 'index.html',
       favicon: 'public/favicon.png',
       chunks: ['main']
+    }),
+
+    new HtmlWebpackPlugin({
+      template: 'background.html',
+      filename: 'background.html',
+      chunks: ['background']
     })
   ]
 }

@@ -8,3 +8,8 @@ html {
     scrollbar-width: thin;
     scrollbar-color: rgb(94, 94, 94) transparent;
 }
+
+html::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
