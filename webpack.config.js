@@ -1,6 +1,7 @@
 var resolve = require('path').resolve
 var webpack = require('webpack')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   entry: {
@@ -82,7 +83,13 @@ module.exports = {
       template: 'background.html',
       filename: 'background.html',
       chunks: ['background']
-    })
+    }),
+
+    new CopyWebpackPlugin([
+      {
+        from: 'node_modules/webextension-polyfill/dist/browser-polyfill.min.js'
+      }
+    ])
   ]
 }
 
