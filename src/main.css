@@ -9,7 +9,23 @@ html {
     scrollbar-color: rgb(94, 94, 94) transparent;
 }
 
+::-webkit-resizer,
+::-webkit-scrollbar-thumb {
+    background: rgb(94, 94, 94);
+}
+
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+::-webkit-scrollbar-corner,
+::-webkit-scrollbar-track {
+    background: 0 0;
+}
+
 html::-webkit-scrollbar,
+body::-webkit-scrollbar,
 .no-scrollbar::-webkit-scrollbar {
     display: none;
 }
