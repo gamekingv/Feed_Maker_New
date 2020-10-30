@@ -27,7 +27,6 @@ const crawler = {
     },
     async fetchSource(feed) {
         function modifyHeader(details) {
-            //browser.webRequest.onBeforeSendHeaders.removeListener(modifyHeader);
             for (let name in feed.headers) {
                 let gotName = false;
                 for (let requestHeader of details.requestHeaders) {
@@ -40,7 +39,7 @@ const crawler = {
                     details.requestHeaders.push({ name: name, value: feed.headers[name] });
                 }
             }
-            console.log(details.requestHeaders);
+            setTimeout(() => browser.webRequest.onBeforeSendHeaders.removeListener(modifyHeader), 1000);
             return { requestHeaders: details.requestHeaders };
         }
         browser.webRequest.onBeforeSendHeaders.addListener(modifyHeader, { urls: [feed.url] }, ['blocking', 'requestHeaders', 'extraHeaders']);
